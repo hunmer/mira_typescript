@@ -1,7 +1,7 @@
-import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Stats } from 'fs';
+import { LibraryServerDataSQLite } from '../lib/LibraryServerDataSQLite';
 
 interface FileImportOptions {
   maxFolderDepth?: number;
@@ -138,7 +138,7 @@ export class PathFilesImporter {
     let currentParentId: number | null = null;
     for (const part of parts) {
       // 检查文件夹是否已存在
-      const existingFolder = await this.libraryData.findFolderByName(part, currentParentId);
+      const existingFolder: Record<string, any> | null = await this.libraryData.findFolderByName(part, currentParentId);
       if (existingFolder) {
         currentParentId = existingFolder.id;
         continue;
