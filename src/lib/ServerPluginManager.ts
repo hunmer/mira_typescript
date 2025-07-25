@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { ILibraryServerData } from './ILibraryServerData';
-import { MiraServer } from './WebSocketServer';
+import { MiraWebsocketServer } from './WebSocketServer';
 
 export interface PluginConfig {
     name: string;
@@ -11,12 +11,12 @@ export interface PluginConfig {
 
 export class ServerPluginManager {
     private pluginsDir: string;
-    private server: MiraServer;
+    private server: MiraWebsocketServer;
     private dbService: ILibraryServerData;
     private pluginsConfigPath: string;
     private loadedPlugins: Map<string, any> = new Map();
 
-    constructor(server: MiraServer, dbService: ILibraryServerData, pluginsDir: string = path.join(__dirname, 'plugins')) {
+    constructor(server: MiraWebsocketServer, dbService: ILibraryServerData, pluginsDir: string = path.join(__dirname, 'plugins')) {
         this.pluginsDir = pluginsDir;
         this.server = server;
         this.dbService = dbService;

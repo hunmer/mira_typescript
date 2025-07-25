@@ -9,51 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MiraServer = void 0;
+exports.MiraWebsocketServer = void 0;
 const ws_1 = require("ws");
-const LibraryServerDataSQLite_1 = require("./LibraryServerDataSQLite");
-const LibraryService_1 = require("./LibraryService");
 const WebSocketRouter_1 = require("./WebSocketRouter");
 const LibraryList_1 = require("./LibraryList");
-const ServerPluginManager_1 = require("./plugins/ServerPluginManager");
-class MiraServer {
-    constructor(port) {
+const event_manager_1 = require("./event-manager");
+class MiraWebsocketServer {
+    constructor(port, backend) {
         this.libraryClients = {};
-        this.connecting = false;
-        this.libraryServices = [];
         this.port = port;
-        this.pluginManager = new ServerPluginManager_1.ServerPluginManager();
-        this.initializePlugins();
-    }
-    initializePlugins() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.pluginManager.loadPlugins();
-        });
-    }
-    loadLibrary(dbConfig) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const dbServer = new LibraryServerDataSQLite_1.LibraryServerDataSQLite(this, dbConfig);
-            yield dbServer.initialize();
-            this.libraryServices.push(dbServer);
-            return dbServer;
-        });
-    }
-    getLibraryService(libraryId) {
-        const dbService = this.libraryServices.find((library) => library.getLibraryId() === libraryId);
-        if (!dbService)
-            throw new Error(`Library ${libraryId} not found`);
-        return new LibraryService_1.LibraryService(dbService);
-    }
-    libraryExists(libraryId) {
-        return this.libraryServices.some((library) => library.getLibraryId() === libraryId);
-    }
-    get isConnecting() {
-        return this.connecting;
+        this.backend = backend;
+        this.httpServer = this.backend.httpServer;
+        this.libraries = this.backend.libraries;
     }
     start(basePath) {
         return __awaiter(this, void 0, void 0, function* () {
             this.wss = new ws_1.WebSocketServer({ port: this.port });
-            this.connecting = true;
             this.wss.on('connection', (ws) => {
                 this.handleConnection(ws);
             });
@@ -61,9 +32,9 @@ class MiraServer {
         });
     }
     broadcastToClients(eventName, eventData) {
-        const dbService = this.libraryServices.find((library) => library.getLibraryId() === eventData.libraryId);
+        const dbService = this.libraries.all().find((library) => library.getLibraryId() === eventData.libraryId);
         if (dbService) {
-            dbService.getEventManager().broadcastToClients(eventName, { eventName, data: eventData });
+            dbService.getEventManager().broadcast(eventName, new event_manager_1.EventArgs(eventName, eventData));
         }
     }
     sendToWebsocket(ws, data) {
@@ -71,9 +42,9 @@ class MiraServer {
         ws.send(JSON.stringify(data));
     }
     broadcastPluginEvent(eventName, data) {
-        const dbService = this.libraryServices.find((library) => library.getLibraryId() === data.libraryId);
+        const dbService = this.libraries.all().find((library) => library.getLibraryId() === data.libraryId);
         if (dbService) {
-            dbService.getEventManager().broadcast(eventName, { eventName, data });
+            dbService.getEventManager().broadcast(eventName, new event_manager_1.EventArgs(eventName, data));
         }
     }
     handleConnection(ws) {
@@ -116,7 +87,7 @@ class MiraServer {
             const libraryId = row.libraryId;
             const data = payload.data || {};
             const recordType = payload.type;
-            const exists = this.libraryExists(libraryId);
+            const exists = this.libraries.exists(libraryId);
             if (action === 'open' && recordType === 'library') {
                 const library = data.library;
                 try {
@@ -129,13 +100,16 @@ class MiraServer {
                                 msg: `Library not found`
                             });
                         }
-                        service = new LibraryService_1.LibraryService(yield this.loadLibrary(library));
+                        service = yield this.libraries.load(library);
                     }
                     else {
-                        service = this.getLibraryService(libraryId);
+                        service = this.libraries.get(libraryId);
+                        if (service == null)
+                            return;
                     }
                     const result = yield service.connectLibrary(library);
-                    this.sendToWebsocket(ws, { event: 'connected', data: result });
+                    this.sendToWebsocket(ws, { eventName: 'connected', data: result });
+                    this.broadcastPluginEvent('client::connected', { libraryId: libraryId });
                 }
                 catch (err) {
                     this.sendToWebsocket(ws, {
@@ -152,7 +126,7 @@ class MiraServer {
                 });
                 return;
             }
-            const dbService = this.libraryServices.find((library) => library.getLibraryId() === libraryId);
+            const dbService = this.libraries.all().find((library) => library.getLibraryId() === libraryId);
             if (!dbService) {
                 this.sendToWebsocket(ws, {
                     status: 'error',
@@ -173,8 +147,8 @@ class MiraServer {
             }
         });
     }
-    broadcastLibraryEvent(libraryId, eventName, args) {
-        const message = JSON.stringify({ event: eventName, data: args });
+    broadcastLibraryEvent(libraryId, eventName, data) {
+        const message = JSON.stringify({ eventName: eventName, data: data });
         if (this.libraryClients[libraryId]) {
             this.libraryClients[libraryId].forEach(client => {
                 if (client.readyState === ws_1.WebSocket.OPEN) {
@@ -186,12 +160,10 @@ class MiraServer {
     stop() {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            yield Promise.all(this.libraryServices.map(dbService => dbService.close()));
+            this.libraries.all().map(dbService => dbService.close());
             (_a = this.wss) === null || _a === void 0 ? void 0 : _a.close();
-            this.connecting = false;
-            this.libraryServices = [];
             console.log('WebSocket server stopped');
         });
     }
 }
-exports.MiraServer = MiraServer;
+exports.MiraWebsocketServer = MiraWebsocketServer;

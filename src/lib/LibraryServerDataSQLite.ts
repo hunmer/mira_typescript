@@ -4,28 +4,44 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { EventManager } from './event-manager';
 import { ServerPluginManager } from './ServerPluginManager';
-import { MiraServer } from './WebSocketServer';
+import { MiraWebsocketServer } from './WebSocketServer';
+import { MiraHttpServer } from './HttpServer';
 
 export class LibraryServerDataSQLite implements ILibraryServerData {
   private db: Database | null = null;
   private inTransaction = false;
   private enableHash: boolean;
-  private readonly server: any; // 根据实际类型定义
+  private readonly websocketServer: MiraWebsocketServer;
   private eventManager: EventManager;
-  private readonly config: Record<string, any>;    
+  private readonly config: Record<string, any>;
   private pluginManager: ServerPluginManager;
+  private httpServer: MiraHttpServer;
 
   private async initializePlugins(): Promise<void> {
-      await this.pluginManager.loadPlugins();
+    await this.pluginManager.loadPlugins();
   }
 
-  constructor(server: any, config: Record<string, any>) {
-    this.server = server;
+
+  constructor(websocketServer: MiraWebsocketServer, httpServer: MiraHttpServer, config: Record<string, any>) {
+    this.websocketServer = websocketServer;
     this.config = config;
+    this.httpServer = httpServer;
     this.eventManager = new EventManager();
-    this.pluginManager = new ServerPluginManager(server, this);
+    this.pluginManager = new ServerPluginManager(websocketServer, this as unknown as ILibraryServerData);
     this.initializePlugins();
     this.enableHash = config.customFields?.enableHash ?? false;
+  }
+
+
+  async connectLibrary(config: Record<string, any>): Promise<Record<string, any>> {
+    const tags = await this.getAllTags();
+    const folders = await this.getAllFolders();
+    return {
+      libraryId: this.getLibraryId(),
+      status: 'connected',
+      tags, folders,
+      config
+    };
   }
 
   async initialize(): Promise<void> {
@@ -81,7 +97,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
 
   // 文件操作方法实现
   async createFile(fileData: Record<string, any>): Promise<Record<string, any>> {
-    
+
 
 
     const result = await this.runSql(
@@ -309,11 +325,11 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const query = parentId !== undefined && parentId !== null
       ? 'SELECT * FROM folders WHERE title = ? AND parent_id = ? LIMIT 1'
       : 'SELECT * FROM folders WHERE title = ? AND parent_id IS NULL LIMIT 1';
-    
+
     const params = parentId !== undefined && parentId !== null
       ? [name, parentId]
       : [name];
-    
+
     const rows = await this.getSql(query, params);
     return rows.length > 0 ? this.rowToMap(rows[0]) : null;
   }
@@ -541,21 +557,27 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return path.join(libraryPath, folderName);
   }
 
+  async getItemFilePath(item: Record<string, any>): Promise<string> {
+    const libraryPath = await this.getLibraryPath();
+    const folderName = await this.getFolderName(item.folder_id);
+    return path.join(libraryPath, folderName, item.name);
+  }
+
   async getItemThumbPath(
     item: Record<string, any>,
-    options?: { checkExists: boolean }
+    options?: { isNetworkImage: boolean }
   ): Promise<string> {
     const libraryPath = await this.getLibraryPath();
     const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
     const thumbFile = path.join(libraryPath, 'thumbs', fileName);
 
-    if (options?.checkExists) {
-      return fs.existsSync(thumbFile) ? thumbFile : '';
+    if (options?.isNetworkImage) {
+      return this.httpServer.getPublicURL(`thumbs/${this.config.id}`);
     }
     return thumbFile;
   }
 
-  getEventManager(): any {
+  getEventManager(): EventManager {
     return this.eventManager;
   }
 
@@ -586,7 +608,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       case 'copy':
         const destDir = path.dirname(destPath);
         if (!fs.existsSync(destDir)) {
-            fs.mkdirSync(destDir, { recursive: true });
+          fs.mkdirSync(destDir, { recursive: true });
         }
         fs.copyFileSync(filePath, destPath);
         fileData.path = destPath;
@@ -594,7 +616,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       case 'move':
         const destDir2 = path.dirname(destPath);
         if (!fs.existsSync(destDir2)) {
-            fs.mkdirSync(destDir2, { recursive: true });
+          fs.mkdirSync(destDir2, { recursive: true });
         }
         fs.renameSync(filePath, destPath);
         fileData.path = destPath;
@@ -674,7 +696,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   async queryFile(query: Record<string, any>): Promise<Record<string, any>[]> {
     const { result } = await this.getFiles({ filters: query });
     return Promise.all(result.map(async file => {
-      file['thumb'] = await this.getItemThumbPath(file, { checkExists: false });
+      file['thumb'] = await this.getItemThumbPath(file, { isNetworkImage: true });
       return file;
     }))
   }

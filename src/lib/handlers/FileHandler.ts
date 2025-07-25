@@ -2,11 +2,11 @@ import { MessageHandler } from './MessageHandler';
 import { WebSocket, WebSocketServer } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
 import { LibraryServerDataSQLite } from '../LibraryServerDataSQLite';
-import { MiraServer } from '../WebSocketServer';
+import { MiraWebsocketServer } from '../WebSocketServer';
 
 export class FileHandler extends MessageHandler {
   constructor(
-    server: MiraServer,
+    server: MiraWebsocketServer,
     dbService: LibraryServerDataSQLite,
     ws: WebSocket,
     message: WebSocketMessage
@@ -27,8 +27,8 @@ export class FileHandler extends MessageHandler {
         case 'create':
           const path = data['path'];
           result = path != null ? await this.dbService.createFileFromPath(path, {}) : await this.dbService.createFile(data);
-          this.server.broadcastPluginEvent('file::created', result);
-          this.server.sendToWebsocket(this.ws, { event: 'file::uploaded', data: {path} });
+          this.server.broadcastPluginEvent('file::created', {...result, libraryId: this.message.libraryId});
+          this.server.sendToWebsocket(this.ws, { eventName: 'file::uploaded', data: {path} });
           break;
         case 'update':
           result = await this.dbService.updateFile(data.id, data);

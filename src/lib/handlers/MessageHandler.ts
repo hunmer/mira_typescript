@@ -2,11 +2,11 @@ import { LibraryServerDataSQLite } from '../LibraryServerDataSQLite';
 import { WebSocket, WebSocketServer } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
 import { response } from 'express';
-import { MiraServer } from '../WebSocketServer';
+import { MiraWebsocketServer } from '../WebSocketServer';
 
 export abstract class MessageHandler {
   constructor(
-    protected server: MiraServer,
+    protected server: MiraWebsocketServer,
     protected dbService: LibraryServerDataSQLite,
     protected ws: WebSocket,
     protected message: WebSocketMessage

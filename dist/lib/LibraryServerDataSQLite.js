@@ -46,14 +46,37 @@ exports.LibraryServerDataSQLite = void 0;
 const sqlite3_1 = require("sqlite3");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
+const event_manager_1 = require("./event-manager");
+const ServerPluginManager_1 = require("./ServerPluginManager");
 class LibraryServerDataSQLite {
-    constructor(server, config) {
+    initializePlugins() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.pluginManager.loadPlugins();
+        });
+    }
+    constructor(websocketServer, httpServer, config) {
         var _a, _b;
         this.db = null;
         this.inTransaction = false;
-        this.server = server;
+        this.websocketServer = websocketServer;
         this.config = config;
+        this.httpServer = httpServer;
+        this.eventManager = new event_manager_1.EventManager();
+        this.pluginManager = new ServerPluginManager_1.ServerPluginManager(websocketServer, this);
+        this.initializePlugins();
         this.enableHash = (_b = (_a = config.customFields) === null || _a === void 0 ? void 0 : _a.enableHash) !== null && _b !== void 0 ? _b : false;
+    }
+    connectLibrary(config) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tags = yield this.getAllTags();
+            const folders = yield this.getAllFolders();
+            return {
+                libraryId: this.getLibraryId(),
+                status: 'connected',
+                tags, folders,
+                config
+            };
+        });
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -521,13 +544,20 @@ class LibraryServerDataSQLite {
             return path.join(libraryPath, folderName);
         });
     }
+    getItemFilePath(item) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const libraryPath = yield this.getLibraryPath();
+            const folderName = yield this.getFolderName(item.folder_id);
+            return path.join(libraryPath, folderName, item.name);
+        });
+    }
     getItemThumbPath(item, options) {
         return __awaiter(this, void 0, void 0, function* () {
             const libraryPath = yield this.getLibraryPath();
             const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
             const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-            if (options === null || options === void 0 ? void 0 : options.checkExists) {
-                return fs.existsSync(thumbFile) ? thumbFile : '';
+            if (options === null || options === void 0 ? void 0 : options.isNetworkImage) {
+                return this.httpServer.getPublicURL(`thumbs/${this.config.id}`);
             }
             return thumbFile;
         });
@@ -650,7 +680,7 @@ class LibraryServerDataSQLite {
         return __awaiter(this, void 0, void 0, function* () {
             const { result } = yield this.getFiles({ filters: query });
             return Promise.all(result.map((file) => __awaiter(this, void 0, void 0, function* () {
-                file['thumb'] = yield this.getItemThumbPath(file, { checkExists: false });
+                file['thumb'] = yield this.getItemThumbPath(file, { isNetworkImage: true });
                 return file;
             })));
         });

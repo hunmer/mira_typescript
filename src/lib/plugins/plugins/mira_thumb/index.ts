@@ -1,19 +1,18 @@
 import { EventEmitter } from 'events';
 import { ILibraryServerData } from '../../../ILibraryServerData';
-import { MiraServer } from '../../../WebSocketServer';
+import { MiraWebsocketServer } from '../../../WebSocketServer';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
+import { EventArgs } from '../../../event-manager';
 
-enum FileType { Image, Video }
-
-export class ThumbPlugin {
-    private readonly server: MiraServer;
+ class ThumbPlugin {
+    private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
     private readonly eventEmitter: EventEmitter;
 
-    constructor(server: MiraServer, dbService: ILibraryServerData) {
+    constructor(server: MiraWebsocketServer, dbService: ILibraryServerData) {
         this.server = server;
         this.dbService = dbService;
         this.eventEmitter = dbService.getEventManager();
@@ -23,8 +22,9 @@ export class ThumbPlugin {
         this.eventEmitter.on('file::deleted', this.onFileDeleted.bind(this));
     }
 
-    private async onFileCreated(item: any): Promise<void> {
+    private async onFileCreated(event: EventArgs): Promise<void> {
         try {
+            const item = event.args;
             const filePath = item.path;
             const fileType = this.getFileType(filePath);
             if (!fileType) return;
@@ -36,18 +36,18 @@ export class ThumbPlugin {
                 fs.mkdirSync(thumbDir, { recursive: true });
             }
 
-            switch (fileType as FileType) {
-                case FileType.Image:
+            switch (fileType ) {
+                case 'image':
                     await this.generateImageThumbnail(filePath, thumbPath);
                     break;
-                case FileType.Video:
+                case 'video':
                     await this.generateVideoThumbnail(filePath, thumbPath);
                     break;
             }
 
-            item.thumbPath = thumbPath;
+            item.thumb = thumbPath;
             await this.dbService.updateFile(item.id, { thumb: 1 });
-            this.eventEmitter.emit('thumbnail::generated', item);
+            this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', item);
         } catch (err) {
             console.error('Failed to generate thumbnail:', err);
         }
@@ -100,17 +100,19 @@ export class ThumbPlugin {
         });
     }
 
-    private getFileType(filePath: string): FileType | null {
+    private getFileType(filePath: string): string | null {
         const ext = path.extname(filePath).toLowerCase().slice(1);
         const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'webm'];
 
-        if (imageExtensions.includes(ext)) return FileType.Image;
-        if (videoExtensions.includes(ext)) return FileType.Video;
+        if (imageExtensions.includes(ext)) return 'image';
+        if (videoExtensions.includes(ext)) return 'video';
         return null;
     }
 }
 
-export function init(server: MiraServer, dbService: ILibraryServerData): ThumbPlugin {
+export function init(server: MiraWebsocketServer, dbService: ILibraryServerData): ThumbPlugin {
     return new ThumbPlugin(server, dbService);
 }
+
+

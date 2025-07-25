@@ -28,8 +28,8 @@ class FileHandler extends MessageHandler_1.MessageHandler {
                     case 'create':
                         const path = data['path'];
                         result = path != null ? yield this.dbService.createFileFromPath(path, {}) : yield this.dbService.createFile(data);
-                        this.server.broadcastPluginEvent('file::created', result);
-                        this.server.sendToWebsocket(this.ws, { event: 'file::uploaded', data: { path } });
+                        this.server.broadcastPluginEvent('file::created', Object.assign(Object.assign({}, result), { libraryId: this.message.libraryId }));
+                        this.server.sendToWebsocket(this.ws, { eventName: 'file::uploaded', data: { path } });
                         break;
                     case 'update':
                         result = yield this.dbService.updateFile(data.id, data);

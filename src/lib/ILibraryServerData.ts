@@ -1,6 +1,7 @@
 import { EventManager } from "./event-manager";
 
 export interface ILibraryServerData {
+  connectLibrary(config: Record<string, any>): Promise<Record<string, any>>;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
   updateFile(id: number, fileData: Record<string, any>): Promise<boolean>;
@@ -61,7 +62,7 @@ export interface ILibraryServerData {
   getItemPath(item: Record<string, any>): Promise<string>;
   getItemThumbPath(
     item: Record<string, any>,
-    options?: { checkExists: boolean }
+    options?: { isNetworkImage: boolean }
   ): Promise<string>;
   getEventManager(): EventManager; // 需要根据实际类型定义
 }

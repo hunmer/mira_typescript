@@ -14,8 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpRouter = void 0;
 const express_1 = __importDefault(require("express"));
-const LibraryServerDataSQLite_1 = require("./LibraryServerDataSQLite");
-const LibraryService_1 = require("./LibraryService");
 class HttpRouter {
     constructor() {
         this.libraryServices = [];
@@ -24,42 +22,9 @@ class HttpRouter {
     }
     setupRoutes() {
         this.router.post('/libraries/:libraryId/connect', (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { libraryId } = req.params;
-                const libraryConfig = req.body;
-                const existingService = this.libraryServices.find(service => service.getLibraryId() === libraryId);
-                if (existingService) {
-                    return res.json({ status: 'connected', data: existingService.getLibraryInfo() });
-                }
-                const dbService = new LibraryServerDataSQLite_1.LibraryServerDataSQLite(this, libraryConfig);
-                yield dbService.initialize();
-                this.libraryServices.push(dbService);
-                const service = new LibraryService_1.LibraryService(dbService);
-                const result = yield service.connectLibrary(libraryConfig);
-                res.json({ status: 'connected', result });
-            }
-            catch (err) {
-                res.status(500).json({
-                    status: 'error',
-                    message: err instanceof Error ? err.message : 'Unknown error'
-                });
-            }
         }));
         this.router.get('/libraries/:libraryId/status', (req, res) => {
-            const { libraryId } = req.params;
-            const service = this.libraryServices.find(service => service.getLibraryId() === libraryId);
-            if (!service) {
-                return res.status(404).json({
-                    status: 'error',
-                    message: 'Library not found'
-                });
-            }
-            res.json({
-                status: 'ok',
-                data: service.getLibraryInfo()
-            });
         });
-        // Add more routes as needed
     }
     getRouter() {
         return this.router;

@@ -8,12 +8,16 @@ export class EventArgs {
   /** 事件发生时间 */
   readonly whenOccurred: Date;
 
+  /** 事件参数 */
+  args: Record<string, any>;
+
   /**
    * 创建一个事件参数实例
    * @param eventName 事件名称，默认为空字符串
    */
-  constructor(eventName: string = '') {
+  constructor(eventName: string = '', args: Record<string, any> = {}) {
     this.eventName = eventName;
+    this.args = args;
     this.whenOccurred = new Date();
   }
 }

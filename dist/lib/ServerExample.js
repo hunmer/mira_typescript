@@ -8,35 +8,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MiraBackend = void 0;
 const WebSocketServer_1 = require("./WebSocketServer");
-const HttpRouter_1 = require("./HttpRouter");
-const express_1 = __importDefault(require("express"));
-const http_1 = __importDefault(require("http"));
-// 创建Express应用
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
-// 创建HTTP路由
-const httpRouter = new HttpRouter_1.HttpRouter();
-app.use('/api', httpRouter.getRouter());
-// 创建HTTP服务器
-const server = http_1.default.createServer(app);
-// 创建WebSocket服务器  
-const wsServer = new WebSocketServer_1.MiraServer(8081);
-wsServer.start('/ws');
-// 启动HTTP服务器
-const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(`HTTP server running on port ${PORT}`);
-});
-// 处理退出
-process.on('SIGINT', () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Shutting down servers...');
-    yield wsServer.stop();
-    yield httpRouter.close();
-    server.close();
-    process.exit();
-}));
+const HttpServer_1 = require("./HttpServer");
+const LibraryStorage_1 = require("./LibraryStorage");
+class MiraBackend {
+    constructor() {
+        this.libraries = new LibraryStorage_1.LibraryStorage(this);
+        this.httpServer = new HttpServer_1.MiraHttpServer(3000, this);
+        this.webSocketServer = new WebSocketServer_1.MiraWebsocketServer(8081, this);
+        this.webSocketServer.start('/ws');
+        // 处理退出
+        process.on('SIGINT', () => __awaiter(this, void 0, void 0, function* () {
+            console.log('Shutting down servers...');
+            yield this.webSocketServer.stop();
+            yield this.httpServer.stop();
+            process.exit();
+        }));
+    }
+}
+exports.MiraBackend = MiraBackend;
+const app = new MiraBackend();
