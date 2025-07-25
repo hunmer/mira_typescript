@@ -557,24 +557,21 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return path.join(libraryPath, folderName);
   }
 
-  async getItemFilePath(item: Record<string, any>): Promise<string> {
+  async getItemFilePath(item: Record<string, any>, options?: { isUrlFile: boolean }): Promise<string> {
     const libraryPath = await this.getLibraryPath();
     const folderName = await this.getFolderName(item.folder_id);
-    return path.join(libraryPath, folderName, item.name);
+    const filePath = path.join(libraryPath, folderName, item.name);
+    return options?.isUrlFile ? this.httpServer.getPublicURL(`file/${this.getLibraryId()}/${item.id}`): filePath
   }
 
   async getItemThumbPath(
     item: Record<string, any>,
-    options?: { isNetworkImage: boolean }
+    options?: { isUrlFile: boolean }
   ): Promise<string> {
     const libraryPath = await this.getLibraryPath();
     const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
     const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-
-    if (options?.isNetworkImage) {
-      return this.httpServer.getPublicURL(`thumbs/${this.config.id}`);
-    }
-    return thumbFile;
+      return  options?.isUrlFile ? this.httpServer.getPublicURL(`thumb/${this.getLibraryId()}/${item.id}`): thumbFile
   }
 
   getEventManager(): EventManager {
@@ -696,8 +693,10 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   async queryFile(query: Record<string, any>): Promise<Record<string, any>[]> {
     const { result } = await this.getFiles({ filters: query });
     return Promise.all(result.map(async file => {
-      file['thumb'] = await this.getItemThumbPath(file, { isNetworkImage: true });
-      return file;
+      return {...file, ...{
+        thumb: await this.getItemThumbPath(file, { isUrlFile: true }),
+        path: await this.getItemFilePath(file, { isUrlFile: true }),
+      }};
     }))
   }
 

@@ -60,9 +60,10 @@ export interface ILibraryServerData {
   getAllFolders(): Promise<Record<string, any>[]>;
   getLibraryId(): string;
   getItemPath(item: Record<string, any>): Promise<string>;
+  getItemFilePath(item: Record<string, any>, options?: { isUrlFile: boolean }): Promise<string>;
   getItemThumbPath(
     item: Record<string, any>,
-    options?: { isNetworkImage: boolean }
+    options?: { isUrlFile: boolean }
   ): Promise<string>;
   getEventManager(): EventManager; // 需要根据实际类型定义
 }

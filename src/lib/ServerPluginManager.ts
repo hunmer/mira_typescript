@@ -1,7 +1,8 @@
-import path from 'path';
-import fs from 'fs';
+
 import { ILibraryServerData } from './ILibraryServerData';
 import { MiraWebsocketServer } from './WebSocketServer';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface PluginConfig {
     name: string;
