@@ -52,6 +52,7 @@ export class HttpRouter {
         const fileExt = path.extname(filePath).toLowerCase();
         const contentType = this.getContentType(fileExt);
         res.setHeader('Content-Type', contentType);
+         fs.createReadStream(filePath).pipe(res);
       }
     });
   }

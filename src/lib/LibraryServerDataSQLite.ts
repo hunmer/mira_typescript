@@ -40,7 +40,6 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       libraryId: this.getLibraryId(),
       status: 'connected',
       tags, folders,
-      config
     };
   }
 
@@ -258,7 +257,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     ]);
 
     return {
-      result: rows.map(row => this.rowToMap(row)),
+      result: await this.processingFiles(rows.map(row => this.rowToMap(row))),
       limit,
       offset,
       total: countRows[0].total,
@@ -692,8 +691,12 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   // 查询方法
   async queryFile(query: Record<string, any>): Promise<Record<string, any>[]> {
     const { result } = await this.getFiles({ filters: query });
-    return Promise.all(result.map(async file => {
-      return {...file, ...{
+    return this.processingFiles(result);
+  }
+
+  async processingFiles(files: Record<string, any>[]) {
+    return Promise.all(files.map(async (file) => {
+      return { ...file, ...{
         thumb: await this.getItemThumbPath(file, { isUrlFile: true }),
         path: await this.getItemFilePath(file, { isUrlFile: true }),
       }};

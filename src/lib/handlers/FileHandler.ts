@@ -22,7 +22,7 @@ export class FileHandler extends MessageHandler {
       let result;
       switch(action) {
         case 'read':
-          result = await this.dbService.queryFile(data.query);
+          result = await this.dbService.getFiles({filters: data.query});
           break;
         case 'create':
           const path = data['path'];
@@ -40,7 +40,7 @@ export class FileHandler extends MessageHandler {
           throw new Error(`Unsupported file action: ${action}`);
       }
 
-      this.sendResponse({result});
+      this.sendResponse(result as Record<string, any>);
     } catch (err) {
       this.sendError(err instanceof Error ? err.message : 'File operation failed');
     }
