@@ -1,3 +1,5 @@
+import { EventManager } from "./event-manager";
+
 export interface ILibraryServerData {
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
@@ -61,5 +63,5 @@ export interface ILibraryServerData {
     item: Record<string, any>,
     options?: { checkExists: boolean }
   ): Promise<string>;
-  getEventManager(): any; // 需要根据实际类型定义
+  getEventManager(): EventManager; // 需要根据实际类型定义
 }

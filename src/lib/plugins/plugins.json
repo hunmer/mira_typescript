@@ -1,0 +1,7 @@
+[
+    {
+        "name": "mira_thumb",
+        "enabled": true,
+        "path": "plugins/mira_thumb"
+    }
+]

@@ -36,7 +36,7 @@ class HttpRouter {
                 this.libraryServices.push(dbService);
                 const service = new LibraryService_1.LibraryService(dbService);
                 const result = yield service.connectLibrary(libraryConfig);
-                res.json({ status: 'connected', data: result });
+                res.json({ status: 'connected', result });
             }
             catch (err) {
                 res.status(500).json({

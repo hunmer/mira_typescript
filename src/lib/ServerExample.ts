@@ -2,11 +2,14 @@ import { MiraServer } from './WebSocketServer';
 import { HttpRouter } from './HttpRouter';
 import express from 'express';
 import http from 'http';
+import { EventManager } from './event-manager';
 import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
 
 // 创建Express应用
 const app = express();
 app.use(express.json());
+
+const eventManager = new EventManager();
 
 // 创建HTTP路由
 const httpRouter = new HttpRouter();

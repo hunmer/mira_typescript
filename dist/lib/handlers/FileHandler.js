@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileHandler = void 0;
 const MessageHandler_1 = require("./MessageHandler");
 class FileHandler extends MessageHandler_1.MessageHandler {
-    constructor(dbService, ws, message) {
-        super(dbService, ws, message);
+    constructor(server, dbService, ws, message) {
+        super(server, dbService, ws, message);
     }
     handle() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -22,11 +22,14 @@ class FileHandler extends MessageHandler_1.MessageHandler {
                 const { data } = payload;
                 let result;
                 switch (action) {
-                    case 'query':
+                    case 'read':
                         result = yield this.dbService.queryFile(data.query);
                         break;
                     case 'create':
-                        result = yield this.dbService.createFile(data);
+                        const path = data['path'];
+                        result = path != null ? yield this.dbService.createFileFromPath(path, {}) : yield this.dbService.createFile(data);
+                        this.server.broadcastPluginEvent('file::created', result);
+                        this.server.sendToWebsocket(this.ws, { event: 'file::uploaded', data: { path } });
                         break;
                     case 'update':
                         result = yield this.dbService.updateFile(data.id, data);
@@ -37,7 +40,7 @@ class FileHandler extends MessageHandler_1.MessageHandler {
                     default:
                         throw new Error(`Unsupported file action: ${action}`);
                 }
-                this.sendResponse({ data: result });
+                this.sendResponse({ result });
             }
             catch (err) {
                 this.sendError(err instanceof Error ? err.message : 'File operation failed');

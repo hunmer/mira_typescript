@@ -25,7 +25,7 @@ export class HttpRouter {
           return res.json({ status: 'connected', data: existingService.getLibraryInfo() });
         }
 
-        const dbService = new LibraryServerDataSQLite(this, libraryConfig);
+        const dbService = new LibraryServerDataSQLite(undefined, libraryConfig);
         await dbService.initialize();
         this.libraryServices.push(dbService);
 

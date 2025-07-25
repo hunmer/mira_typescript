@@ -555,10 +555,18 @@ class LibraryServerDataSQLite {
                     // 保持原文件位置不变
                     break;
                 case 'copy':
+                    const destDir = path.dirname(destPath);
+                    if (!fs.existsSync(destDir)) {
+                        fs.mkdirSync(destDir, { recursive: true });
+                    }
                     fs.copyFileSync(filePath, destPath);
                     fileData.path = destPath;
                     break;
                 case 'move':
+                    const destDir2 = path.dirname(destPath);
+                    if (!fs.existsSync(destDir2)) {
+                        fs.mkdirSync(destDir2, { recursive: true });
+                    }
                     fs.renameSync(filePath, destPath);
                     fileData.path = destPath;
                     break;
@@ -641,7 +649,10 @@ class LibraryServerDataSQLite {
     queryFile(query) {
         return __awaiter(this, void 0, void 0, function* () {
             const { result } = yield this.getFiles({ filters: query });
-            return result;
+            return Promise.all(result.map((file) => __awaiter(this, void 0, void 0, function* () {
+                file['thumb'] = yield this.getItemThumbPath(file, { checkExists: false });
+                return file;
+            })));
         });
     }
     queryFolder(query) {

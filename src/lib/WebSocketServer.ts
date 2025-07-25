@@ -4,6 +4,7 @@ import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
 import { LibraryService } from './LibraryService';
 import { WebSocketRouter } from './WebSocketRouter';
 import { getLibrarysJson } from './LibraryList';
+import { ServerPluginManager } from './ServerPluginManager';
 
 interface LibraryClient {
   [libraryId: string]: WebSocket[];
@@ -24,7 +25,9 @@ export class MiraServer {
 
   constructor(port: number) {
     this.port = port;
+    
   }
+
 
   async loadLibrary(dbConfig: Record<string, any>): Promise<LibraryServerDataSQLite> {
     const dbServer = new LibraryServerDataSQLite(this, dbConfig);

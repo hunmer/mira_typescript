@@ -16,9 +16,12 @@ class LibraryService {
     }
     connectLibrary(config) {
         return __awaiter(this, void 0, void 0, function* () {
+            const tags = yield this.dbService.getAllTags();
+            const folders = yield this.dbService.getAllFolders();
             return {
-                id: this.dbService.getLibraryId(),
+                libraryId: this.dbService.getLibraryId(),
                 status: 'connected',
+                tags, folders,
                 config
             };
         });

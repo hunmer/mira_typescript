@@ -24,8 +24,8 @@ const httpRouter = new HttpRouter_1.HttpRouter();
 app.use('/api', httpRouter.getRouter());
 // 创建HTTP服务器
 const server = http_1.default.createServer(app);
-// 创建WebSocket服务器
-const wsServer = new WebSocketServer_1.WebSocketServer(8080);
+// 创建WebSocket服务器  
+const wsServer = new WebSocketServer_1.MiraServer(8081);
 wsServer.start('/ws');
 // 启动HTTP服务器
 const PORT = 3000;

@@ -2,13 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageHandler = void 0;
 class MessageHandler {
-    constructor(dbService, ws, message) {
+    constructor(server, dbService, ws, message) {
+        this.server = server;
         this.dbService = dbService;
         this.ws = ws;
         this.message = message;
     }
     sendResponse(data) {
-        const response = JSON.stringify(Object.assign(Object.assign({}, this.message), { payload: Object.assign(Object.assign({}, this.message.payload), { data }) }));
+        const response = JSON.stringify({
+            'requestId': this.message.requestId,
+            'libraryId': this.message.libraryId,
+            "status": "success",
+            data,
+        });
         console.log({ response });
         this.ws.send(response);
     }

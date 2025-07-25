@@ -2,18 +2,29 @@ import { Database } from 'sqlite3';
 import { ILibraryServerData } from './ILibraryServerData';
 import * as path from 'path';
 import * as fs from 'fs';
+import { EventManager } from './event-manager';
+import { ServerPluginManager } from './ServerPluginManager';
+import { MiraServer } from './WebSocketServer';
 
 export class LibraryServerDataSQLite implements ILibraryServerData {
   private db: Database | null = null;
   private inTransaction = false;
   private enableHash: boolean;
   private readonly server: any; // 根据实际类型定义
-  private eventManager: any; // 根据实际类型定义
-  private readonly config: Record<string, any>;
+  private eventManager: EventManager;
+  private readonly config: Record<string, any>;    
+  private pluginManager: ServerPluginManager;
+
+  private async initializePlugins(): Promise<void> {
+      await this.pluginManager.loadPlugins();
+  }
 
   constructor(server: any, config: Record<string, any>) {
     this.server = server;
     this.config = config;
+    this.eventManager = new EventManager();
+    this.pluginManager = new ServerPluginManager(server, this);
+    this.initializePlugins();
     this.enableHash = config.customFields?.enableHash ?? false;
   }
 

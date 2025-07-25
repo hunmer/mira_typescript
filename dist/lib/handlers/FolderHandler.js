@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FolderHandler = void 0;
 const MessageHandler_1 = require("./MessageHandler");
 class FolderHandler extends MessageHandler_1.MessageHandler {
-    constructor(dbService, ws, message) {
-        super(dbService, ws, message);
+    constructor(server, dbService, ws, message) {
+        super(server, dbService, ws, message);
     }
     handle() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -22,7 +22,10 @@ class FolderHandler extends MessageHandler_1.MessageHandler {
                 const { data } = payload;
                 let result;
                 switch (action) {
-                    case 'query':
+                    case 'all':
+                        result = yield this.dbService.getAllFolders();
+                        break;
+                    case 'read':
                         result = yield this.dbService.queryFolder(data.query);
                         break;
                     case 'create':
@@ -37,7 +40,7 @@ class FolderHandler extends MessageHandler_1.MessageHandler {
                     default:
                         throw new Error(`Unsupported folder action: ${action}`);
                 }
-                this.sendResponse({ data: result });
+                this.sendResponse({ result });
             }
             catch (err) {
                 this.sendError(err instanceof Error ? err.message : 'Folder operation failed');

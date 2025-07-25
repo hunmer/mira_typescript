@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LibraryHandler = void 0;
 const MessageHandler_1 = require("./MessageHandler");
 class LibraryHandler extends MessageHandler_1.MessageHandler {
-    constructor(dbService, ws, message) {
-        super(dbService, ws, message);
+    constructor(server, dbService, ws, message) {
+        super(server, dbService, ws, message);
     }
     handle() {
         return __awaiter(this, void 0, void 0, function* () {

@@ -15,19 +15,20 @@ const TagHandler_1 = require("./handlers/TagHandler");
 const FolderHandler_1 = require("./handlers/FolderHandler");
 const LibraryHandler_1 = require("./handlers/LibraryHandler");
 class WebSocketRouter {
-    static route(dbService, ws, message) {
+    static route(server, // 修改为any类型避免类型冲突
+    dbService, ws, message) {
         return __awaiter(this, void 0, void 0, function* () {
             const { payload } = message;
             // 根据资源类型路由到不同的处理器
             switch (payload.type) {
                 case 'file':
-                    return new FileHandler_1.FileHandler(dbService, ws, message);
+                    return new FileHandler_1.FileHandler(server, dbService, ws, message);
                 case 'tag':
-                    return new TagHandler_1.TagHandler(dbService, ws, message);
+                    return new TagHandler_1.TagHandler(server, dbService, ws, message);
                 case 'folder':
-                    return new FolderHandler_1.FolderHandler(dbService, ws, message);
+                    return new FolderHandler_1.FolderHandler(server, dbService, ws, message);
                 case 'library':
-                    return new LibraryHandler_1.LibraryHandler(dbService, ws, message);
+                    return new LibraryHandler_1.LibraryHandler(server, dbService, ws, message);
                 default:
                     return null;
             }
