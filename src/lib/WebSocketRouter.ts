@@ -5,6 +5,7 @@ import { FileHandler } from './handlers/FileHandler';
 import { TagHandler } from './handlers/TagHandler';
 import { FolderHandler } from './handlers/FolderHandler';
 import { LibraryHandler } from './handlers/LibraryHandler';
+import { PluginMessageHandler } from './handlers/PluginMessageHandler';
 
 export interface WebSocketMessage {
   action: string;
@@ -27,6 +28,8 @@ export class WebSocketRouter {
 
     // 根据资源类型路由到不同的处理器
     switch (payload.type) {
+      case 'plugin':
+        return new PluginMessageHandler(server, dbService, ws, message);
       case 'file':
         return new FileHandler(server, dbService, ws, message);
       case 'tag':

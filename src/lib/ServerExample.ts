@@ -9,6 +9,7 @@ export class MiraBackend {
 
   constructor() {
     this.libraries = new LibraryStorage(this);
+    this.libraries.loadAll().then((loaded) => console.log(`${loaded} Libraries loaded`));
     this.httpServer = new MiraHttpServer(3000, this);
     this.webSocketServer = new MiraWebsocketServer(8081, this);
     this.webSocketServer.start('/ws');

@@ -1,19 +1,18 @@
-import { MiraHttpServer } from "./HttpServer";
 import { LibraryServerDataSQLite } from "./LibraryServerDataSQLite";
 import { MiraBackend } from "./ServerExample";
-import { MiraWebsocketServer } from "./WebSocketServer";
+import { getLibrarysJson } from './LibraryList';
 
 export class LibraryStorage {
-   libraryServices: LibraryServerDataSQLite[] = [];
-   backend: MiraBackend;
+  libraryServices: LibraryServerDataSQLite[] = [];
+  backend: MiraBackend;
 
-   constructor(backend: MiraBackend){
+  constructor(backend: MiraBackend) {
     this.backend = backend;
-   }
+  }
 
-   all(): LibraryServerDataSQLite[] {
+  all(): LibraryServerDataSQLite[] {
     return this.libraryServices;
-   }
+  }
 
   async load(dbConfig: Record<string, any>): Promise<LibraryServerDataSQLite> {
     const dbServer = new LibraryServerDataSQLite(this.backend.webSocketServer, this.backend.httpServer, dbConfig);
@@ -22,7 +21,21 @@ export class LibraryStorage {
     return dbServer;
   }
 
-   get(libraryId: string): LibraryServerDataSQLite | undefined {
+  async loadAll(): Promise<number> {
+    let success = 0;
+    for (const library of await getLibrarysJson()) {
+      try {
+        console.log('loading library ', library.name);
+        await this.load(library);
+        success++;
+      } catch(err){
+        console.log(err)
+      }
+    }
+    return success;
+  }
+
+  get(libraryId: string): LibraryServerDataSQLite | undefined {
     return this.libraryServices.find(
       (library) => library.getLibraryId() === libraryId
     );

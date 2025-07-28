@@ -1,4 +1,5 @@
 import { ILibraryServerData } from "../../../ILibraryServerData";
+import { ServerPluginManager } from "../../../ServerPluginManager";
 import { MiraWebsocketServer } from "../../../WebSocketServer";
 import { EventEmitter } from 'events';
 
@@ -6,10 +7,12 @@ class DemoPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
     private readonly eventEmitter: EventEmitter;
+    private readonly pluginManager: ServerPluginManager;
 
-    constructor(server: MiraWebsocketServer, dbService: ILibraryServerData) {
+    constructor(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData) {
         this.server = server;
         this.dbService = dbService;
+        this.pluginManager = pluginManager;
         this.eventEmitter = dbService.getEventManager();
         console.log('Demo plugin initialized');
         // this.eventEmitter.on('client::connected', this.onClientConnected.bind(this));
@@ -21,6 +24,6 @@ class DemoPlugin {
 }
 
 
-export function init(server: MiraWebsocketServer, dbService: ILibraryServerData): DemoPlugin {
-    return new DemoPlugin(server, dbService);
+export function init(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData): DemoPlugin {
+    return new DemoPlugin(pluginManager, server, dbService);
 }

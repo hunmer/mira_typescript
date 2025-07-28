@@ -16,6 +16,7 @@ export class ServerPluginManager {
     private dbService: ILibraryServerData;
     private pluginsConfigPath: string;
     private loadedPlugins: Map<string, any> = new Map();
+    fields: Record<string, any>[] = [];
 
     constructor(server: MiraWebsocketServer, dbService: ILibraryServerData, pluginsDir: string = path.join(__dirname, 'plugins')) {
         this.pluginsDir = pluginsDir;
@@ -45,7 +46,7 @@ export class ServerPluginManager {
                     const pluginPath = path.join(this.pluginsDir, pluginConfig.path);
                     const pluginModule = await import(pluginPath);
                     if (typeof pluginModule.init === 'function') {
-                        await pluginModule.init(this.server, this.dbService);
+                        await pluginModule.init(this, this.server, this.dbService);
                     }
                     this.loadedPlugins.set(pluginConfig.name, pluginModule);
                     console.log(`Loaded plugin: ${pluginConfig.name}`);
@@ -54,6 +55,25 @@ export class ServerPluginManager {
                 }
             }
         }
+    }
+
+    registerFields(fields: Record<string, any>[]): void {
+        console.log('registerFields')
+        for (const field of fields) {
+            this.registerField(field);
+        }
+    }
+
+    registerField(field: Record<string, any>): void {
+        console.log('registerField', field)
+        let {action, type, field: fieldName} = field;
+        if(!fieldName || !action || !type) {
+            throw new Error('Field registration error: action, type, and field are required');
+        }
+        if(this.fields.find(f => f.field === fieldName)) {
+            throw new Error(`Field ${fieldName} is already registered`);
+        }
+        this.fields.push(field);
     }
 
     getPlugin<T>(name: string): T | undefined {

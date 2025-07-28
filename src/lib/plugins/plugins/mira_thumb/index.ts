@@ -6,16 +6,19 @@ import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
 import { EventArgs } from '../../../event-manager';
+import { ServerPluginManager } from '../../../ServerPluginManager';
 
  class ThumbPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
     private readonly eventEmitter: EventEmitter;
+    private readonly pluginManager: ServerPluginManager;
 
-    constructor(server: MiraWebsocketServer, dbService: ILibraryServerData) {
+    constructor(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData) {
         this.server = server;
         this.dbService = dbService;
         this.eventEmitter = dbService.getEventManager();
+        this.pluginManager = pluginManager;
         console.log('Thumbnail plugin initialized');
         // Register event listeners
         this.eventEmitter.on('file::created', this.onFileCreated.bind(this));
@@ -111,8 +114,8 @@ import { EventArgs } from '../../../event-manager';
     }
 }
 
-export function init(server: MiraWebsocketServer, dbService: ILibraryServerData): ThumbPlugin {
-    return new ThumbPlugin(server, dbService);
+export function init(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData): ThumbPlugin {
+    return new ThumbPlugin(pluginManager, server, dbService);
 }
 
 

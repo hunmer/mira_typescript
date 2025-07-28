@@ -1,7 +1,6 @@
 import { EventManager } from "./event-manager";
 
 export interface ILibraryServerData {
-  connectLibrary(config: Record<string, any>): Promise<Record<string, any>>;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
   updateFile(id: number, fileData: Record<string, any>): Promise<boolean>;

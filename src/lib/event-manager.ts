@@ -33,17 +33,21 @@ export class EventSubscription<T extends EventArgs = EventArgs> {
    * @param _id 订阅ID
    * @param eventName 事件名称
    * @param handler 事件处理函数
+   * @param priority 订阅优先级，数字越大优先级越高
    */
   private readonly _eventName: string;
   private readonly _handler: (args: T) => void;
+  private readonly _priority: number;
 
   constructor(
     eventName: string,
-    handler: (args: T) => void
+    handler: (args: T) => void,
+    priority: number = 0
   ) {
     this._id = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     this._eventName = eventName;
     this._handler = handler;
+    this._priority = priority;
   }
 
   get id(): string {
@@ -60,6 +64,10 @@ export class EventSubscription<T extends EventArgs = EventArgs> {
 
   getHandler(): (args: T) => void {
     return this._handler;
+  }
+
+  get priority(): number {
+    return this._priority;
   }
 
   /** 取消订阅 */
@@ -99,9 +107,14 @@ export class EventManager extends EventEmitter {
    */
   public subscribe<T extends EventArgs = EventArgs>(
     eventName: string,
-    handler: (args: T) => void
+    handler: (args: T) => void | boolean | Promise<boolean>,
+    priority: number = 0
   ): this {
-    this.on(eventName, handler);
+    const wrappedHandler = (args: T) => {
+      return handler(args);
+    };
+    wrappedHandler['priority'] = priority;
+    this.on(eventName, wrappedHandler);
     return this;
   }
 
@@ -137,11 +150,31 @@ export class EventManager extends EventEmitter {
    * @param eventName 事件名称
    * @param args 事件参数
    */
-  public broadcast<T extends EventArgs = EventArgs>(eventName: string, args: T): void {
+  public async broadcast<T extends EventArgs = EventArgs>(eventName: string, args: T): Promise<boolean> {
     if (!args.eventName) {
       args.eventName = eventName;
     }
-    this.emit(eventName, args);
+
+    const listeners = this.listeners(eventName);
+    if (listeners.length === 0) {
+      return true;
+    }
+
+    // 按优先级排序
+    const sortedListeners = listeners
+      .map(handler => ({
+        handler,
+        priority: (handler as any)['priority'] || 0
+      }))
+      .sort((a, b) => b.priority - a.priority);
+    
+    for (const { handler } of sortedListeners) {
+      const result = await handler(args);
+      if (result === false) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

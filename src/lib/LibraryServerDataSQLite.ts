@@ -12,10 +12,10 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   private inTransaction = false;
   private enableHash: boolean;
   private readonly websocketServer: MiraWebsocketServer;
-  private eventManager: EventManager;
+   eventManager: EventManager;
   private readonly config: Record<string, any>;
-  private pluginManager: ServerPluginManager;
-  private httpServer: MiraHttpServer;
+   pluginManager: ServerPluginManager;
+   httpServer: MiraHttpServer;
 
   private async initializePlugins(): Promise<void> {
     await this.pluginManager.loadPlugins();
@@ -33,15 +33,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
 
-  async connectLibrary(config: Record<string, any>): Promise<Record<string, any>> {
-    const tags = await this.getAllTags();
-    const folders = await this.getAllFolders();
-    return {
-      libraryId: this.getLibraryId(),
-      status: 'connected',
-      tags, folders,
-    };
-  }
+
 
   async initialize(): Promise<void> {
     // 初始化数据库连接和表结构
@@ -680,11 +672,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return this.getSql(sql, params);
   }
 
-  getLibraryInfo(): Record<string, any> {
+  async getLibraryInfo(): Promise<Record<string, any>> {
+    const tags = await this.getAllTags();
+    const folders = await this.getAllFolders();
     return {
-      id: this.getLibraryId(),
+      libraryId: this.getLibraryId(),
       status: 'connected',
-      config: this.config
+      tags, folders,
     };
   }
 
