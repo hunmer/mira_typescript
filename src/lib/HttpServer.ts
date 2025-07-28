@@ -8,12 +8,14 @@ import { MiraBackend } from "./ServerExample";
 
 
 export class MiraHttpServer {
-    private httpRouter: HttpRouter;
-    private server: http.Server;
-    private port: number;
-    private app: Express;
-    private backend: MiraBackend;
-    private libraries: LibraryStorage;
+     httpRouter: HttpRouter;
+     server: http.Server;
+     port: number;
+     app: Express;
+     backend: MiraBackend;
+     libraries: LibraryStorage;
+
+    getRouter(): HttpRouter { return this.httpRouter }
 
     constructor(port: number, backend: MiraBackend) {
         this.port = port;
@@ -37,7 +39,7 @@ export class MiraHttpServer {
 
 
     getPublicURL(url: string) {
-        return `http://127.0.0.1:${this.port}/api/${url}`;
+        return `http://127.0.0.1:${this.port}/${url}`;
     }
 
     async stop(): Promise<void> {

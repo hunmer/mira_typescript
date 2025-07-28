@@ -27,7 +27,9 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     this.config = config;
     this.httpServer = httpServer;
     this.eventManager = new EventManager();
-    this.pluginManager = new ServerPluginManager(websocketServer, this as unknown as ILibraryServerData);
+    this.pluginManager = new ServerPluginManager(
+      {server: websocketServer, dbService: this as unknown as ILibraryServerData, httpServer}
+    );
     this.initializePlugins();
     this.enableHash = config.customFields?.enableHash ?? false;
   }
@@ -552,7 +554,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const folderName = await this.getFolderName(item.folder_id);
     const filePath = path.join(libraryPath, folderName, item.name);
-    return options?.isUrlFile ? this.httpServer.getPublicURL(`file/${this.getLibraryId()}/${item.id}`): filePath
+    return options?.isUrlFile ? this.httpServer.getPublicURL(`api/file/${this.getLibraryId()}/${item.id}`): filePath
   }
 
   async getItemThumbPath(
@@ -562,7 +564,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
     const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-      return  options?.isUrlFile ? this.httpServer.getPublicURL(`thumb/${this.getLibraryId()}/${item.id}`): thumbFile
+      return  options?.isUrlFile ? this.httpServer.getPublicURL(`api/thumb/${this.getLibraryId()}/${item.id}`): thumbFile
   }
 
   getEventManager(): EventManager {

@@ -33,7 +33,6 @@ export class LibraryHandler extends MessageHandler {
             message: this.message,
             ws: this.ws,
           }).then(async ok => {
-            console.log({ok})
             if(ok){
               const data = await this.dbService.getLibraryInfo(); // 获取所有标签，文件夹等信息
               this.server.sendToWebsocket(this.ws, { eventName: 'connected', data: data });

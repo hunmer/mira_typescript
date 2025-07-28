@@ -1,10 +1,11 @@
-import express, { Router, Request, Response } from 'express';
+import express, { Router, Request, Response, Handler } from 'express';
 import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
 import path from 'path';
 import fs from 'fs';
 import { MiraBackend } from './ServerExample';
 export class HttpRouter {
   private router: Router;
+  private registerdRounters: Map<string, Handler> = new Map<string, Handler>();
   private libraryServices: LibraryServerDataSQLite[] = [];
   backend: MiraBackend;
 
@@ -12,6 +13,28 @@ export class HttpRouter {
     this.backend = bakend;
     this.router = express.Router();
     this.setupRoutes();
+  }
+
+  registerRounter(path: string, method: string, router: Handler) {
+    if (this.registerdRounters.has(path)) {
+      return;
+    }
+    this.registerdRounters.set(path, router);
+    console.log('register rounter', path, method);
+    switch(method){
+      case 'post':
+        this.router.post(path, router);
+        break;
+      case 'get':
+        this.router.get(path, router);
+        break;
+      default:
+        throw new Error('不支持的方法');
+    }
+  }
+
+  unregisterRounter(path: string) {
+    this.router.unlink(path);
   }
 
   private setupRoutes(): void {

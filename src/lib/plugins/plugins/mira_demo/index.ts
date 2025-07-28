@@ -1,3 +1,4 @@
+import { MiraHttpServer } from "../../../HttpServer";
 import { ILibraryServerData } from "../../../ILibraryServerData";
 import { ServerPluginManager } from "../../../ServerPluginManager";
 import { MiraWebsocketServer } from "../../../WebSocketServer";
@@ -9,7 +10,7 @@ class DemoPlugin {
     private readonly eventEmitter: EventEmitter;
     private readonly pluginManager: ServerPluginManager;
 
-    constructor(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData) {
+    constructor({pluginManager, server, dbService, httpServer}: {pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer}) {
         this.server = server;
         this.dbService = dbService;
         this.pluginManager = pluginManager;
@@ -23,7 +24,6 @@ class DemoPlugin {
     }
 }
 
-
-export function init(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData): DemoPlugin {
-    return new DemoPlugin(pluginManager, server, dbService);
+export function init(inst: any): DemoPlugin {
+    return new DemoPlugin(inst);
 }

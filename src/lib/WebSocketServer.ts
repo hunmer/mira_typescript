@@ -9,7 +9,16 @@ import { MiraHttpServer } from './HttpServer';
 import { MiraBackend } from './ServerExample';
 
 interface LibraryClient {
-  [libraryId: string]: WebSocket[];
+  [libraryId: string]: WebsocketClient[];
+}
+
+class WebsocketClient {
+  readonly clientId: string;
+  readonly ws: WebSocket;
+  constructor(clientId: string, ws: WebSocket) {
+    this.clientId = clientId;
+    this.ws = ws;
+  }
 }
 
 export class MiraWebsocketServer {
@@ -48,6 +57,16 @@ export class MiraWebsocketServer {
     }
   }
 
+  getWsClientById(libraryId: string, clientId: string): WebSocket | undefined {
+    const clients = this.libraryClients[libraryId];
+    if (clients) {
+      const client = clients.find((client) => client.clientId === clientId);
+      if(client){
+        return client.ws
+      }
+    }
+  }
+
   showDialogToWeboscket(ws: WebSocket, data: Record<string, any>): void {
      this.sendToWebsocket(ws, { eventName: 'dialog', data: Object.assign({
       title: '提示',
@@ -62,7 +81,7 @@ export class MiraWebsocketServer {
   }
 
   broadcastPluginEvent(eventName: string, data: Record<string, any>): Promise<boolean> {
-    const libraryId = data.libraryId ?? data.message.libraryId;
+    const libraryId = data?.libraryId ?? data?.message?.libraryId;
     const dbService = this.libraries.all().find(
       (library) => library.getLibraryId() === libraryId
     );
@@ -91,10 +110,11 @@ export class MiraWebsocketServer {
           if (!this.libraryClients[libraryId]) {
             this.libraryClients[libraryId] = [];
           }
-          if (!this.libraryClients[libraryId].includes(ws)) {
-            this.libraryClients[libraryId].push(ws);
+          const client = new WebsocketClient(data.clientId, ws)
+          if (!this.libraryClients[libraryId].includes(client)) {
+            this.libraryClients[libraryId].push(client);
           }
-        }
+      }
       } catch (e) {
         this.sendToWebsocket(ws, {
           error: 'Invalid message format',
@@ -107,7 +127,7 @@ export class MiraWebsocketServer {
       // Remove from all library client lists
       Object.keys(this.libraryClients).forEach(libraryId => {
         this.libraryClients[libraryId] = this.libraryClients[libraryId].filter(
-          client => client !== ws
+          client => client.ws !== ws
         );
       });
     });
@@ -161,8 +181,8 @@ export class MiraWebsocketServer {
     const message = JSON.stringify({ eventName: eventName, data: data });
     if (this.libraryClients[libraryId]) {
       this.libraryClients[libraryId].forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(message);
+        if (client.ws.readyState === WebSocket.OPEN) {
+          client.ws.send(message);
         }
       });
     }

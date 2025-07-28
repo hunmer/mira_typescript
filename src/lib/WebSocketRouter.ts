@@ -11,6 +11,7 @@ export interface WebSocketMessage {
   action: string;
   requestId: string;
   libraryId: string;
+  clientId: string;
   payload: {
     type: string;
     data: Record<string, any>;

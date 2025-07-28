@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { EventArgs } from '../../../event-manager';
 import { ServerPluginManager } from '../../../ServerPluginManager';
+import { MiraHttpServer } from '../../../HttpServer';
 
  class ThumbPlugin {
     private readonly server: MiraWebsocketServer;
@@ -14,7 +15,7 @@ import { ServerPluginManager } from '../../../ServerPluginManager';
     private readonly eventEmitter: EventEmitter;
     private readonly pluginManager: ServerPluginManager;
 
-    constructor(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData) {
+    constructor({pluginManager, server, dbService, httpServer}: {pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer}) {
         this.server = server;
         this.dbService = dbService;
         this.eventEmitter = dbService.getEventManager();
@@ -114,8 +115,9 @@ import { ServerPluginManager } from '../../../ServerPluginManager';
     }
 }
 
-export function init(pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData): ThumbPlugin {
-    return new ThumbPlugin(pluginManager, server, dbService);
+
+export function init(inst: any): ThumbPlugin {
+    return new ThumbPlugin(inst);
 }
 
 

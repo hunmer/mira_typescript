@@ -1,4 +1,5 @@
 
+import { MiraHttpServer } from './HttpServer';
 import { ILibraryServerData } from './ILibraryServerData';
 import { MiraWebsocketServer } from './WebSocketServer';
 import * as fs from 'fs';
@@ -11,17 +12,19 @@ export interface PluginConfig {
 }
 
 export class ServerPluginManager {
-    private pluginsDir: string;
+     pluginsDir: string;
     private server: MiraWebsocketServer;
+    private httpServer: MiraHttpServer;
     private dbService: ILibraryServerData;
     private pluginsConfigPath: string;
     private loadedPlugins: Map<string, any> = new Map();
     fields: Record<string, any>[] = [];
 
-    constructor(server: MiraWebsocketServer, dbService: ILibraryServerData, pluginsDir: string = path.join(__dirname, 'plugins')) {
-        this.pluginsDir = pluginsDir;
+    constructor({server, dbService, httpServer, pluginsDir}: {server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer, pluginsDir?: string}) {
+        this.pluginsDir = pluginsDir || path.join(__dirname, 'plugins');
         this.server = server;
         this.dbService = dbService;
+        this.httpServer = httpServer;
         this.pluginsConfigPath = path.join(this.pluginsDir, 'plugins.json');
         
         // Ensure plugins directory exists
@@ -46,7 +49,8 @@ export class ServerPluginManager {
                     const pluginPath = path.join(this.pluginsDir, pluginConfig.path);
                     const pluginModule = await import(pluginPath);
                     if (typeof pluginModule.init === 'function') {
-                        await pluginModule.init(this, this.server, this.dbService);
+                        await pluginModule.init(
+                        {pluginManager: this, server: this.server, dbService: this.dbService, httpServer: this.httpServer})
                     }
                     this.loadedPlugins.set(pluginConfig.name, pluginModule);
                     console.log(`Loaded plugin: ${pluginConfig.name}`);

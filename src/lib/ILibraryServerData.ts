@@ -65,4 +65,5 @@ export interface ILibraryServerData {
     options?: { isUrlFile: boolean }
   ): Promise<string>;
   getEventManager(): EventManager; // 需要根据实际类型定义
+  getLibraryInfo(): Promise<Record<string, any>>;
 }
