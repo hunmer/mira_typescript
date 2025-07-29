@@ -177,7 +177,6 @@ class UploadStatistics extends ServerPlugin {
 
     // 用户上传事件处理函数
     private async onAfterUploaded(event: any): Promise<boolean> {
-        console.log('onAfterUploaded:', event);
         const { message, ws, result } = event.args;
         const { libraryId, clientId, fields } = message;
         const { username } = fields;
