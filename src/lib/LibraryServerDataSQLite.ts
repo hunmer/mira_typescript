@@ -241,6 +241,32 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       params.push(...tagIds);
     }
 
+    if (filters.custom_fields) {
+      const customFields = filters.custom_fields;
+      const convertValue = (value: any) => {
+        if(value == 'null'){
+            value = null;
+          }
+        return value;
+      }
+      for (const [key, value] of Object.entries(customFields)) {
+        if (typeof value === 'string' && value.startsWith('!=')) {
+          let actualValue: string | null = value.substring(2).trim();
+          whereClauses.push(`(json_extract(custom_fields, '$.${key}') IS NOT NULL OR json_extract(custom_fields, '$.${key}') != ?)`);
+          params.push(convertValue(actualValue));
+        } else if (typeof value === 'string' && value.startsWith('>')) {
+          whereClauses.push(`json_extract(custom_fields, '$.${key}') > ?`);
+          params.push(convertValue(value.substring(1).trim()));
+        } else if (typeof value === 'string' && value.startsWith('<')) {
+          whereClauses.push(`json_extract(custom_fields, '$.${key}') < ?`);
+          params.push(convertValue(value.substring(1).trim()));
+        } else {
+          whereClauses.push(`json_extract(custom_fields, '$.${key}') = ?`);
+          params.push(convertValue(value));
+        }
+      }
+    }
+
     const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     const query = `SELECT ${select} FROM files ${where} LIMIT ? OFFSET ?`;
     const countQuery = `SELECT COUNT(*) as total FROM files ${where}`;

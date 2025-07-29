@@ -13,5 +13,10 @@
         "name": "mira_user",
         "enabled": true,
         "path": "plugins/mira_user"
+    },
+    {
+        "name": "upload_statistics",
+        "enabled": true,
+        "path": "plugins/upload_statistics"
     }
 ]

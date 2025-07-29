@@ -16,9 +16,10 @@ export class FileHandler extends MessageHandler {
 
   async handle(): Promise<void> {
     try {
-      const { action, payload } = this.message;
+      const message = this.message;
+      const { action, payload } = message;
       const { data } = payload;
-      
+      const libraryId = message.libraryId;
       let result;
       switch(action) {
         case 'read':
@@ -27,7 +28,7 @@ export class FileHandler extends MessageHandler {
         case 'create':
           const path = data['path'];
           result = path != null ? await this.dbService.createFileFromPath(path, {}) : await this.dbService.createFile(data);
-          this.server.broadcastPluginEvent('file::created', {...result, libraryId: this.message.libraryId});
+          this.server.broadcastPluginEvent('file::created', {message, result, libraryId});
           this.server.sendToWebsocket(this.ws, { eventName: 'file::uploaded', data: {path} });
           break;
         case 'update':

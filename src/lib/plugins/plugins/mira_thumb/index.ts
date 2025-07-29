@@ -28,12 +28,12 @@ import { MiraHttpServer } from '../../../HttpServer';
 
     private async onFileCreated(event: EventArgs): Promise<void> {
         try {
-            const item = event.args;
-            const filePath = item.path;
+            const {result} = event.args;
+            const filePath = result.path;
             const fileType = this.getFileType(filePath);
             if (!fileType) return;
 
-            const thumbPath = await this.dbService.getItemThumbPath(item);
+            const thumbPath = await this.dbService.getItemThumbPath(result);
             const thumbDir = path.dirname(thumbPath);
 
             if (!fs.existsSync(thumbDir)) {
@@ -49,9 +49,9 @@ import { MiraHttpServer } from '../../../HttpServer';
                     break;
             }
 
-            item.thumb = thumbPath;
-            await this.dbService.updateFile(item.id, { thumb: 1 });
-            this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', item);
+            result.thumb = thumbPath;
+            await this.dbService.updateFile(result.id, { thumb: 1 });
+            this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', result);
         } catch (err) {
             console.error('Failed to generate thumbnail:', err);
         }

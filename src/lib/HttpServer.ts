@@ -5,6 +5,7 @@ import express from 'express';
 import { LibraryStorage } from "./LibraryStorage";
 import { LibraryServerDataSQLite } from "./LibraryServerDataSQLite";
 import { MiraBackend } from "./ServerExample";
+import axios from "axios";
 
 
 export class MiraHttpServer {
@@ -37,6 +38,27 @@ export class MiraHttpServer {
         });
     }
 
+    async request(options: {
+        method: string;
+        url: string;
+        headers?: Record<string, string>;
+        data?: any;
+    }): Promise<any> {
+        try {
+            const response = await axios.request({
+                method: options.method,
+                url: options.url,
+                headers: options.headers,
+                data: options.data
+            });
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Request failed: ${error.message}`);
+            }
+            throw error;
+        }
+    }
 
     getPublicURL(url: string) {
         return `http://127.0.0.1:${this.port}/${url}`;

@@ -74,9 +74,6 @@ export class ServerPluginManager {
         if(!fieldName || !action || !type) {
             throw new Error('Field registration error: action, type, and field are required');
         }
-        if(this.fields.find(f => f.field === fieldName)) {
-            throw new Error(`Field ${fieldName} is already registered`);
-        }
         this.fields.push(field);
     }
 

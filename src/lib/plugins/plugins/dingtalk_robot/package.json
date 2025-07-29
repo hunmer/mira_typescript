@@ -1,0 +1,15 @@
+{
+  "name": "dingtalk_robot",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@alicloud/dingtalk": "^2.2.27"
+  }
+}

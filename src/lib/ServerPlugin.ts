@@ -23,14 +23,19 @@ export abstract class ServerPlugin {
 
     protected writeConfig(key: string, value: any) {
         this.configs[key] = value;
+        this.saveConfig();
+    }
+
+    protected saveConfig() {
+        return this.writeJson('config.json', this.configs);
     }
 
     protected readConfig(key: string): any {
         return this.configs[key];
     }
 
-    protected loadConfig(config: Record<string, any>) {
-        this.configs = { ...this.configs, ...config };
+    protected loadConfig(defaultConfig: Record<string, any> = {}) {
+       this.configs = {...defaultConfig, ...this.readJson('config.json')};
     }
 
     protected writeJson(filename: string, data: any) {
