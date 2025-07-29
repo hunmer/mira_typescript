@@ -14,7 +14,7 @@ class DemoPlugin {
         this.server = server;
         this.dbService = dbService;
         this.pluginManager = pluginManager;
-        this.eventEmitter = dbService.getEventManager();
+        this.eventEmitter = dbService.getEventManager()!;
         console.log('Demo plugin initialized');
         // this.eventEmitter.on('client::connected', this.onClientConnected.bind(this));
     }

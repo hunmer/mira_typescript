@@ -13,7 +13,7 @@ class UserPlugin extends ServerPlugin {
     private userList: Record<string, any>[] = [];
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('mira_user', dbService.getEventManager());
+        super('mira_user', dbService.getEventManager()!);
         this.server = server;
         this.dbService = dbService;
         this.httpServer = httpServer;

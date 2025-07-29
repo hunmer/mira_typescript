@@ -10,6 +10,7 @@ export interface ILibraryServerData {
   getFiles(options?: {
     select?: string;
     filters?: Record<string, any>;
+    isUrlFile?: boolean;
   }): Promise<{
     result: Record<string, any>[];
     limit: number;
@@ -64,6 +65,6 @@ export interface ILibraryServerData {
     item: Record<string, any>,
     options?: { isUrlFile: boolean }
   ): Promise<string>;
-  getEventManager(): EventManager; // 需要根据实际类型定义
+  getEventManager(): EventManager | undefined; // 需要根据实际类型定义
   getLibraryInfo(): Promise<Record<string, any>>;
 }

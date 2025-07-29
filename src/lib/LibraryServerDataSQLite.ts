@@ -11,30 +11,30 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   private db: Database | null = null;
   private inTransaction = false;
   private enableHash: boolean;
-  private readonly websocketServer: MiraWebsocketServer;
-   eventManager: EventManager;
+  private readonly websocketServer: MiraWebsocketServer | undefined;
+  eventManager: EventManager | undefined;
   private readonly config: Record<string, any>;
-   pluginManager: ServerPluginManager;
-   httpServer: MiraHttpServer;
+  pluginManager: ServerPluginManager | undefined;
+  httpServer: MiraHttpServer | undefined;
 
   private async initializePlugins(): Promise<void> {
-    await this.pluginManager.loadPlugins();
+    if (this.pluginManager) await this.pluginManager.loadPlugins();
   }
 
 
-  constructor(websocketServer: MiraWebsocketServer, httpServer: MiraHttpServer, config: Record<string, any>) {
-    this.websocketServer = websocketServer;
+  constructor(config: Record<string, any>, opts: any) {
     this.config = config;
-    this.httpServer = httpServer;
-    this.eventManager = new EventManager();
-    this.pluginManager = new ServerPluginManager(
-      {server: websocketServer, dbService: this as unknown as ILibraryServerData, httpServer}
-    );
+    if (opts.websocketServer || opts.httpServer) {
+      this.websocketServer = opts.websocketServer;
+      this.httpServer = opts.httpServer;
+      this.eventManager = new EventManager();
+      this.pluginManager = new ServerPluginManager(
+        { server: opts.webSocketServer, dbService: this as unknown as ILibraryServerData, httpServer: opts.httpServer }
+      );
+    }
     this.initializePlugins();
     this.enableHash = config.customFields?.enableHash ?? false;
   }
-
-
 
 
   async initialize(): Promise<void> {
@@ -90,9 +90,6 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
 
   // 文件操作方法实现
   async createFile(fileData: Record<string, any>): Promise<Record<string, any>> {
-
-
-
     const result = await this.runSql(
       `INSERT INTO files(
         name, created_at, imported_at, size, hash, 
@@ -116,10 +113,9 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
         fileData.tags,
       ]
     );
-
-
     return { id: result.lastID, ...fileData };
   }
+
 
   async updateFile(id: number, fileData: Record<string, any>): Promise<boolean> {
     const fields: string[] = [];
@@ -177,6 +173,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   async getFiles(options?: {
     select?: string;
     filters?: Record<string, any>;
+    isUrlFile?: boolean
   }): Promise<{
     result: Record<string, any>[];
     limit: number;
@@ -244,9 +241,9 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     if (filters.custom_fields) {
       const customFields = filters.custom_fields;
       const convertValue = (value: any) => {
-        if(value == 'null'){
-            value = null;
-          }
+        if (value == 'null') {
+          value = null;
+        }
         return value;
       }
       for (const [key, value] of Object.entries(customFields)) {
@@ -277,7 +274,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     ]);
 
     return {
-      result: await this.processingFiles(rows.map(row => this.rowToMap(row))),
+      result: await this.processingFiles(rows.map(row => this.rowToMap(row)), options?.isUrlFile),
       limit,
       offset,
       total: countRows[0].total,
@@ -580,7 +577,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const folderName = await this.getFolderName(item.folder_id);
     const filePath = path.join(libraryPath, folderName, item.name);
-    return options?.isUrlFile ? this.httpServer.getPublicURL(`api/file/${this.getLibraryId()}/${item.id}`): filePath
+    return options?.isUrlFile && this.httpServer ? this.httpServer.getPublicURL(`api/file/${this.getLibraryId()}/${item.id}`) : filePath
   }
 
   async getItemThumbPath(
@@ -590,10 +587,10 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
     const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-      return  options?.isUrlFile ? this.httpServer.getPublicURL(`api/thumb/${this.getLibraryId()}/${item.id}`): thumbFile
+    return options?.isUrlFile && this.httpServer ? this.httpServer.getPublicURL(`api/thumb/${this.getLibraryId()}/${item.id}`) : thumbFile
   }
 
-  getEventManager(): EventManager {
+  getEventManager(): EventManager | undefined {
     return this.eventManager;
   }
 
@@ -634,7 +631,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
         if (!fs.existsSync(destDir2)) {
           fs.mkdirSync(destDir2, { recursive: true });
         }
-        fs.renameSync(filePath, destPath);
+        // 如果不同是跨盘符操作，则单独复制一份，再删除源文件
+        if (path.parse(filePath).root !== path.parse(destPath).root) {
+          fs.copyFileSync(filePath, destPath);
+          fs.unlinkSync(filePath);
+        } else {
+          fs.renameSync(filePath, destPath);
+        }
         fileData.path = destPath;
         break;
       default:
@@ -716,12 +719,14 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return this.processingFiles(result);
   }
 
-  async processingFiles(files: Record<string, any>[]) {
+  async processingFiles(files: Record<string, any>[], isUrlFile: boolean = true) {
     return Promise.all(files.map(async (file) => {
-      return { ...file, ...{
-        thumb: await this.getItemThumbPath(file, { isUrlFile: true }),
-        path: await this.getItemFilePath(file, { isUrlFile: true }),
-      }};
+      return {
+        ...file, ...{
+          thumb: await this.getItemThumbPath(file, { isUrlFile }),
+          path: await this.getItemFilePath(file, { isUrlFile }),
+        }
+      };
     }))
   }
 

@@ -25,9 +25,12 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@types/multer": "^2.0.0",
     "@types/sqlite3": "^3.1.11",
     "axios": "^1.11.0",
     "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "queue": "^7.0.0",
     "ws": "^8.18.3"
   }
 }

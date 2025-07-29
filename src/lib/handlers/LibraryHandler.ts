@@ -24,7 +24,7 @@ export class LibraryHandler extends MessageHandler {
         case 'open':
           // 初次握手,发送服务器所需字段信息
           this.server.sendToWebsocket(this.ws, { eventName: 'try_connect', data: {
-            fields: this.dbService.pluginManager.fields, // 所有插件所需字段信息
+            fields: this.dbService.pluginManager!.fields, // 所有插件所需字段信息
           }});
           break;
         case 'connect':

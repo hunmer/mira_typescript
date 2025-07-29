@@ -1,8 +1,31 @@
 import express, { Router, Request, Response, Handler } from 'express';
+import multer from 'multer';
 import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
 import path from 'path';
 import fs from 'fs';
 import { MiraBackend } from './ServerExample';
+
+// 配置multer文件上传
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const tempDir = path.join(__dirname, '../../temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  // limits: {
+  //   fileSize: 100 * 1024 * 1024 // 限制100MB
+  // }
+});
 export class HttpRouter {
   private router: Router;
   private registerdRounters: Map<string, Handler> = new Map<string, Handler>();
@@ -21,7 +44,7 @@ export class HttpRouter {
     }
     this.registerdRounters.set(path, router);
     console.log('register rounter', path, method);
-    switch(method){
+    switch (method) {
       case 'post':
         this.router.post(path, router);
         break;
@@ -46,6 +69,87 @@ export class HttpRouter {
 
     });
 
+
+    // 上传文件
+    this.router.post('/libraries/upload', upload.array('files'), async (req: Request, res) => {
+      const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
+      const clientId = req.body.clientId || null;
+      const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
+      const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
+      const library = this.backend.libraries.get(libraryId);
+      if (!library) return res.status(404).send('Library not found');
+
+      // 解析上传的文件
+      const files = req.files as Express.Multer.File[];
+      if (!files || !files.length) return res.status(400).send('No files uploaded.');
+
+      try {
+        const results = [];
+        for (const file of files) {
+          try {
+            // 确保临时目录存在
+            const tempDir = path.join(__dirname, '../../temp');
+            if (!fs.existsSync(tempDir)) {
+              fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            // 生成唯一文件名并保存文件
+            const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+            const tempFilePath = path.join(tempDir, `${Date.now()}-${originalName}`);
+
+            // 确保有有效的文件数据
+            if (file.buffer) {
+              await fs.promises.writeFile(tempFilePath, file.buffer);
+            } else if (file.path) {
+              // 如果使用diskStorage，文件已保存到指定路径
+              await fs.promises.copyFile(file.path, tempFilePath);
+            } else {
+              throw new Error('No valid file data available');
+            }
+
+            const fileData = {
+              name: req.body.name || originalName,
+              custom_fields: req.body.custom_fields,
+              notes: req.body.notes,
+              stars: req.body.stars,
+              folder_id: req.body.folder_id,
+              reference: req.body.reference,
+              tags: req.body.tags
+            };
+            const result = await library.createFileFromPath(tempFilePath, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
+            results.push({
+              success: true,
+              file: tempFilePath,
+              result
+            });
+
+            // 发布公告
+            this.backend.webSocketServer.broadcastPluginEvent('file::created', {
+              message: {
+                type: 'file',
+                action: 'create',
+                fields, payload
+              }, result, libraryId
+            });
+            if (clientId) {
+              const ws = this.backend.webSocketServer.getWsClientById(libraryId, clientId);
+              ws && this.backend.webSocketServer.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
+            }
+          } catch (error) {
+            results.push({
+              success: false,
+              file: file.path,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+        res.send({ results });
+      } catch (error) {
+        console.error('Error uploading files:', error);
+        res.status(500).send('Internal server error while processing the upload.');
+      }
+    });
+
     // 添加文件流路由
     this.router.get('/thumb/:libraryId/:id', async (req, res) => {
       try {
@@ -64,6 +168,7 @@ export class HttpRouter {
       }
     });
 
+
     this.router.get('/file/:libraryId/:id', async (req, res) => {
       const ret = await this.parseLibraryItem(req, res);
       if (ret) {
@@ -75,7 +180,7 @@ export class HttpRouter {
         const fileExt = path.extname(filePath).toLowerCase();
         const contentType = this.getContentType(fileExt);
         res.setHeader('Content-Type', contentType);
-         fs.createReadStream(filePath).pipe(res);
+        fs.createReadStream(filePath).pipe(res);
       }
     });
   }

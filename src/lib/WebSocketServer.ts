@@ -50,7 +50,8 @@ export class MiraWebsocketServer {
       (library) => library.getLibraryId() === eventData.libraryId
     );
     if (dbService) {
-      dbService.getEventManager().broadcast(
+      const eventManager = dbService.getEventManager();
+      eventManager!.broadcast(
         eventName,
         new EventArgs(eventName, eventData)
       );
@@ -61,18 +62,20 @@ export class MiraWebsocketServer {
     const clients = this.libraryClients[libraryId];
     if (clients) {
       const client = clients.find((client) => client.clientId === clientId);
-      if(client){
+      if (client) {
         return client.ws
       }
     }
   }
 
   showDialogToWeboscket(ws: WebSocket, data: Record<string, any>): void {
-     this.sendToWebsocket(ws, { eventName: 'dialog', data: Object.assign({
-      title: '提示',
-      message: '',
-      url: ''
-    }, data)});
+    this.sendToWebsocket(ws, {
+      eventName: 'dialog', data: Object.assign({
+        title: '提示',
+        message: '',
+        url: ''
+      }, data)
+    });
   }
 
   sendToWebsocket(ws: WebSocket, data: Record<string, any>): void {
@@ -86,7 +89,8 @@ export class MiraWebsocketServer {
       (library) => library.getLibraryId() === libraryId
     );
     if (dbService) {
-      return dbService.getEventManager().broadcast(
+      const eventManager = dbService.getEventManager();
+      return eventManager!.broadcast(
         eventName,
         new EventArgs(eventName, data)
       );
@@ -96,7 +100,7 @@ export class MiraWebsocketServer {
 
   private handleConnection(ws: WebSocket): void {
     ws.on('open', () => {
-      
+
     });
     ws.on('message', async (message: string) => {
       try {
@@ -114,7 +118,7 @@ export class MiraWebsocketServer {
           if (!this.libraryClients[libraryId].includes(client)) {
             this.libraryClients[libraryId].push(client);
           }
-      }
+        }
       } catch (e) {
         this.sendToWebsocket(ws, {
           error: 'Invalid message format',

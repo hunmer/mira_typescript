@@ -8,50 +8,55 @@ import fs from 'fs';
 import { EventArgs } from '../../../event-manager';
 import { ServerPluginManager } from '../../../ServerPluginManager';
 import { MiraHttpServer } from '../../../HttpServer';
+import Queue from 'queue';
 
 class ThumbPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
-    private readonly eventEmitter: EventEmitter;
+    private readonly eventEmitter: EventEmitter | undefined;
     private readonly pluginManager: ServerPluginManager;
+    private readonly taskQueue: Queue;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
         this.server = server;
         this.dbService = dbService;
-        this.eventEmitter = dbService.getEventManager();
+        this.eventEmitter = dbService.getEventManager()!;
         this.pluginManager = pluginManager;
+        
+        // Initialize queue with concurrency of 5
+        this.taskQueue = new Queue({ concurrency: 5, autostart: true });
+        
         console.log('Thumbnail plugin initialized');
-        // Register event listeners
         this.eventEmitter.on('file::created', this.onFileCreated.bind(this));
         this.eventEmitter.on('file::deleted', this.onFileDeleted.bind(this));
-        this.processPendingThumbnails();
+        // this.processPendingThumbnails();
     }
 
-
-
     private async onFileCreated(event: EventArgs): Promise<void> {
-        try {
-            const { result } = event.args;
-            const filePath = result.path;
-            const fileType = this.getFileType(filePath);
-            if (!fileType) return;
+        const { result } = event.args;
+        const filePath = result.path;
+        const fileType = this.getFileType(filePath);
+        if (!fileType) return;
 
-            const thumbPath = await this.dbService.getItemThumbPath(result);
-            switch (fileType) {
-                case 'image':
-                    await this.generateImageThumbnail(filePath, thumbPath);
-                    break;
-                case 'video':
-                    await this.generateVideoThumbnail(filePath, thumbPath);
-                    break;
+        this.taskQueue.push(async () => {
+            try {
+                const thumbPath = await this.dbService.getItemThumbPath(result);
+                switch (fileType) {
+                    case 'image':
+                        await this.generateImageThumbnail(filePath, thumbPath);
+                        break;
+                    case 'video':
+                        await this.generateVideoThumbnail(filePath, thumbPath);
+                        break;
+                }
+
+                result.thumb = thumbPath;
+                await this.dbService.updateFile(result.id, { thumb: 1 });
+                this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', result);
+            } catch (err) {
+                console.error('Failed to generate thumbnail:', err);
             }
-
-            result.thumb = thumbPath;
-            await this.dbService.updateFile(result.id, { thumb: 1 });
-            this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', result);
-        } catch (err) {
-            console.error('Failed to generate thumbnail:', err);
-        }
+        });
     }
 
     private async onFileDeleted(item: any): Promise<void> {
@@ -84,7 +89,7 @@ class ThumbPlugin {
                 })
                 .toFile(destPath);
         } catch (err) {
-            console.error('Image thumbnail generation error:', err);
+            console.error('Image thumbnail generation error:', srcPath);
         }
     }
 
@@ -99,8 +104,9 @@ class ThumbPlugin {
                 })
                 .on('end', () => resolve())
                 .on('error', (err: Error) => {
-                    console.error('Video thumbnail generation error:', err);
-                    reject(err);
+                    console.error('Video thumbnail generation error: ', srcPath);
+                    // reject(err);
+                    resolve();
                 });
         });
     }
@@ -116,11 +122,11 @@ class ThumbPlugin {
     }
 
     private async getPendingThumbFiles(): Promise<any[]> {
-        const files = (await this.dbService.getFiles({ filters: { thumb: 1 } })).result;
+        const files = (await this.dbService.getFiles({ select: 'id,path,hash,folder_id,name', filters: { thumb: 1 , limit: 9999999 }, isUrlFile: false })).result;
         const pendingFiles: any[] = [];
-
+        console.log('results ', files.length);
         for (const file of files) {
-            const thumbPath = await this.dbService.getItemThumbPath(file);
+            const thumbPath = await this.dbService.getItemThumbPath(file, { isUrlFile: false });
             if (!fs.existsSync(thumbPath)) {
                 pendingFiles.push(file);
             }
@@ -130,33 +136,32 @@ class ThumbPlugin {
 
     // 检查所有丢失的媒体
     public async processPendingThumbnails(): Promise<void> {
+        console.log('Start processing pending thumbnails...');
         const pendingFiles = await this.getPendingThumbFiles();
-        const processingPromises: Promise<void>[] = [];
+        const max = pendingFiles.length;
+        
+        pendingFiles.forEach((file, i) => {
+            this.taskQueue.push(async () => {
+                try {
+                    const filePath = file.path;
+                    const fileType = this.getFileType(filePath);
+                    if (!fileType) return;
 
-        for (let i = 0; i < Math.min(pendingFiles.length, 3); i++) {
-            const file = pendingFiles[i];
-            const filePath = file.path;
-            const fileType = this.getFileType(filePath);
-            if (!fileType) continue;
-            const processPromise = (async () => {
-                const thumbPath = await this.dbService.getItemThumbPath(file);
-                switch (fileType) {
-                    case 'image':
-                        return this.generateImageThumbnail(filePath, thumbPath);
-                    case 'video':
-                        return this.generateVideoThumbnail(filePath, thumbPath);
-                    default:
-                        return Promise.resolve();
+                    const thumbPath = await this.dbService.getItemThumbPath(file);
+                    switch (fileType) {
+                        case 'image':
+                            await this.generateImageThumbnail(filePath, thumbPath);
+                            break;
+                        case 'video':
+                            await this.generateVideoThumbnail(filePath, thumbPath);
+                            break;
+                    }
+                    console.log('Thumbnail processed:', thumbPath, `(${i+1}/${max})`);
+                } catch (err) {
+                    console.error('Failed to process thumbnail:', err);
                 }
-            })().then(() => {
-                console.log('Thumbnail processed:', file.name);
-            }).catch(err => {
-                console.error('Failed to process thumbnail:', err);
             });
-            processingPromises.push(processPromise);
-        }
-
-        await Promise.all(processingPromises);
+        });
     }
 }
 
