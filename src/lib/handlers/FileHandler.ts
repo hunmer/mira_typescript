@@ -23,11 +23,11 @@ export class FileHandler extends MessageHandler {
       let result;
       switch(action) {
         case 'read':
-          result = await this.dbService.getFiles({filters: data.query});
+          result = await this.dbService.getFiles({filters: data.query, isUrlFile: this.dbService.config['useHttpFile'] ? true: false});
           break;
         case 'create':
-          const path = data['path'];
-          result = path != null ? await this.dbService.createFileFromPath(path, {}) : await this.dbService.createFile(data);
+          const path = data.path;
+          result = path != null ? await this.dbService.createFileFromPath(path, data) : await this.dbService.createFile(data);
           this.server.broadcastPluginEvent('file::created', {message, result, libraryId});
           this.server.sendToWebsocket(this.ws, { eventName: 'file::uploaded', data: {path} });
           break;
@@ -35,7 +35,11 @@ export class FileHandler extends MessageHandler {
           result = await this.dbService.updateFile(data.id, data);
           break;
         case 'delete':
-          result = await this.dbService.deleteFile(data.id, data.options);
+          var {id} = data;
+          if(await this.dbService.deleteFile(id, data.options)){
+            this.server.broadcastPluginEvent('file::deleted', { id, libraryId });
+            this.server.sendToWebsocket(this.ws, { eventName: 'file::deleted', data: {id, libraryId} });
+            }
           break;
         default:
           throw new Error(`Unsupported file action: ${action}`);

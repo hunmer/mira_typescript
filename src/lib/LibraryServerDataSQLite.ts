@@ -13,14 +13,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   private enableHash: boolean;
   private readonly websocketServer: MiraWebsocketServer | undefined;
   eventManager: EventManager | undefined;
-  private readonly config: Record<string, any>;
+  readonly config: Record<string, any>;
   pluginManager: ServerPluginManager | undefined;
   httpServer: MiraHttpServer | undefined;
 
   private async initializePlugins(): Promise<void> {
     if (this.pluginManager) await this.pluginManager.loadPlugins();
   }
-
 
   constructor(config: Record<string, any>, opts: any) {
     this.config = config;
@@ -173,7 +172,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   async getFiles(options?: {
     select?: string;
     filters?: Record<string, any>;
-    isUrlFile?: boolean
+    isUrlFile?: boolean;
   }): Promise<{
     result: Record<string, any>[];
     limit: number;
@@ -265,7 +264,21 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     }
 
     const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-    const query = `SELECT ${select} FROM files ${where} LIMIT ? OFFSET ?`;
+    // 处理排序
+    let orderBy = '';
+    // sort?: 'imported_at' | 'id' | 'size' | 'stars' | 'folder_id' | 'tags' | 'name' | 'custom_fields';
+    // order?: 'asc' | 'desc';
+    if (filters?.sort) {
+      const order = filters?.order || 'asc';
+      if (filters.sort === 'custom_fields') {
+        // 自定义字段排序需要特殊处理
+        orderBy = ` ORDER BY json_extract(custom_fields, '$') ${order}`;
+      } else {
+        orderBy = ` ORDER BY ${filters.sort} ${order}`;
+      }
+    }
+
+    const query = `SELECT ${select} FROM files ${where}${orderBy} LIMIT ? OFFSET ?`;
     const countQuery = `SELECT COUNT(*) as total FROM files ${where}`;
 
     const [rows, countRows] = await Promise.all([
@@ -492,7 +505,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return this.createFile(fileData);
   }
 
-  async getFileFolders(fileId: number): Promise<Record<string, any>[]> {
+  async getFileFolder(fileId: number): Promise<Record<string, any>[]> {
     const rows = await this.getSql(
       'SELECT f.* FROM folders f JOIN files fi ON fi.folder_id = f.id WHERE fi.id = ?',
       [fileId]
@@ -521,7 +534,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     }
   }
 
-  async setFileFolders(fileId: number, folderId: string): Promise<boolean> {
+  async setFileFolder(fileId: number, folderId: string): Promise<boolean> {
     if (!folderId) return false;
 
     await this.beginTransaction();
@@ -714,9 +727,9 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
   // 查询方法
-  async queryFile(query: Record<string, any>): Promise<Record<string, any>[]> {
+  async queryFile(query: Record<string, any>, isUrlFile: boolean = true): Promise<Record<string, any>[]> {
     const { result } = await this.getFiles({ filters: query });
-    return this.processingFiles(result);
+    return this.processingFiles(result, isUrlFile);
   }
 
   async processingFiles(files: Record<string, any>[], isUrlFile: boolean = true) {

@@ -107,15 +107,13 @@ export class HttpRouter {
               throw new Error('No valid file data available');
             }
 
+            const {tags, folder_id} =  payload.data || {}
             const fileData = {
               name: req.body.name || originalName,
-              custom_fields: req.body.custom_fields,
-              notes: req.body.notes,
-              stars: req.body.stars,
-              folder_id: req.body.folder_id,
-              reference: req.body.reference,
-              tags: req.body.tags
+              tags: JSON.stringify(tags || []),
+              folder_id: folder_id || null,
             };
+
             const result = await library.createFileFromPath(tempFilePath, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
             results.push({
               success: true,

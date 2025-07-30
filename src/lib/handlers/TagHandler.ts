@@ -18,9 +18,22 @@ export class TagHandler extends MessageHandler {
     try {
       const { action, payload } = this.message;
       const { data } = payload;
+          const libraryId = this.dbService.getLibraryId();
       
       let result;
       switch(action) {
+        case 'file_set':
+          var {fileId, tags } = data;
+          if(await this.dbService.setFileTags(fileId, tags)){
+            result = { fileId, tags };
+            this.server.broadcastPluginEvent('file::setTag', {fileId, tags, libraryId});
+            this.server.broadcastLibraryEvent(libraryId, 'file::setTag', result);
+          }
+          break;
+        case 'file_get':
+          var {fileId} = data;
+          result = {tags: await this.dbService.getFileTags(fileId)};
+          break;
         case 'all':
           result = await this.dbService.getAllTags();
           break;
@@ -34,13 +47,18 @@ export class TagHandler extends MessageHandler {
           result = await this.dbService.updateTag(data.id, data);
           break;
         case 'delete':
-          result = await this.dbService.deleteTag(data.id);
+          var {id} = data;
+          if(await this.dbService.deleteTag(data.id)){
+            result = { id };
+            this.server.broadcastPluginEvent('tag::deleted', { id, libraryId });
+            this.server.sendToWebsocket(this.ws, { eventName: 'file::deleted', data: {id, libraryId} });
+          }
           break;
         default:
           throw new Error(`Unsupported tag action: ${action}`);
       }
 
-      this.sendResponse({result});
+      this.sendResponse(result as Record<string, any>);
     } catch (err) {
       this.sendError(err instanceof Error ? err.message : 'Tag operation failed');
     }

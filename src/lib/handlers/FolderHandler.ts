@@ -18,10 +18,22 @@ export class FolderHandler extends MessageHandler {
     try {
       const { action, payload } = this.message;
       const { data } = payload;
-      
+      const libraryId = this.dbService.getLibraryId();
       let result;
-      switch(action) {
-         case 'all':
+      switch (action) {
+        case 'file_set':
+          var { fileId, folder } = data;
+          if (await this.dbService.setFileFolder(fileId, folder)) {
+            result = { fileId, folder };
+            this.server.broadcastPluginEvent('file::setFolder', { fileId, folder, libraryId });
+            this.server.broadcastLibraryEvent(libraryId, 'file::setFolder', result);
+          }
+          break;
+        case 'file_get':
+          var { fileId } = data;
+          result = { folder: await this.dbService.getFileFolder(fileId) };
+          break;
+        case 'all':
           result = await this.dbService.getAllFolders();
           break;
         case 'read':
@@ -34,13 +46,18 @@ export class FolderHandler extends MessageHandler {
           result = await this.dbService.updateFolder(data.id, data);
           break;
         case 'delete':
-          result = await this.dbService.deleteFolder(data.id);
+          var { id } = data;
+          if(await this.dbService.deleteFolder(id)){
+            result = { id };
+            this.server.broadcastPluginEvent('folder::deleted', { id, libraryId });
+            this.server.sendToWebsocket(this.ws, { eventName: 'folder::deleted', data: { id, libraryId } });
+          }
           break;
         default:
           throw new Error(`Unsupported folder action: ${action}`);
       }
 
-      this.sendResponse({result});
+      this.sendResponse(result as Record<string, any>);
     } catch (err) {
       this.sendError(err instanceof Error ? err.message : 'Folder operation failed');
     }

@@ -7,6 +7,18 @@
             "path": "\\\\192.168.31.3\\文件共享\\人物素材",
             "enableHash": false
         },
+        "useHttpFile": false,
+        "createdAt": "2025-07-22T14:27:23.375146"
+    },
+    {
+        "id": "1753854966902",
+        "name": "本地素材库",
+        "icon": "default",
+        "customFields": {
+            "path": "E:\\testlib",
+            "enableHash": false
+        },
+        "useHttpFile": false,
         "createdAt": "2025-07-22T14:27:23.375146"
     }
 ]
