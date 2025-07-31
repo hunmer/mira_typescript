@@ -10,27 +10,22 @@ docker rmi mira_server:latest 2>nul
 echo 构建 Docker 镜像...
 docker build -t mira_server:latest .
 
-if %ERRORLEVEL% equ 0 (
-    echo Docker 镜像构建成功！
-    echo 保存 Docker 镜像到 mira_server.tar...
-    docker save -o mira_server.tar mira_server:latest
-    echo Docker 镜像已保存到 mira_server.tar
+echo Docker 镜像构建成功！
+echo 保存 Docker 镜像到 mira_server.tar...
+docker save -o mira_server.tar mira_server:latest
+echo Docker 镜像已保存到 mira_server.tar
 
-    set /p start_container=是否启动 Docker 容器？(y/n):
+set /p start_container=是否启动 Docker 容器？(y/n):
 
-    if /i "%start_container%"=="y" (
-        echo 启动 Docker 容器...
-        docker run -d ^
-            -p 3000:3000 ^
-            -p 8081:8081 ^
-            -v /volume1/文件共享:/library ^
-            --restart=always ^
-            --name mira_server ^
-            mira_server
-    ) else (
-        echo 已跳过启动 Docker 容器。
-    )
+if /i "%start_container%"=="y" (
+    echo 启动 Docker 容器...
+    docker run -d ^
+        -p 3000:3000 ^
+        -p 8081:8081 ^
+        -v /volume1/文件共享:/library ^
+        --restart=always ^
+        --name mira_server ^
+        mira_server
 ) else (
-    echo Docker 镜像构建失败！
-    exit /b 1
+    echo 已跳过启动 Docker 容器。
 )

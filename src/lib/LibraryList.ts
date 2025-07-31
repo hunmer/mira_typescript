@@ -7,14 +7,18 @@
 async function getLibrarysJson(dirPath: string = './'): Promise<any> {
     const fs = require('fs').promises;
     const path = require('path');
-    
     try {
         const filePath = path.join(dirPath, 'librarys.json');
+        try {
+            await fs.access(filePath);
+        } catch {
+            await fs.writeFile(filePath, '[]', 'utf8');
+        }
         const data = await fs.readFile(filePath, 'utf8');
         return JSON.parse(data);
     } catch (err) {
         console.error(err);
-        throw new Error(`Failed to read or parse librarys.json `);
+        return [];
     }
 }
 

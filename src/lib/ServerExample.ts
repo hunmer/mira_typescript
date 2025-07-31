@@ -1,13 +1,16 @@
 import { MiraWebsocketServer } from './WebSocketServer';
 import { MiraHttpServer } from './HttpServer';
 import { LibraryStorage } from './LibraryStorage';
+import * as path from 'path';
 
 export class MiraBackend {
   webSocketServer: MiraWebsocketServer;
   httpServer: MiraHttpServer;
   libraries: LibraryStorage;
+  dataPath: string;
 
   constructor() {
+    this.dataPath = process.env.DATA_PATH || path.join(process.cwd(), 'data');
     this.libraries = new LibraryStorage(this);
     this.libraries.loadAll().then((loaded) => console.log(`${loaded} Libraries loaded`));
     this.httpServer = new MiraHttpServer(3000, this);

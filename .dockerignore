@@ -4,6 +4,8 @@ test
 plugins
 dist
 tools
+data
+*.tar
 *.ts
 !dist
 .idea

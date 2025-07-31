@@ -1,7 +1,6 @@
 import { LibraryServerDataSQLite } from "./LibraryServerDataSQLite";
 import { MiraBackend } from "./ServerExample";
 import { getLibrarysJson } from './LibraryList';
-import { WebSocketServer } from "ws";
 
 export class LibraryStorage {
   libraryServices: LibraryServerDataSQLite[] = [];
@@ -24,7 +23,7 @@ export class LibraryStorage {
 
   async loadAll(): Promise<number> {
     let success = 0;
-    for (const library of await getLibrarysJson()) {
+    for (const library of await getLibrarysJson(this.backend.dataPath)) {
       try {
         console.log('loading library ', library.name);
         await this.load(library);
