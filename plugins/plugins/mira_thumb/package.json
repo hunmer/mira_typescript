@@ -11,7 +11,7 @@
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",
     "queue": "^7.0.0",
-    "mira_core": "file:../../../src/lib"
+    "@hunmer/mira_core": "^1.0.1"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.27",

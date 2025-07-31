@@ -11,12 +11,12 @@
     },
      {
         "name": "mira_user",
-        "enabled": true,
+        "enabled": false,
         "path": "plugins/mira_user"
     },
     {
         "name": "upload_statistics",
-        "enabled": true,
+        "enabled": false,
         "path": "plugins/upload_statistics"
     }
 ]
