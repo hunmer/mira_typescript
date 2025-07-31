@@ -66,18 +66,15 @@ export class MiraWebsocketServer {
   }
 
   broadcastToClients(eventName: string, eventData: Record<string, any>): void {
-    const dbService = this.libraries.all().find(
-      (library) => library.getLibraryId() === eventData.libraryId
-    );
-    if (dbService) {
-      const eventManager = dbService.eventManager;
+    const obj = this.libraries.get( eventData.libraryId);
+    if (obj) {
+      const eventManager = obj.eventManager;
       if (eventManager) {
         eventManager.broadcast(
           eventName,
           new EventArgs(eventName, eventData)
         );
       }
-
     }
   }
 
@@ -105,18 +102,15 @@ export class MiraWebsocketServer {
 
   broadcastPluginEvent(eventName: string, data: Record<string, any>): Promise<boolean> {
     const libraryId = data?.libraryId ?? data?.message?.libraryId;
-    const dbService = this.libraries.all().find(
-      (library) => library.getLibraryId() === libraryId
-    );
-    if (dbService) {
-      const eventManager = dbService.eventManager;
+     const obj = this.libraries.get( libraryId);
+    if (obj) {
+      const eventManager = obj.eventManager;
       if (eventManager) {
         return eventManager.broadcast(
           eventName,
           new EventArgs(eventName, data)
         );
       }
-
     }
     return Promise.resolve(false);
   }
@@ -165,11 +159,8 @@ export class MiraWebsocketServer {
       return;
     }
 
-    const dbService = this.libraries.all().find(
-      (library) => library.getLibraryId() === libraryId
-    );
-
-    if (!dbService) {
+  const obj = this.libraries.get( libraryId);
+    if (!obj) {
       this.sendToWebsocket(ws, {
         status: 'error',
         msg: 'Library service not found'
@@ -177,7 +168,7 @@ export class MiraWebsocketServer {
       return;
     }
 
-    const handler = await WebSocketRouter.route(this, dbService, ws, {
+    const handler = await WebSocketRouter.route(this, obj.libraryService, ws, {
       ...row,
       ...payload
     });
@@ -205,7 +196,7 @@ export class MiraWebsocketServer {
   }
 
   async stop(): Promise<void> {
-    this.libraries.all().map(dbService => dbService.close());
+    this.libraries.clear();
     this.wss?.close();
     console.log('WebSocket server stopped');
   }

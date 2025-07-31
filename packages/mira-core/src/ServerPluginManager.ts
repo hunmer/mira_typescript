@@ -4,6 +4,7 @@ import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { EventManager } from './event-manager';
 
 export interface PluginConfig {
     name: string;
@@ -56,7 +57,7 @@ export class ServerPluginManager {
                     const pluginModule = require(pluginPath);
                     if (typeof pluginModule.init === 'function') {
                         await pluginModule.init(
-                        {pluginManager: this, server: this.server, dbService: this.dbService, httpServer: this.httpServer})
+                        { pluginManager: this, server: this.server, dbService: this.dbService, httpServer: this.httpServer})
                     }
                     this.loadedPlugins.set(pluginConfig.name, pluginModule);
                     console.log(`Loaded plugin: ${pluginConfig.name}`);

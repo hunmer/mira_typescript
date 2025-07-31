@@ -2,28 +2,35 @@ import { LibraryServerDataSQLite } from "mira-storage-sqlite";
 import { MiraBackend } from "./MiraBackend";
 import { getLibrarysJson } from './LibraryList';
 import { ServerPluginManager } from "./ServerPluginManager";
+import { EventManager } from "./event-manager";
 
 export class LibraryStorage {
-  libraryServices: LibraryServerDataSQLite[] = [];
+  libraries: Record<string, {
+    libraryService?: LibraryServerDataSQLite;
+    pluginManager?: ServerPluginManager;
+    eventManager?: EventManager;
+  }> = {};
+
   backend: MiraBackend;
 
   constructor(backend: MiraBackend) {
     this.backend = backend;
   }
 
-  all(): LibraryServerDataSQLite[] {
-    return this.libraryServices;
-  }
-
   async load(dbConfig: Record<string, any>): Promise<LibraryServerDataSQLite> {
-    const dbServer = new LibraryServerDataSQLite(dbConfig, {webSocketServer: this.backend.webSocketServer, httpServer: this.backend.httpServer} );
+    const libraryId = dbConfig.id;
+    const dbServer = new LibraryServerDataSQLite(dbConfig, { webSocketServer: this.backend.webSocketServer, httpServer: this.backend.httpServer });
+    this.libraries[libraryId] = {
+      libraryService: dbServer,
+      eventManager: new EventManager()
+
+    }
     await dbServer.initialize();
     const pluginManager = new ServerPluginManager(
-        { server: this.backend.webSocketServer, dbService: dbServer, httpServer: this.backend.httpServer, pluginsDir: dbConfig.pluginsDir }
-      );
+      { server: this.backend.webSocketServer, dbService: dbServer, httpServer: this.backend.httpServer, pluginsDir: dbConfig.pluginsDir }
+    );
+    this.libraries[libraryId].pluginManager = pluginManager;
     await pluginManager.loadPlugins();
-    dbServer.pluginManager = pluginManager;
-    this.libraryServices.push(dbServer);
     return dbServer;
   }
 
@@ -34,28 +41,24 @@ export class LibraryStorage {
         console.log('loading library ', library.name);
         await this.load(library);
         success++;
-      } catch(err){
+      } catch (err) {
         console.log(err)
       }
     }
     return success;
   }
 
-  get(libraryId: string): LibraryServerDataSQLite | undefined {
-    return this.libraryServices.find(
-      (library) => library.getLibraryId() === libraryId
-    );
+  clear() {
+    Object.values(this.libraries).forEach(lib => lib.libraryService!.close());
+    this.libraries = {};
+  }
+
+  get(libraryId: string): Record<string, any> | undefined {
+    return this.libraries[libraryId];;
   }
 
   exists(libraryId: string): boolean {
-    return this.libraryServices.some(
-      (library) => library.getLibraryId() === libraryId
-    );
+    return libraryId in this.libraries;
   }
-
-  find(libraryId: string): LibraryServerDataSQLite | undefined {
-    return this.libraryServices.find((library) => library.getLibraryId() === libraryId);
-  }
-
 
 }

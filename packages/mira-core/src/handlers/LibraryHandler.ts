@@ -18,13 +18,14 @@ export class LibraryHandler extends MessageHandler {
     try {
       const { action, payload } = this.message;
       const { data } = payload;
-      const libraryId =  this.dbService.getLibraryId();
+      const libraryId = this.dbService.getLibraryId();
       let result;
       switch(action) {
         case 'open':
+          const obj = this.server.libraries.get(libraryId);
           // 初次握手,发送服务器所需字段信息
           this.server.sendToWebsocket(this.ws, { eventName: 'try_connect', data: {
-            fields: this.dbService.pluginManager!.fields, // 所有插件所需字段信息
+            fields: obj!.pluginManager.fields, // 所有插件所需字段信息
           }});
           break;
         case 'connect':

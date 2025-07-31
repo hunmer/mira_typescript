@@ -19,11 +19,15 @@ class ThumbPlugin extends ServerPlugin {
         
         // Initialize queue with concurrency of 5
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
-        
         console.log('Thumbnail plugin initialized');
-        dbService.eventManager.on('file::created', this.onFileCreated.bind(this));
-        dbService.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
-        // this.processPendingThumbnails();
+
+        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        console.log({obj})
+        if(obj){
+             obj.eventManager.on('file::created', this.onFileCreated.bind(this));
+            obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
+            // this.processPendingThumbnails();
+        }
     }
 
     private async onFileCreated(event: EventArgs): Promise<void> {
