@@ -1,0 +1,27 @@
+{
+  "name": "@hunmer/mira-monorepo",
+  "version": "1.0.0",
+  "description": "Mira TypeScript project - monorepo with core, server, and plugins",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/plugins/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:core": "npm run build --workspace=packages/mira-core",
+    "build:server": "npm run build --workspace=packages/mira-server",
+    "build:plugins": "npm run build --workspace=packages/plugins/mira-demo && npm run build --workspace=packages/plugins/mira-user",
+    "start:server": "npm run start --workspace=packages/mira-server",
+    "dev:server": "npm run dev --workspace=packages/mira-server",
+    "clean": "Remove-Item packages\\*\\dist -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item packages\\*\\node_modules -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item packages\\plugins\\*\\dist -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item packages\\plugins\\*\\node_modules -Recurse -Force -ErrorAction SilentlyContinue",
+    "install-all": "npm install && npm install --workspaces"
+  },
+  "keywords": ["mira", "typescript", "server", "plugins"],
+  "author": "hunmer",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}

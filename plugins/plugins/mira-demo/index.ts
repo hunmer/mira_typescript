@@ -1,4 +1,4 @@
-import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
+import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
 
 import { EventEmitter } from 'events';
 

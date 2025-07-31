@@ -1,0 +1,22 @@
+{
+  "name": "@hunmer/mira-plugin-demo",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node index.ts",
+    "prepublish": "npm run build"
+  },
+  "dependencies": {
+    "mira-app-core": "file:../../mira-core"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "keywords": ["mira", "plugin", "demo"],
+  "author": "hunmer",
+  "license": "ISC",
+  "description": "Demo plugin for Mira server"
+}

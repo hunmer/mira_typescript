@@ -1,33 +1,61 @@
-
 {
-    // 使用 IntelliSense 了解相关属性。 
-    // 悬停以查看现有属性的描述。
-    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "启动程序",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\src\\lib\\ServerExample.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Server Debug (ts-node)",
-            "runtimeArgs": ["-r", "ts-node/register"],
-            "args": ["${workspaceFolder}/src/lib/ServerExample.ts"],
-            "sourceMaps": true,
-            "smartStep": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "skipFiles": ["<node_internals>/**"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "启动 Mira Server (开发模式)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
+      "cwd": "${workspaceFolder}/packages/mira-server",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "env": {
+        "NODE_ENV": "development",
+        "DATA_PATH": "${workspaceFolder}/data",
+        "HTTP_PORT": "3000",
+        "WS_PORT": "8081"
+      },
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "启动 Mira Server (生产模式)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/mira-server/dist/index.js",
+      "cwd": "${workspaceFolder}/packages/mira-server",
+      "env": {
+        "NODE_ENV": "production",
+        "DATA_PATH": "${workspaceFolder}/data",
+        "HTTP_PORT": "3000",
+        "WS_PORT": "8081"
+      },
+      "console": "integratedTerminal",
+      "preLaunchTask": "build-mira-server"
+    },
+    {
+      "name": "启动 Mira Server CLI",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/mira-server/src/cli.ts",
+      "cwd": "${workspaceFolder}/packages/mira-server",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": [
+        "--http-port", "3000",
+        "--ws-port", "8081",
+        "--data-path", "${workspaceFolder}/data"
+      ],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "测试 Mira Core (安全导入)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/test-import.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
 }
