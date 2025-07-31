@@ -1,6 +1,6 @@
 import express, { Router, Request, Response, Handler } from 'express';
 import multer from 'multer';
-import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
+import { ILibraryServerData } from './ILibraryServerData';
 import path from 'path';
 import fs from 'fs';
 import { MiraBackend } from './ServerExample';
@@ -29,7 +29,7 @@ const upload = multer({
 export class HttpRouter {
   private router: Router;
   private registerdRounters: Map<string, Handler> = new Map<string, Handler>();
-  private libraryServices: LibraryServerDataSQLite[] = [];
+  private libraryServices: ILibraryServerData[] = [];
   backend: MiraBackend;
 
   constructor(bakend: MiraBackend) {

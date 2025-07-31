@@ -1,5 +1,5 @@
 {
-  "name": "@hunmer/mira_core",
+  "name": "mira-app-core",
   "version": "1.0.3",
   "description": "Core library for Mira TypeScript project - Import only, no auto-loading",
   "main": "dist/index.js",

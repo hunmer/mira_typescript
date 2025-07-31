@@ -1,13 +1,13 @@
 import { MessageHandler } from './MessageHandler';
 import { WebSocket } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
-import { LibraryServerDataSQLite } from '../LibraryServerDataSQLite';
+import { ILibraryServerData } from '../ILibraryServerData';
 import { MiraWebsocketServer } from '../WebSocketServer';
 
 export class FolderHandler extends MessageHandler {
   constructor(
     server: MiraWebsocketServer,
-    dbService: LibraryServerDataSQLite,
+    dbService: ILibraryServerData,
     ws: WebSocket,
     message: WebSocketMessage
   ) {

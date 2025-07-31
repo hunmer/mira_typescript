@@ -6,7 +6,7 @@ export { MiraHttpServer } from './HttpServer';
 export { ServerPluginManager, PluginConfig } from './ServerPluginManager';
 export { EventArgs, EventSubscription, EventManager } from './event-manager';
 export { getLibrarysJson } from './LibraryList';
-export { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
+// Note: LibraryServerDataSQLite moved to separate package to avoid sqlite3 dependency
 export { LibraryStorage } from './LibraryStorage';
 export { MessageHandler } from './MessageHandler';
 export { ServerPlugin } from './ServerPlugin';

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from '@hunmer/mira_core';
+import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from 'mira-app-core';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';

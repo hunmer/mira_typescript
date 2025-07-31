@@ -1,4 +1,4 @@
-import { LibraryServerDataSQLite } from '../LibraryServerDataSQLite';
+import { ILibraryServerData } from '../ILibraryServerData';
 import { WebSocket, WebSocketServer } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
 import { response } from 'express';
@@ -7,7 +7,7 @@ import { MiraWebsocketServer } from '../WebSocketServer';
 export abstract class MessageHandler {
   constructor(
     protected server: MiraWebsocketServer,
-    protected dbService: LibraryServerDataSQLite,
+    protected dbService: ILibraryServerData,
     protected ws: WebSocket,
     protected message: WebSocketMessage
   ) {}

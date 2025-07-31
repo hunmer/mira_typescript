@@ -1,13 +1,13 @@
 import { MessageHandler } from './MessageHandler';
 import { WebSocket, WebSocketServer } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
-import { LibraryServerDataSQLite } from '../LibraryServerDataSQLite';
+import { ILibraryServerData } from '../ILibraryServerData';
 import { MiraWebsocketServer } from '../WebSocketServer';
 
 export class FileHandler extends MessageHandler {
   constructor(
     server: MiraWebsocketServer,
-    dbService: LibraryServerDataSQLite,
+    dbService: ILibraryServerData,
     ws: WebSocket,
     message: WebSocketMessage
   ) {
@@ -23,7 +23,11 @@ export class FileHandler extends MessageHandler {
       let result;
       switch(action) {
         case 'read':
-          result = await this.dbService.getFiles({filters: data.query, isUrlFile: this.dbService.config['useHttpFile'] ? true: false});
+          const config = this.dbService.config;
+          result = await this.dbService.getFiles({
+            filters: data?.query ?? {},
+            isUrlFile: config &&  config['useHttpFile'] ? true : false
+          });
           break;
         case 'create':
           const path = data.path;
