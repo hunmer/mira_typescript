@@ -1,9 +1,5 @@
-import { MiraHttpServer } from "../../../HttpServer";
-import { ILibraryServerData } from "../../../ILibraryServerData";
-import { ServerPluginManager } from "../../../ServerPluginManager";
-import { MiraWebsocketServer } from "../../../WebSocketServer";
+import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
 import express from 'express';
-import { ServerPlugin } from "../../../ServerPlugin";
 import path from "path";
 
 class UserPlugin extends ServerPlugin {

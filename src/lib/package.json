@@ -1,5 +1,5 @@
 {
-  "name": "mira_core",
+  "name": "@hunmer/mira_core",
   "version": "1.0.0",
   "description": "Core library for Mira TypeScript project",
   "main": "index.ts",

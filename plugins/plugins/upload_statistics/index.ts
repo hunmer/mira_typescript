@@ -1,8 +1,4 @@
-import { MiraHttpServer } from "../../../HttpServer";
-import { ILibraryServerData } from "../../../ILibraryServerData";
-import { ServerPluginManager } from "../../../ServerPluginManager";
-import { MiraWebsocketServer } from "../../../WebSocketServer";
-import { ServerPlugin } from "../../../ServerPlugin";
+import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
 
 class UploadStatistics extends ServerPlugin {
     private readonly server: MiraWebsocketServer;

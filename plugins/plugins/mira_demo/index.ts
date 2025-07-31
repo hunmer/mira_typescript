@@ -1,7 +1,5 @@
-import { MiraHttpServer } from "../../../HttpServer";
-import { ILibraryServerData } from "../../../ILibraryServerData";
-import { ServerPluginManager } from "../../../ServerPluginManager";
-import { MiraWebsocketServer } from "../../../WebSocketServer";
+import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer } from 'mira_core';
+
 import { EventEmitter } from 'events';
 
 class DemoPlugin {

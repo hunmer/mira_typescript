@@ -1,14 +1,13 @@
 [
     {
-        "id": "1753778329874",
-        "name": "测试人物素材库",
+        "id": "1753361674631",
+        "name": "remote_lib",
         "icon": "default",
         "customFields": {
-            "path": "/library/人物素材",
+            "path": "E:/mira_test/remote_lib",
             "enableHash": false
         },
-        "pluginsDir": "/library/plugins",
-        "useHttpFile": false,
+        "pluginsDir": "D:/mira_typescript/plugins",
         "createdAt": "2025-07-22T14:27:23.375146"
     }
 ]

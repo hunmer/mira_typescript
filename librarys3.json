@@ -1,0 +1,14 @@
+[
+    {
+        "id": "1753778329874",
+        "name": "测试人物素材库",
+        "icon": "default",
+        "customFields": {
+            "path": "/library/人物素材",
+            "enableHash": false
+        },
+        "pluginsDir": "/library/plugins",
+        "useHttpFile": false,
+        "createdAt": "2025-07-22T14:27:23.375146"
+    }
+]
