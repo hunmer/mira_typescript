@@ -1,6 +1,6 @@
 {
   "name": "mira-storage-sqlite",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "SQLite storage implementation for Mira - provides database persistence using SQLite",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

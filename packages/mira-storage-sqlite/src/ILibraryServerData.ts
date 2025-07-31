@@ -1,5 +1,6 @@
 export interface ILibraryServerData {
-  // Configuration and plugin management
+  pluginManager: any,
+  eventManager: any,
   readonly config?: Record<string, any>;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
@@ -68,4 +69,5 @@ export interface ILibraryServerData {
   queryFolder(query: Record<string, any>): Promise<Record<string, any>[]>;
   queryTag(query: Record<string, any>): Promise<Record<string, any>[]>;
   closeLibrary(): Promise<boolean>;
+  getLibraryInfo(): Promise<Record<string, any>>;
 }

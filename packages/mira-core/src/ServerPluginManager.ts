@@ -1,6 +1,6 @@
 
 import { MiraHttpServer } from './HttpServer';
-import { ILibraryServerData } from './ILibraryServerData';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import * as fs from 'fs';
 import * as path from 'path';

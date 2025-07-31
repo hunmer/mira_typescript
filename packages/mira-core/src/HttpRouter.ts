@@ -1,6 +1,6 @@
 import express, { Router, Request, Response, Handler } from 'express';
 import multer from 'multer';
-import { ILibraryServerData } from './ILibraryServerData';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import path from 'path';
 import fs from 'fs';
 import { MiraBackend } from './MiraBackend';

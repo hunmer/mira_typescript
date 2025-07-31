@@ -1,4 +1,4 @@
-import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
+import { LibraryServerDataSQLite } from 'mira-storage-sqlite';
 import { WebSocket, WebSocketServer } from 'ws';
 import { MessageHandler } from './handlers/MessageHandler';
 import { FileHandler } from './handlers/FileHandler';

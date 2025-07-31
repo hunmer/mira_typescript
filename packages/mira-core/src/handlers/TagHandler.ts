@@ -1,7 +1,7 @@
 import { MessageHandler } from './MessageHandler';
 import { WebSocket } from 'ws';
 import { WebSocketMessage } from '../WebSocketRouter';
-import { ILibraryServerData } from '../ILibraryServerData';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from '../WebSocketServer';
 
 export class TagHandler extends MessageHandler {

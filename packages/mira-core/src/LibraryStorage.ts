@@ -22,6 +22,7 @@ export class LibraryStorage {
         { server: this.backend.webSocketServer, dbService: dbServer, httpServer: this.backend.httpServer, pluginsDir: dbConfig.pluginsDir }
       );
     await pluginManager.loadPlugins();
+    dbServer.pluginManager = pluginManager;
     this.libraryServices.push(dbServer);
     return dbServer;
   }

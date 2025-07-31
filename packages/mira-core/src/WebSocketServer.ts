@@ -1,6 +1,6 @@
 import { WebSocketServer as WSServer, WebSocket } from 'ws';
 import { Server } from 'http';
-import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
+import { LibraryServerDataSQLite } from 'mira-storage-sqlite';
 import { WebSocketRouter } from './WebSocketRouter';
 import { ServerPluginManager } from './ServerPluginManager';
 import { EventArgs } from './event-manager';

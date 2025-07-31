@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ServerPluginManager } from './ServerPluginManager';
-import { ILibraryServerData } from './ILibraryServerData';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraHttpServer } from './HttpServer';
 
 export abstract class ServerPlugin {
