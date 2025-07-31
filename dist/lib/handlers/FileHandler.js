@@ -18,29 +18,43 @@ class FileHandler extends MessageHandler_1.MessageHandler {
     handle() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { action, payload } = this.message;
+                const message = this.message;
+                const { action, payload } = message;
                 const { data } = payload;
+                const libraryId = message.libraryId;
                 let result;
                 switch (action) {
                     case 'read':
-                        result = yield this.dbService.queryFile(data.query);
+                        result = yield this.dbService.getFiles({ filters: data.query, isUrlFile: this.dbService.config['useHttpFile'] ? true : false });
                         break;
                     case 'create':
-                        const path = data['path'];
-                        result = path != null ? yield this.dbService.createFileFromPath(path, {}) : yield this.dbService.createFile(data);
-                        this.server.broadcastPluginEvent('file::created', Object.assign(Object.assign({}, result), { libraryId: this.message.libraryId }));
+                        const path = data.path;
+                        result = path != null ? yield this.dbService.createFileFromPath(path, data) : yield this.dbService.createFile(data);
+                        this.server.broadcastPluginEvent('file::created', { message, result, libraryId });
                         this.server.sendToWebsocket(this.ws, { eventName: 'file::uploaded', data: { path } });
+                        this.server.broadcastLibraryEvent(libraryId, 'file::created', result);
                         break;
                     case 'update':
                         result = yield this.dbService.updateFile(data.id, data);
                         break;
+                    case 'recover':
+                        var { id } = data;
+                        if (yield this.dbService.recoverFile(id)) {
+                            this.server.broadcastPluginEvent('file::recovered', { id, libraryId });
+                            this.server.sendToWebsocket(this.ws, { eventName: 'file::recovered', data: { id, libraryId } });
+                        }
+                        break;
                     case 'delete':
-                        result = yield this.dbService.deleteFile(data.id, data.options);
+                        var { id, moveToRecycleBin } = data;
+                        if (yield this.dbService.deleteFile(id, { moveToRecycleBin })) {
+                            this.server.broadcastPluginEvent('file::deleted', { id, libraryId });
+                            this.server.sendToWebsocket(this.ws, { eventName: 'file::deleted', data: { id, libraryId } });
+                        }
                         break;
                     default:
                         throw new Error(`Unsupported file action: ${action}`);
                 }
-                this.sendResponse({ result });
+                this.sendResponse(result);
             }
             catch (err) {
                 this.sendError(err instanceof Error ? err.message : 'File operation failed');

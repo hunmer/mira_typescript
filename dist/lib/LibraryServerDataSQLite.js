@@ -51,32 +51,23 @@ const ServerPluginManager_1 = require("./ServerPluginManager");
 class LibraryServerDataSQLite {
     initializePlugins() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.pluginManager.loadPlugins();
+            if (this.pluginManager)
+                yield this.pluginManager.loadPlugins();
         });
     }
-    constructor(websocketServer, httpServer, config) {
+    constructor(config, opts) {
         var _a, _b;
         this.db = null;
         this.inTransaction = false;
-        this.websocketServer = websocketServer;
         this.config = config;
-        this.httpServer = httpServer;
-        this.eventManager = new event_manager_1.EventManager();
-        this.pluginManager = new ServerPluginManager_1.ServerPluginManager(websocketServer, this);
+        if (opts.websocketServer || opts.httpServer) {
+            this.websocketServer = opts.websocketServer;
+            this.httpServer = opts.httpServer;
+            this.eventManager = new event_manager_1.EventManager();
+            this.pluginManager = new ServerPluginManager_1.ServerPluginManager({ server: opts.webSocketServer, dbService: this, httpServer: opts.httpServer });
+        }
         this.initializePlugins();
         this.enableHash = (_b = (_a = config.customFields) === null || _a === void 0 ? void 0 : _a.enableHash) !== null && _b !== void 0 ? _b : false;
-    }
-    connectLibrary(config) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const tags = yield this.getAllTags();
-            const folders = yield this.getAllFolders();
-            return {
-                libraryId: this.getLibraryId(),
-                status: 'connected',
-                tags, folders,
-                config
-            };
-        });
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -260,15 +251,57 @@ class LibraryServerDataSQLite {
       ) = ${tagIds.length}`);
                 params.push(...tagIds);
             }
+            if (filters.custom_fields) {
+                const customFields = filters.custom_fields;
+                const convertValue = (value) => {
+                    if (value == 'null') {
+                        value = null;
+                    }
+                    return value;
+                };
+                for (const [key, value] of Object.entries(customFields)) {
+                    if (typeof value === 'string' && value.startsWith('!=')) {
+                        let actualValue = value.substring(2).trim();
+                        whereClauses.push(`(json_extract(custom_fields, '$.${key}') IS NOT NULL OR json_extract(custom_fields, '$.${key}') != ?)`);
+                        params.push(convertValue(actualValue));
+                    }
+                    else if (typeof value === 'string' && value.startsWith('>')) {
+                        whereClauses.push(`json_extract(custom_fields, '$.${key}') > ?`);
+                        params.push(convertValue(value.substring(1).trim()));
+                    }
+                    else if (typeof value === 'string' && value.startsWith('<')) {
+                        whereClauses.push(`json_extract(custom_fields, '$.${key}') < ?`);
+                        params.push(convertValue(value.substring(1).trim()));
+                    }
+                    else {
+                        whereClauses.push(`json_extract(custom_fields, '$.${key}') = ?`);
+                        params.push(convertValue(value));
+                    }
+                }
+            }
             const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-            const query = `SELECT ${select} FROM files ${where} LIMIT ? OFFSET ?`;
+            // 处理排序
+            let orderBy = '';
+            // sort?: 'imported_at' | 'id' | 'size' | 'stars' | 'folder_id' | 'tags' | 'name' | 'custom_fields';
+            // order?: 'asc' | 'desc';
+            if (filters === null || filters === void 0 ? void 0 : filters.sort) {
+                const order = (filters === null || filters === void 0 ? void 0 : filters.order) || 'asc';
+                if (filters.sort === 'custom_fields') {
+                    // 自定义字段排序需要特殊处理
+                    orderBy = ` ORDER BY json_extract(custom_fields, '$') ${order}`;
+                }
+                else {
+                    orderBy = ` ORDER BY ${filters.sort} ${order}`;
+                }
+            }
+            const query = `SELECT ${select} FROM files ${where}${orderBy} LIMIT ? OFFSET ?`;
             const countQuery = `SELECT COUNT(*) as total FROM files ${where}`;
             const [rows, countRows] = yield Promise.all([
                 this.getSql(query, [...params, limit, offset]),
                 this.getSql(countQuery, params),
             ]);
             return {
-                result: rows.map(row => this.rowToMap(row)),
+                result: yield this.processingFiles(rows.map(row => this.rowToMap(row)), options === null || options === void 0 ? void 0 : options.isUrlFile),
                 limit,
                 offset,
                 total: countRows[0].total,
@@ -460,7 +493,7 @@ class LibraryServerDataSQLite {
             return this.createFile(fileData);
         });
     }
-    getFileFolders(fileId) {
+    getFileFolder(fileId) {
         return __awaiter(this, void 0, void 0, function* () {
             const rows = yield this.getSql('SELECT f.* FROM folders f JOIN files fi ON fi.folder_id = f.id WHERE fi.id = ?', [fileId]);
             return rows.map(row => this.rowToMap(row));
@@ -486,7 +519,7 @@ class LibraryServerDataSQLite {
             }
         });
     }
-    setFileFolders(fileId, folderId) {
+    setFileFolder(fileId, folderId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!folderId)
                 return false;
@@ -544,11 +577,12 @@ class LibraryServerDataSQLite {
             return path.join(libraryPath, folderName);
         });
     }
-    getItemFilePath(item) {
+    getItemFilePath(item, options) {
         return __awaiter(this, void 0, void 0, function* () {
             const libraryPath = yield this.getLibraryPath();
             const folderName = yield this.getFolderName(item.folder_id);
-            return path.join(libraryPath, folderName, item.name);
+            const filePath = path.join(libraryPath, folderName, item.name);
+            return (options === null || options === void 0 ? void 0 : options.isUrlFile) && this.httpServer ? this.httpServer.getPublicURL(`api/file/${this.getLibraryId()}/${item.id}`) : filePath;
         });
     }
     getItemThumbPath(item, options) {
@@ -556,10 +590,7 @@ class LibraryServerDataSQLite {
             const libraryPath = yield this.getLibraryPath();
             const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
             const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-            if (options === null || options === void 0 ? void 0 : options.isNetworkImage) {
-                return this.httpServer.getPublicURL(`thumbs/${this.config.id}`);
-            }
-            return thumbFile;
+            return (options === null || options === void 0 ? void 0 : options.isUrlFile) && this.httpServer ? this.httpServer.getPublicURL(`api/thumb/${this.getLibraryId()}/${item.id}`) : thumbFile;
         });
     }
     getEventManager() {
@@ -597,7 +628,14 @@ class LibraryServerDataSQLite {
                     if (!fs.existsSync(destDir2)) {
                         fs.mkdirSync(destDir2, { recursive: true });
                     }
-                    fs.renameSync(filePath, destPath);
+                    // 如果不同是跨盘符操作，则单独复制一份，再删除源文件
+                    if (path.parse(filePath).root !== path.parse(destPath).root) {
+                        fs.copyFileSync(filePath, destPath);
+                        fs.unlinkSync(filePath);
+                    }
+                    else {
+                        fs.renameSync(filePath, destPath);
+                    }
                     fileData.path = destPath;
                     break;
                 default:
@@ -669,19 +707,30 @@ class LibraryServerDataSQLite {
         });
     }
     getLibraryInfo() {
-        return {
-            id: this.getLibraryId(),
-            status: 'connected',
-            config: this.config
-        };
+        return __awaiter(this, void 0, void 0, function* () {
+            const tags = yield this.getAllTags();
+            const folders = yield this.getAllFolders();
+            return {
+                libraryId: this.getLibraryId(),
+                status: 'connected',
+                tags, folders,
+            };
+        });
     }
     // 查询方法
-    queryFile(query) {
-        return __awaiter(this, void 0, void 0, function* () {
+    queryFile(query_1) {
+        return __awaiter(this, arguments, void 0, function* (query, isUrlFile = true) {
             const { result } = yield this.getFiles({ filters: query });
-            return Promise.all(result.map((file) => __awaiter(this, void 0, void 0, function* () {
-                file['thumb'] = yield this.getItemThumbPath(file, { isNetworkImage: true });
-                return file;
+            return this.processingFiles(result, isUrlFile);
+        });
+    }
+    processingFiles(files_1) {
+        return __awaiter(this, arguments, void 0, function* (files, isUrlFile = true) {
+            return Promise.all(files.map((file) => __awaiter(this, void 0, void 0, function* () {
+                return Object.assign(Object.assign({}, file), {
+                    thumb: yield this.getItemThumbPath(file, { isUrlFile }),
+                    path: yield this.getItemFilePath(file, { isUrlFile }),
+                });
             })));
         });
     }

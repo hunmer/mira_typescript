@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const LibraryServerDataSQLite_1 = require("./LibraryServerDataSQLite");
+const LibraryServerDataSQLite_1 = require("../lib/LibraryServerDataSQLite");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 describe('LibraryServerDataSQLite', () => {

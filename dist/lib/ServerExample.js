@@ -16,6 +16,7 @@ const LibraryStorage_1 = require("./LibraryStorage");
 class MiraBackend {
     constructor() {
         this.libraries = new LibraryStorage_1.LibraryStorage(this);
+        this.libraries.loadAll().then((loaded) => console.log(`${loaded} Libraries loaded`));
         this.httpServer = new HttpServer_1.MiraHttpServer(3000, this);
         this.webSocketServer = new WebSocketServer_1.MiraWebsocketServer(8081, this);
         this.webSocketServer.start('/ws');

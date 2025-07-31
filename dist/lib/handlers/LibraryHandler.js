@@ -20,8 +20,28 @@ class LibraryHandler extends MessageHandler_1.MessageHandler {
             try {
                 const { action, payload } = this.message;
                 const { data } = payload;
+                const libraryId = this.dbService.getLibraryId();
                 let result;
                 switch (action) {
+                    case 'open':
+                        // 初次握手,发送服务器所需字段信息
+                        this.server.sendToWebsocket(this.ws, { eventName: 'try_connect', data: {
+                                fields: this.dbService.pluginManager.fields, // 所有插件所需字段信息
+                            } });
+                        break;
+                    case 'connect':
+                        // 第二次握手 
+                        this.server.broadcastPluginEvent('client::before_connect', {
+                            message: this.message,
+                            ws: this.ws,
+                        }).then((ok) => __awaiter(this, void 0, void 0, function* () {
+                            if (ok) {
+                                const data = yield this.dbService.getLibraryInfo(); // 获取所有标签，文件夹等信息
+                                this.server.sendToWebsocket(this.ws, { eventName: 'connected', data: data });
+                                this.server.broadcastPluginEvent('client::connected', { libraryId });
+                            }
+                        }));
+                        break;
                     case 'close':
                         result = yield this.dbService.closeLibrary();
                         break;

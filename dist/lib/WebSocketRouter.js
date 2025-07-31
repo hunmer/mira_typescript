@@ -14,6 +14,7 @@ const FileHandler_1 = require("./handlers/FileHandler");
 const TagHandler_1 = require("./handlers/TagHandler");
 const FolderHandler_1 = require("./handlers/FolderHandler");
 const LibraryHandler_1 = require("./handlers/LibraryHandler");
+const PluginMessageHandler_1 = require("./handlers/PluginMessageHandler");
 class WebSocketRouter {
     static route(server, // 修改为any类型避免类型冲突
     dbService, ws, message) {
@@ -21,6 +22,8 @@ class WebSocketRouter {
             const { payload } = message;
             // 根据资源类型路由到不同的处理器
             switch (payload.type) {
+                case 'plugin':
+                    return new PluginMessageHandler_1.PluginMessageHandler(server, dbService, ws, message);
                 case 'file':
                     return new FileHandler_1.FileHandler(server, dbService, ws, message);
                 case 'tag':

@@ -1,4 +1,4 @@
-import { LibraryServerDataSQLite } from './LibraryServerDataSQLite';
+import { LibraryServerDataSQLite } from '../lib/LibraryServerDataSQLite';
 import * as path from 'path';
 import * as fs from 'fs';
 
