@@ -1,3 +1,19 @@
+/**
+ * @hunmer/mira_core - Core library for Mira TypeScript project
+ * 
+ * This is an import-only library. No code is automatically executed when importing.
+ * All classes and functions must be explicitly instantiated/called by the consuming code.
+ * 
+ * @example
+ * // Import specific classes/functions as needed
+ * import { MiraBackend, MiraWebsocketServer } from '@hunmer/mira_core';
+ * 
+ * // Create instances manually when needed
+ * const backend = new MiraBackend();
+ * // or use the static factory method
+ * const backend = MiraBackend.createAndStart();
+ */
+
 // Core exports for mira_core package
 export { ILibraryServerData } from './ILibraryServerData';
 export { MiraWebsocketServer } from './WebSocketServer';

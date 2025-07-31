@@ -7,10 +7,10 @@ import fs from 'fs';
 import Queue from 'queue';
 
 class ThumbPlugin extends ServerPlugin {
-    private readonly server: MiraWebsocketServer;
-    private readonly dbService: ILibraryServerData;
-    private readonly pluginManager: ServerPluginManager;
-    private readonly taskQueue: Queue;
+      server: MiraWebsocketServer;
+      dbService: ILibraryServerData;
+      pluginManager: ServerPluginManager;
+      taskQueue: Queue;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
         super('mira_thumb', pluginManager, dbService, httpServer);

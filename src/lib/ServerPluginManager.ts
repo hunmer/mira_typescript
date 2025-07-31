@@ -52,7 +52,8 @@ export class ServerPluginManager {
             if (pluginConfig.enabled) {
                 try {
                     const pluginPath = path.join(this.pluginsDir, pluginConfig.path);
-                    const pluginModule = await import(pluginPath);
+                    delete require.cache[require.resolve(pluginPath)];
+                    const pluginModule = require(pluginPath);
                     if (typeof pluginModule.init === 'function') {
                         await pluginModule.init(
                         {pluginManager: this, server: this.server, dbService: this.dbService, httpServer: this.httpServer})

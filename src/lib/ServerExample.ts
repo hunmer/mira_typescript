@@ -26,6 +26,11 @@ export class MiraBackend {
     });
   }
 
+  /**
+   * 启动服务器的静态方法
+   * 使用此方法而不是直接实例化，以避免自动启动
+   */
+  static createAndStart(): MiraBackend {
+    return new MiraBackend();
+  }
 }
-
-const app = new MiraBackend();

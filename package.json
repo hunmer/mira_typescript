@@ -1,5 +1,5 @@
 {
-  "name": "mira_typescript",
+  "name": "@hunmer/mira_server",
   "version": "1.0.0",
   "description": "",
   "main": "dist/lib/ServerExample.js",
@@ -10,7 +10,7 @@
     "dev": "ts-node src/main.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "hunmer",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.3",
