@@ -23,15 +23,15 @@ class UploadStatistics extends ServerPlugin {
             reportApis: [
                 {
                     method: 'POST',
-                    url: 'https://oapi.dingtalk.com/robot/send?access_token=10ed171b277a5457e8558ba2318d0e15db537ec82ad29068e39863d6bd9cbc8f',
+                    url: 'YOUR_HOOK_URL', // 替换为实际的钉钉机器人Webhook地址
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: {
                         'msgtype': 'markdown',
                         'markdown': {},
-                        openConversationId: 'cidc1zCBPIN7n6iCnjLYlibHQ==',
-                        robotCode: 'dingnfvobzppogfk5z6q'
+                        openConversationId: 'YOUR_CONVERSATION_ID', // 替换为实际的会话ID
+                        robotCode: 'YOUR_ROBOT_CODE' // 替换为实际的机器人Code
                     },
                     responseHandler: (response: any) => {
                         // {errcode: 0, errmsg: 'ok'}
