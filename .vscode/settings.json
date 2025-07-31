@@ -1,0 +1,17 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.format.enable": true,
+  "typescript.validate.enable": true,
+  "debug.allowBreakpointsEverywhere": true,
+  "debug.javascript.unmapMissingSources": true,
+  "debug.node.autoAttach": "off",
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  }
+}

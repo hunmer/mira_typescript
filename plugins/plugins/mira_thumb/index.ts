@@ -1,6 +1,5 @@
-import { EventEmitter } from 'events';
-import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from 'mira-app-core';
-import sharp from 'sharp';
+import { MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from 'mira-app-core';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
@@ -22,8 +21,8 @@ class ThumbPlugin extends ServerPlugin {
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
         
         console.log('Thumbnail plugin initialized');
-        this.eventEmitter.on('file::created', this.onFileCreated.bind(this));
-        this.eventEmitter.on('file::deleted', this.onFileDeleted.bind(this));
+        dbService.eventManager.on('file::created', this.onFileCreated.bind(this));
+        dbService.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
         // this.processPendingThumbnails();
     }
 
@@ -76,16 +75,22 @@ class ThumbPlugin extends ServerPlugin {
         if (!fs.existsSync(thumbDir)) {
             fs.mkdirSync(thumbDir, { recursive: true });
         }
-        try {
-            await sharp(srcPath)
-                .resize(200, 200, {
-                    fit: 'inside',
-                    withoutEnlargement: true
+        
+        return new Promise<void>((resolve, reject) => {
+            console.log({srcPath});
+            ffmpeg(srcPath)
+                .outputOptions([
+                    '-vf', 'scale=200:200:force_original_aspect_ratio=decrease',
+                    '-frames:v', '1'
+                ])
+                .output(destPath)
+                .on('end', () => resolve())
+                .on('error', (err: Error) => {
+                    console.error('Image thumbnail generation error:', srcPath);
+                    resolve(); // 即使出错也继续处理
                 })
-                .toFile(destPath);
-        } catch (err) {
-            console.error('Image thumbnail generation error:', srcPath);
-        }
+                .run();
+        });
     }
 
     private async generateVideoThumbnail(srcPath: string, destPath: string): Promise<void> {

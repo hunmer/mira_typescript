@@ -1,12 +1,13 @@
 {
   "name": "mira-app-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Core library for Mira TypeScript project - provides base functionality without auto-execution",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepublish": "npm run build"
+    "dev": "ts-node src/index.ts",
+    "start:ts": "ts-node src/index.ts"
   },
   "keywords": [
     "mira",
@@ -21,13 +22,14 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/ws": "^8.18.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",
     "axios": "^1.11.0",
     "express": "^5.1.0",
-    "mira-storage-sqlite": "file:../mira-storage-sqlite",
+    "mira-storage-sqlite": "^1.0.4",
     "multer": "^2.0.2",
     "queue": "^7.0.0",
     "ws": "^8.18.3"

@@ -12,26 +12,52 @@
         "NODE_ENV": "development",
         "DATA_PATH": "${workspaceFolder}/data",
         "HTTP_PORT": "3000",
-        "WS_PORT": "8081"
+        "WS_PORT": "8081",
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
       },
       "console": "integratedTerminal",
       "sourceMaps": true,
-      "skipFiles": ["<node_internals>/**"]
+      "smartStep": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/**/dist/**/*.js"
+      ]
     },
     {
       "name": "启动 Mira Server (生产模式)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/packages/mira-server/dist/index.js",
+      "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
       "cwd": "${workspaceFolder}/packages/mira-server",
+      "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
         "NODE_ENV": "production",
         "DATA_PATH": "${workspaceFolder}/data",
         "HTTP_PORT": "3000",
-        "WS_PORT": "8081"
+        "WS_PORT": "8081",
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
       },
       "console": "integratedTerminal",
-      "preLaunchTask": "build-mira-server"
+      "sourceMaps": true,
+      "smartStep": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/**/dist/**/*.js"
+      ]
     },
     {
       "name": "启动 Mira Server CLI",
@@ -45,9 +71,23 @@
         "--ws-port", "8081",
         "--data-path", "${workspaceFolder}/data"
       ],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
+      },
       "console": "integratedTerminal",
       "sourceMaps": true,
-      "skipFiles": ["<node_internals>/**"]
+      "smartStep": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/**/dist/**/*.js"
+      ]
     },
     {
       "name": "测试 Mira Core (安全导入)",

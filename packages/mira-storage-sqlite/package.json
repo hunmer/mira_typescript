@@ -1,11 +1,13 @@
 {
   "name": "mira-storage-sqlite",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "SQLite storage implementation for Mira - provides database persistence using SQLite",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start:ts": "ts-node src/index.ts"
   },
   "keywords": ["mira", "storage", "sqlite", "database"],
   "author": "hunmer",
@@ -15,13 +17,14 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
-    "mira-app-core": "^1.0.0",
+    "mira-app-core": "^1.0.1",
     "sqlite3": "^5.1.7"
   },
   "peerDependencies": {
-    "mira-app-core": "^1.0.0"
+    "mira-app-core": "^1.0.1"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "mira-app-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mira Server - standalone server application using mira-core",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:ts": "ts-node src/index.ts",
     "dev": "ts-node src/index.ts",
+    "cli": "ts-node src/cli.ts",
     "prepublish": "npm run build"
   },
   "publishConfig": {
@@ -24,6 +26,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "mira-app-core": "^1.0.0"
+    "mira-app-core": "^1.0.1"
   }
 }
