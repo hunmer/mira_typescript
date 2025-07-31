@@ -28,7 +28,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       this.httpServer = opts.httpServer;
       this.eventManager = new EventManager();
       this.pluginManager = new ServerPluginManager(
-        { server: opts.webSocketServer, dbService: this as unknown as ILibraryServerData, httpServer: opts.httpServer }
+        { server: opts.webSocketServer, dbService: this as unknown as ILibraryServerData, httpServer: opts.httpServer, pluginsDir: config.pluginsDir }
       );
     }
     this.initializePlugins();

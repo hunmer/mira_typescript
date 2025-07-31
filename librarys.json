@@ -7,6 +7,7 @@
             "path": "/library/人物素材",
             "enableHash": false
         },
+        "pluginsDir": "/library/plugins",
         "useHttpFile": false,
         "createdAt": "2025-07-22T14:27:23.375146"
     }
