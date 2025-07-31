@@ -8,8 +8,6 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   private inTransaction = false;
   private enableHash: boolean;
   readonly config: Record<string, any>;
-  pluginManager: any;
-  eventManager: any; // 假设有一个事件管理器
 
   constructor(config: Record<string, any>, opts: any) {
     this.config = config;

@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "mira-app-core": "^1.0.1"
+    "mira-app-core": "file:../mira-core"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

@@ -21,10 +21,10 @@
     "ts-node": "^10.9.2"
   },
   "dependencies": {
-    "mira-app-core": "^1.0.1",
+    "mira-app-core":  "file:../mira-core",
     "sqlite3": "^5.1.7"
   },
   "peerDependencies": {
-    "mira-app-core": "^1.0.1"
+    "mira-app-core": "file:../mira-core"
   }
 }

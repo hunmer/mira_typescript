@@ -1,6 +1,6 @@
+import { EventEmitter } from "events";
+
 export interface ILibraryServerData {
-  pluginManager: any,
-  eventManager: any,
   readonly config?: Record<string, any>;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
