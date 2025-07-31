@@ -10,7 +10,8 @@
   "description": "",
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",
-    "queue": "^7.0.0"
+    "queue": "^7.0.0",
+    "mira_core": "file:../src/lib"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.27",

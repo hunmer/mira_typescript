@@ -5,10 +5,10 @@ set http_proxy=http://127.0.0.1:7890 & set https_proxy=http://127.0.0.1:7890
 echo 开始构建 Docker 镜像...
 
 echo 清理之前的构建...
-docker rmi mira_typescript:latest 2>nul
+docker rmi mira_server:latest 2>nul
 
 echo 构建 Docker 镜像...
-docker build -t mira_typescript:latest .
+docker build -t mira_server:latest .
 
 if %ERRORLEVEL% equ 0 (
     echo Docker 镜像构建成功！

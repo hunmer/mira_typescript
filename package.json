@@ -4,11 +4,10 @@
   "description": "",
   "main": "dist/lib/ServerExample.js",
   "scripts": {
-    "build": "tsc && copyfiles -u 1 src/lib/plugins/plugins.json dist",
+    "build": "tsc",
     "node-start": "node dist/lib/ServerExample.js",
     "start": "ts-node src/lib/ServerExample.ts",
-    "dev": "ts-node src/main.ts",
-    "prepublish": "npm run build"
+    "dev": "ts-node src/main.ts"
   },
   "keywords": [],
   "author": "",

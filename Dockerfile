@@ -28,12 +28,8 @@ RUN rm -rf node_modules package-lock.json
 # 先安装依赖
 RUN npm install
 
-# 强制重新安装sharp模块以支持Alpine Linux (musl)
-RUN npm uninstall sharp || true
-RUN npm install --platform=linux --arch=x64 --libc=musl sharp
-
-# 构建项目
-RUN npm run build
+# 构建项目(不需要用dist，暂且无视)
+# RUN npm run build
 
 # 清理构建依赖以减小镜像大小
 RUN apk del python3 make g++
