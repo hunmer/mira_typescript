@@ -1,13 +1,9 @@
 import { EventEmitter } from 'events';
-import { ILibraryServerData } from 'mira_core/ILibraryServerData';
-import { MiraWebsocketServer } from 'mira_core/WebSocketServer';
+import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer } from 'mira_core';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
-import { EventArgs } from 'mira_core/event-manager';
-import { ServerPluginManager } from 'mira_core/ServerPluginManager';
-import { MiraHttpServer } from 'mira_core/HttpServer';
 import Queue from 'queue';
 
 class ThumbPlugin {
