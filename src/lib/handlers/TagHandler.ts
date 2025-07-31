@@ -25,8 +25,8 @@ export class TagHandler extends MessageHandler {
         case 'file_set':
           var {fileId, tags } = data;
           if(await this.dbService.setFileTags(fileId, tags)){
-            result = { fileId, tags };
-            this.server.broadcastPluginEvent('file::setTag', {fileId, tags, libraryId});
+            result = { fileId, tags, libraryId };
+            this.server.broadcastPluginEvent('file::setTag',result);
             this.server.broadcastLibraryEvent(libraryId, 'file::setTag', result);
           }
           break;

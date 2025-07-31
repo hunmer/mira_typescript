@@ -132,6 +132,7 @@ export class HttpRouter {
             if (clientId) {
               const ws = this.backend.webSocketServer.getWsClientById(libraryId, clientId);
               ws && this.backend.webSocketServer.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
+              this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::created', {...result, libraryId});
             }
           } catch (error) {
             results.push({

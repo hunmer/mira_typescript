@@ -24,8 +24,8 @@ export class FolderHandler extends MessageHandler {
         case 'file_set':
           var { fileId, folder } = data;
           if (await this.dbService.setFileFolder(fileId, folder)) {
-            result = { fileId, folder };
-            this.server.broadcastPluginEvent('file::setFolder', { fileId, folder, libraryId });
+            result = { fileId, folder, libraryId };
+            this.server.broadcastPluginEvent('file::setFolder', result);
             this.server.broadcastLibraryEvent(libraryId, 'file::setFolder', result);
           }
           break;

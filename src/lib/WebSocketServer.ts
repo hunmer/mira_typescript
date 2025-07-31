@@ -9,17 +9,9 @@ import { MiraHttpServer } from './HttpServer';
 import { MiraBackend } from './ServerExample';
 
 interface LibraryClient {
-  [libraryId: string]: WebsocketClient[];
+  [libraryId: string]: WebSocket[];
 }
 
-class WebsocketClient {
-  readonly clientId: string;
-  readonly ws: WebSocket;
-  constructor(clientId: string, ws: WebSocket) {
-    this.clientId = clientId;
-    this.ws = ws;
-  }
-}
 
 export class MiraWebsocketServer {
   private port: number;
@@ -38,7 +30,35 @@ export class MiraWebsocketServer {
 
   async start(basePath: string): Promise<void> {
     this.wss = new WSServer({ port: this.port });
-    this.wss.on('connection', (ws: WebSocket) => {
+    this.wss.on('connection', (ws: WebSocket, request) => {
+      const urlString = request.url ?? '';
+      const url = new URL(urlString, `ws://${request.headers.host}`);
+      const clientId = url.searchParams.get('clientId');
+      const libraryId = url.searchParams.get('libraryId');
+      if (clientId == null || libraryId == null) {
+        console.error('Missing clientId or libraryId in WebSocket connection');
+        return ws.close();
+      }
+
+      // 将请求信息保存到 ws 对象上
+      Object.assign(ws, {
+        clientId: clientId,
+        libraryId: libraryId,
+        requestInfo: {
+          url: request.url,
+          headers: request.headers,
+          remoteAddress: request.socket.remoteAddress
+        }
+      });
+
+      // 保存连接
+      if (!this.libraryClients[libraryId]) {
+        this.libraryClients[libraryId] = [];
+      }
+      if (!this.libraryClients[libraryId].includes(ws)) {
+        this.libraryClients[libraryId].push(ws);
+      }
+
       this.handleConnection(ws);
     });
 
@@ -61,10 +81,7 @@ export class MiraWebsocketServer {
   getWsClientById(libraryId: string, clientId: string): WebSocket | undefined {
     const clients = this.libraryClients[libraryId];
     if (clients) {
-      const client = clients.find((client) => client.clientId === clientId);
-      if (client) {
-        return client.ws
-      }
+      return clients.find((client) => (client as any).clientId === clientId);
     }
   }
 
@@ -99,26 +116,11 @@ export class MiraWebsocketServer {
   }
 
   private handleConnection(ws: WebSocket): void {
-    ws.on('open', () => {
-
-    });
     ws.on('message', async (message: string) => {
       try {
         const data = JSON.parse(message);
         console.log('Incoming message:', data)
         await this.handleMessage(ws, data);
-
-        // 保存连接
-        if (data.libraryId) {
-          const libraryId = data.libraryId;
-          if (!this.libraryClients[libraryId]) {
-            this.libraryClients[libraryId] = [];
-          }
-          const client = new WebsocketClient(data.clientId, ws)
-          if (!this.libraryClients[libraryId].includes(client)) {
-            this.libraryClients[libraryId].push(client);
-          }
-        }
       } catch (e) {
         this.sendToWebsocket(ws, {
           error: 'Invalid message format',
@@ -130,9 +132,13 @@ export class MiraWebsocketServer {
     ws.on('close', () => {
       // Remove from all library client lists
       Object.keys(this.libraryClients).forEach(libraryId => {
-        this.libraryClients[libraryId] = this.libraryClients[libraryId].filter(
-          client => client.ws !== ws
+        const index = this.libraryClients[libraryId].findIndex(
+          client => client === ws
         );
+        console.log({ index });
+        if (index !== -1) {
+          this.libraryClients[libraryId].splice(index, 1);
+        }
       });
     });
   }
@@ -185,8 +191,8 @@ export class MiraWebsocketServer {
     const message = JSON.stringify({ eventName: eventName, data: data });
     if (this.libraryClients[libraryId]) {
       this.libraryClients[libraryId].forEach(client => {
-        if (client.ws.readyState === WebSocket.OPEN) {
-          client.ws.send(message);
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
         }
       });
     }
