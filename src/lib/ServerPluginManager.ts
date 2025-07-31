@@ -38,6 +38,11 @@ export class ServerPluginManager {
         }
     }
 
+    // getPluginDir
+    getPluginDir(pluginName: string): string {
+        return path.join(this.pluginsDir, pluginName);
+    }
+
     async loadPlugins(): Promise<void> {
         const config: PluginConfig[] = JSON.parse(
             fs.readFileSync(this.pluginsConfigPath, 'utf-8')
@@ -62,14 +67,12 @@ export class ServerPluginManager {
     }
 
     registerFields(fields: Record<string, any>[]): void {
-        console.log('registerFields')
         for (const field of fields) {
             this.registerField(field);
         }
     }
 
     registerField(field: Record<string, any>): void {
-        console.log('registerField', field)
         let {action, type, field: fieldName} = field;
         if(!fieldName || !action || !type) {
             throw new Error('Field registration error: action, type, and field are required');

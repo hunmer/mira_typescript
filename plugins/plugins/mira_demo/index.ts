@@ -1,14 +1,15 @@
-import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer } from 'mira_core';
+import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
 
 import { EventEmitter } from 'events';
 
-class DemoPlugin {
+class DemoPlugin extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
-    private readonly eventEmitter: EventEmitter;
+    protected readonly eventEmitter: EventEmitter;
     private readonly pluginManager: ServerPluginManager;
 
     constructor({pluginManager, server, dbService, httpServer}: {pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer}) {
+        super('mira_demo', pluginManager, dbService, httpServer);
         this.server = server;
         this.dbService = dbService;
         this.pluginManager = pluginManager;

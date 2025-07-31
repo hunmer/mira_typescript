@@ -1,22 +1,21 @@
 import { EventEmitter } from 'events';
-import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer } from 'mira_core';
+import { ILibraryServerData, MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from 'mira_core';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
 import Queue from 'queue';
 
-class ThumbPlugin {
+class ThumbPlugin extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
-    private readonly eventEmitter: EventEmitter | undefined;
     private readonly pluginManager: ServerPluginManager;
     private readonly taskQueue: Queue;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
+        super('mira_thumb', pluginManager, dbService, httpServer);
         this.server = server;
         this.dbService = dbService;
-        this.eventEmitter = dbService.getEventManager()!;
         this.pluginManager = pluginManager;
         
         // Initialize queue with concurrency of 5

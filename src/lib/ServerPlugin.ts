@@ -1,6 +1,9 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ServerPluginManager } from './ServerPluginManager';
+import { ILibraryServerData } from './ILibraryServerData';
+import { MiraHttpServer } from './HttpServer';
 
 export abstract class ServerPlugin {
     protected configs: Record<string, any> = {};
@@ -8,10 +11,10 @@ export abstract class ServerPlugin {
     protected readonly pluginDir: string;
     protected readonly pluginDataDir: string;
 
-    constructor(protected readonly pluginName: string, eventEmitter: EventEmitter) {
-        this.eventEmitter = eventEmitter;
-        this.pluginDir = path.join(__dirname, 'plugins', 'plugins',pluginName);
-        this.pluginDataDir = path.join(__dirname, 'plugins', 'data', pluginName);
+    constructor(protected readonly pluginName: string, pluginManager: ServerPluginManager, dbServer: ILibraryServerData, httpServer: MiraHttpServer) {
+        this.eventEmitter = dbServer.getEventManager()!;
+        this.pluginDir = pluginManager.getPluginDir(pluginName);
+        this.pluginDataDir = path.join(this.pluginDir, 'data');
         this.ensureDirExists();
     }
 

@@ -9,7 +9,7 @@ class UserPlugin extends ServerPlugin {
     private userList: Record<string, any>[] = [];
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('mira_user', dbService.getEventManager()!);
+        super('mira_user', pluginManager, dbService, httpServer);
         this.server = server;
         this.dbService = dbService;
         this.httpServer = httpServer;
@@ -21,6 +21,7 @@ class UserPlugin extends ServerPlugin {
             { action: 'connect', type: 'library', field: 'password' },
         ]);
 
+        console.log({path: path.join(this.pluginDir, 'web')})
         // 开放登录页面
         httpServer.app
             .use('/user', express.static(path.join(this.pluginDir, 'web')))

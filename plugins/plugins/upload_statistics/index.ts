@@ -6,7 +6,7 @@ class UploadStatistics extends ServerPlugin {
     private dbService: ILibraryServerData;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('upload_statistics', dbService.getEventManager()!);
+        super('upload_statistics', pluginManager, dbService, httpServer);
         this.server = server;
         this.dbService = dbService;
         this.httpServer = httpServer;
