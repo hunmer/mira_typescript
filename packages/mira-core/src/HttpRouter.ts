@@ -3,7 +3,7 @@ import multer from 'multer';
 import { ILibraryServerData } from './ILibraryServerData';
 import path from 'path';
 import fs from 'fs';
-import { MiraBackend } from './ServerExample';
+import { MiraBackend } from './MiraBackend';
 
 // 配置multer文件上传
 const storage = multer.diskStorage({

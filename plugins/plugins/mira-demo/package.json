@@ -9,8 +9,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "mira-app-core": "file:../../mira-core",
-    "sqlite3": "^5.1.7"
+    "mira-app-core": "file:../../mira-core"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

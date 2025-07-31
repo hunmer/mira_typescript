@@ -1,6 +1,6 @@
-import { EventManager } from "./event-manager";
-
 export interface ILibraryServerData {
+  // Configuration and plugin management
+  readonly config?: Record<string, any>;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
   updateFile(id: number, fileData: Record<string, any>): Promise<boolean>;
@@ -65,6 +65,7 @@ export interface ILibraryServerData {
     item: Record<string, any>,
     options?: { isUrlFile: boolean }
   ): Promise<string>;
-  getEventManager(): EventManager | undefined; // 需要根据实际类型定义
-  getLibraryInfo(): Promise<Record<string, any>>;
+  queryFolder(query: Record<string, any>): Promise<Record<string, any>[]>;
+  queryTag(query: Record<string, any>): Promise<Record<string, any>[]>;
+  closeLibrary(): Promise<boolean>;
 }

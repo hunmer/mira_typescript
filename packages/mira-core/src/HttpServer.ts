@@ -3,7 +3,7 @@ import { Express } from 'express';
 import http from 'http';
 import express from 'express';
 import { LibraryStorage } from "./LibraryStorage";
-import { MiraBackend } from "./ServerExample";
+import { MiraBackend } from "./MiraBackend";
 import axios from "axios";
 
 

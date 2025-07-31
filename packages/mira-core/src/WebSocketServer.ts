@@ -6,7 +6,7 @@ import { ServerPluginManager } from './ServerPluginManager';
 import { EventArgs } from './event-manager';
 import { LibraryStorage } from './LibraryStorage';
 import { MiraHttpServer } from './HttpServer';
-import { MiraBackend } from './ServerExample';
+import { MiraBackend } from './MiraBackend';
 
 interface LibraryClient {
   [libraryId: string]: WebSocket[];
@@ -70,11 +70,14 @@ export class MiraWebsocketServer {
       (library) => library.getLibraryId() === eventData.libraryId
     );
     if (dbService) {
-      const eventManager = dbService.getEventManager();
-      eventManager!.broadcast(
-        eventName,
-        new EventArgs(eventName, eventData)
-      );
+      const eventManager = dbService.eventManager;
+      if (eventManager) {
+        eventManager.broadcast(
+          eventName,
+          new EventArgs(eventName, eventData)
+        );
+      }
+
     }
   }
 
@@ -106,11 +109,14 @@ export class MiraWebsocketServer {
       (library) => library.getLibraryId() === libraryId
     );
     if (dbService) {
-      const eventManager = dbService.getEventManager();
-      return eventManager!.broadcast(
-        eventName,
-        new EventArgs(eventName, data)
-      );
+      const eventManager = dbService.eventManager;
+      if (eventManager) {
+        return eventManager.broadcast(
+          eventName,
+          new EventArgs(eventName, data)
+        );
+      }
+
     }
     return Promise.resolve(false);
   }

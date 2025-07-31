@@ -1,6 +1,7 @@
-import { LibraryServerDataSQLite } from "./LibraryServerDataSQLite";
-import { MiraBackend } from "./ServerExample";
+import { LibraryServerDataSQLite } from "mira-storage-sqlite";
+import { MiraBackend } from "./MiraBackend";
 import { getLibrarysJson } from './LibraryList';
+import { ServerPluginManager } from "./ServerPluginManager";
 
 export class LibraryStorage {
   libraryServices: LibraryServerDataSQLite[] = [];
@@ -17,6 +18,10 @@ export class LibraryStorage {
   async load(dbConfig: Record<string, any>): Promise<LibraryServerDataSQLite> {
     const dbServer = new LibraryServerDataSQLite(dbConfig, {webSocketServer: this.backend.webSocketServer, httpServer: this.backend.httpServer} );
     await dbServer.initialize();
+    const pluginManager = new ServerPluginManager(
+        { server: this.backend.webSocketServer, dbService: dbServer, httpServer: this.backend.httpServer, pluginsDir: dbConfig.pluginsDir }
+      );
+    await pluginManager.loadPlugins();
     this.libraryServices.push(dbServer);
     return dbServer;
   }

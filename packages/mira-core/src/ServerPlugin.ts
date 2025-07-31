@@ -7,12 +7,10 @@ import { MiraHttpServer } from './HttpServer';
 
 export abstract class ServerPlugin {
     protected configs: Record<string, any> = {};
-    protected readonly eventEmitter: EventEmitter;
     protected readonly pluginDir: string;
     protected readonly pluginDataDir: string;
 
     constructor(protected readonly pluginName: string, pluginManager: ServerPluginManager, dbServer: ILibraryServerData, httpServer: MiraHttpServer) {
-        this.eventEmitter = dbServer.getEventManager()!;
         this.pluginDir = pluginManager.getPluginDir(pluginName);
         this.pluginDataDir = path.join(this.pluginDir, 'data');
         this.ensureDirExists();

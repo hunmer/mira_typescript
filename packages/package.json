@@ -11,6 +11,7 @@
     "build": "npm run build --workspaces",
     "build:core": "npm run build --workspace=packages/mira-core",
     "build:server": "npm run build --workspace=packages/mira-server",
+    "build:storage": "npm run build --workspace=packages/mira-storage-sqlite",
     "build:plugins": "npm run build --workspace=packages/plugins/mira-demo && npm run build --workspace=packages/plugins/mira-user",
     "start:server": "npm run start --workspace=packages/mira-server",
     "dev:server": "npm run dev --workspace=packages/mira-server",

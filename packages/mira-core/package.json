@@ -8,7 +8,11 @@
     "build": "tsc",
     "prepublish": "npm run build"
   },
-  "keywords": ["mira", "core", "library"],
+  "keywords": [
+    "mira",
+    "core",
+    "library"
+  ],
   "author": "hunmer",
   "license": "ISC",
   "publishConfig": {
@@ -17,18 +21,15 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/ws": "^8.18.1",
-    "@types/sqlite3": "^3.1.11",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",
     "axios": "^1.11.0",
     "express": "^5.1.0",
+    "mira-storage-sqlite": "^1.0.2",
     "multer": "^2.0.2",
     "queue": "^7.0.0",
     "ws": "^8.18.3"
-  },
-  "peerDependencies": {
-    "sqlite3": "^5.1.7"
   }
 }

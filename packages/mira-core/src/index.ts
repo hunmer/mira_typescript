@@ -1,6 +1,5 @@
 
 // Core exports for mira_core package
-export { ILibraryServerData } from './ILibraryServerData';
 export { MiraWebsocketServer } from './WebSocketServer';
 export { MiraHttpServer } from './HttpServer';
 export { ServerPluginManager, PluginConfig } from './ServerPluginManager';
@@ -12,7 +11,7 @@ export { MessageHandler } from './MessageHandler';
 export { ServerPlugin } from './ServerPlugin';
 export { HttpRouter } from './HttpRouter';
 export { WebSocketRouter, WebSocketMessage } from './WebSocketRouter';
-export { MiraBackend } from './ServerExample';
+export { MiraBackend } from './MiraBackend';
 
 // Re-export handlers
 export { FileHandler } from './handlers/FileHandler';
@@ -23,7 +22,6 @@ export { PluginMessageHandler } from './handlers/PluginMessageHandler';
 export { TagHandler } from './handlers/TagHandler';
 
 // Re-export types and interfaces
-export type * from './ILibraryServerData';
 export type * from './event-manager';
 export type * from './ServerPluginManager';
 export type * from './WebSocketRouter';
