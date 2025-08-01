@@ -4,16 +4,13 @@ import express from 'express';
 import path from "path";
 
 class UserPlugin extends ServerPlugin {
-    private readonly server: MiraWebsocketServer;
-    private httpServer: MiraHttpServer;
+    private server: MiraWebsocketServer;
     private dbService: ILibraryServerData;
-    private userList: Record<string, any>[] = [];
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
         super('mira_user', pluginManager, dbService, httpServer);
         this.server = server;
         this.dbService = dbService;
-        this.httpServer = httpServer;
         console.log('mira_user plugin initialized');
 
         // 注册所需的字段
@@ -61,12 +58,12 @@ class UserPlugin extends ServerPlugin {
                     res.status(400).json({ success: false, message: '用户名和密码不能为空' });
                     return;
                 }
-                if (this.userList.some(u => u.username === username)) {
+                if (this.getUsers().some((u: any) => u.username === username)) {
                     res.status(400).json({ success: false, message: '用户名已存在' });
                     return;
                 }
 
-                this.userList.push({ username, password });
+                this.getUsers().push({ username, password });
                 this.saveUsersToJson();
                 this.onLogined({ ws: this.server.getWsClientById(libraryId, clientId), libraryId, username, password })
                 res.status(200).json({
@@ -83,11 +80,10 @@ class UserPlugin extends ServerPlugin {
 
         // 获取所有用户接口
         httpServer.getRouter().registerRounter(libraryId,'/user/list', 'get', async (req, res, next) => {
-            res.status(200).json(this.userList.map(u => ({ username: u.username })));
+            res.status(200).json(this.getUsers().map((u: any) => ({ username: u.username })));
             next();
         });
 
-        this.loadUsersFromJson();
         // 绑定登录前事件
         const obj = httpServer.libraries.get(dbService.getLibraryId());
         if (obj) {
@@ -145,19 +141,17 @@ class UserPlugin extends ServerPlugin {
     }
 
     private findUser(username: string, password: string): boolean {
-        const user = this.userList.find((u) => u.username === username && u.password === password);
+        const user = this.getUsers().find((u: any) => u.username === username && u.password === password);
         return !!user;
     }
 
     private saveUsersToJson() {
-        this.writeJson('users.json', this.userList);
+        this.writeJson('users.json', this.getUsers());
     }
 
-    private loadUsersFromJson() {
-        const data = this.readJson('users.json');
-        if (data) {
-            this.userList = data;
-        }
+    // 可能回被其他插件调用，所以实时获取最新内容
+    private getUsers() {
+        return this.readJson('users.json');
     }
 }
 

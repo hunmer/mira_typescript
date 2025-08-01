@@ -1,7 +1,7 @@
 {
   "name": "upload_statistics",
-  "version": "1.0.0",
-    "main": "dist/index.js",
+  "version": "1.0.2",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
@@ -15,8 +15,8 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
-    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
+    "mira-storage-sqlite": "^1.0.9",
+    "mira-app-core": "^1.0.6"
   },
   "keywords": [],
   "author": "hunmer",

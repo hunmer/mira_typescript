@@ -8,12 +8,13 @@
         "1.0.3",
         "1.0.4",
         "1.0.5",
-        "1.0.6"
+        "1.0.6",
+        "1.0.7"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-core/"
       ],
-      "defaultOnline": "1.0.6",
+      "defaultOnline": "1.0.7",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -29,12 +30,13 @@
         "1.0.6",
         "1.0.7",
         "1.0.8",
-        "1.0.9"
+        "1.0.9",
+        "1.0.10"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-storage-sqlite/"
       ],
-      "defaultOnline": "1.0.9",
+      "defaultOnline": "1.0.10",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
       "buildPath": "packages/mira-storage-sqlite",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -47,12 +49,13 @@
         "1.0.3",
         "1.0.4",
         "1.0.5",
-        "1.0.6"
+        "1.0.6",
+        "1.0.7"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-server/"
       ],
-      "defaultOnline": "1.0.6",
+      "defaultOnline": "1.0.7",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-server/",
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -64,32 +67,49 @@
         "1.0.2",
         "1.0.3",
         "1.0.4",
-        "1.0.5"
+        "1.0.5",
+        "1.0.6"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/plugins/plugins/mira_thumb/"
       ],
-      "defaultOnline": "1.0.5",
+      "defaultOnline": "1.0.6",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
-     "mira-user": {
+    "mira-user": {
       "onlineVersions": [
-        "1.0.0"
+        "1.0.0",
+        "1.0.1"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/plugins/plugins/mira_user/"
       ],
-      "defaultOnline": "1.0.5",
+      "defaultOnline": "1.0.1",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_user/",
       "buildPath": "plugins/plugins/mira_user",
+      "buildCommand": "npm install && npm run build && npm publish"
+    },
+    "upload_statistics": {
+      "onlineVersions": [
+        "1.0.0",
+        "1.0.1",
+        "1.0.2"
+      ],
+      "offlinePaths": [
+        "file:D:/mira_typescript/plugins/plugins/upload_statistics/"
+      ],
+      "defaultOnline": "1.0.2",
+      "defaultOffline": "file:D:/mira_typescript/packages/upload_statistics/",
+      "buildPath": "plugins/plugins/upload_statistics",
       "buildCommand": "npm install && npm run build && npm publish"
     }
   },
   "targetFiles": [
     "plugins/plugins/mira_thumb/package.json",
     "plugins/plugins/mira_user/package.json",
+    "plugins/plugins/upload_statistics/package.json",
     "packages/mira-core/package.json",
     "packages/mira-server/package.json",
     "packages/mira-storage-sqlite/package.json"
