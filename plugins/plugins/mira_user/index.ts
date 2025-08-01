@@ -6,6 +6,7 @@ import path from "path";
 class UserPlugin extends ServerPlugin {
     private server: MiraWebsocketServer;
     private dbService: ILibraryServerData;
+    private logined_clients: string[] = [];
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
         super('mira_user', pluginManager, dbService, httpServer);
@@ -100,6 +101,9 @@ class UserPlugin extends ServerPlugin {
     private async onUserLogin(event: any): Promise<boolean> {
         const { message, ws } = event.args;
         const { libraryId, clientId, fields } = message;
+        if( this.logined_clients.includes(clientId)) {
+            return true;
+        }
         const { username, password } = fields;
         const url = this.getLoginUrl({ libraryId, clientId });
         if (username == null || password == null) {
@@ -137,6 +141,7 @@ class UserPlugin extends ServerPlugin {
             this.server.sendToWebsocket(ws, { eventName: 'connected', data: data });
             this.server.broadcastPluginEvent('client::connected', { libraryId });
         }
+        this.logined_clients.push(ws.clientId);
         this.server.broadcastPluginEvent('user::connected', { username, libraryId });
     }
 

@@ -300,16 +300,33 @@ export class LibraryDataConverter {
       const fileIds = files.map(f => f.id);
       if (fileIds.length > 0) {
         const fileIdList = fileIds.join(',');
-        [tags, tagsMeta] = await Promise.all([
-          this.queryAll<SourceTag>(db, `SELECT DISTINCT t.* FROM tags t 
-            INNER JOIN tags_meta tm ON t.id = CAST(SUBSTR(tm.ids, 1, CASE WHEN INSTR(tm.ids, '|') > 0 THEN INSTR(tm.ids, '|') - 1 ELSE LENGTH(tm.ids) END) AS INTEGER)
-            WHERE tm.fid IN (${fileIdList})
-            UNION
-            SELECT DISTINCT t.* FROM tags t 
-            INNER JOIN tags_meta tm ON ('|' || tm.ids || '|') LIKE ('%|' || t.id || '|%')
-            WHERE tm.fid IN (${fileIdList})`),
-          this.queryAll<TagMeta>(db, `SELECT * FROM tags_meta WHERE fid IN (${fileIdList})`)
-        ]);
+        // 首先获取文件关联的所有标签ID
+        const fileTagIds = await this.queryAll<{tag_id: number}>(db, `
+          SELECT DISTINCT CAST(SUBSTR(tm.ids, 1, CASE WHEN INSTR(tm.ids, '|') > 0 THEN INSTR(tm.ids, '|') - 1 ELSE LENGTH(tm.ids) END) AS INTEGER) as tag_id
+          FROM tags_meta tm WHERE tm.fid IN (${fileIdList}) AND tm.ids != ''
+          UNION
+          SELECT DISTINCT CAST(SUBSTR(SUBSTR(tm.ids, INSTR(tm.ids, '|') + 1), 1, 
+            CASE WHEN INSTR(SUBSTR(tm.ids, INSTR(tm.ids, '|') + 1), '|') > 0 
+            THEN INSTR(SUBSTR(tm.ids, INSTR(tm.ids, '|') + 1), '|') - 1 
+            ELSE LENGTH(SUBSTR(tm.ids, INSTR(tm.ids, '|') + 1)) END) AS INTEGER) as tag_id
+          FROM tags_meta tm WHERE tm.fid IN (${fileIdList}) AND tm.ids LIKE '%|%|%'
+        `);
+        
+        const allFileTagIds = fileTagIds.map(row => row.tag_id).filter(id => !isNaN(id) && id > 0);
+        
+        if (allFileTagIds.length > 0) {
+          // 确保标签的完整层级结构
+          const completeTagIds = await this.ensureCompleteTagHierarchy(db, allFileTagIds);
+          const completeTagIdList = completeTagIds.join(',');
+          
+          [tags, tagsMeta] = await Promise.all([
+            this.queryAll<SourceTag>(db, `SELECT * FROM tags WHERE id IN (${completeTagIdList})`),
+            this.queryAll<TagMeta>(db, `SELECT * FROM tags_meta WHERE fid IN (${fileIdList})`)
+          ]);
+        } else {
+          tags = [];
+          tagsMeta = [];
+        }
       } else {
         tags = [];
         tagsMeta = [];
@@ -318,8 +335,8 @@ export class LibraryDataConverter {
       // 如果指定了目标标签，只导入这些标签及其文件
       const tagIds = targetTags.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
       
-      // 获取所有子标签ID（递归）
-      const allTagIds = await this.getAllSubTagIds(db, tagIds);
+      // 获取完整的标签层级结构（包括所有子标签和父标签）
+      const allTagIds = await this.ensureCompleteTagHierarchy(db, tagIds);
       const tagIdList = allTagIds.join(',');
       
       // 构建 LIKE 查询条件来匹配标签ID
@@ -420,6 +437,40 @@ export class LibraryDataConverter {
     }
     
     return Array.from(allIds);
+  }
+
+  // 获取标签的所有父标签ID（递归向上查找）
+  private async getAllParentTagIds(db: Database, tagIds: number[]): Promise<number[]> {
+    const allIds = new Set<number>(tagIds);
+    const processQueue = [...tagIds];
+    
+    while (processQueue.length > 0) {
+      const currentId = processQueue.shift()!;
+      const parents = await this.queryAll<{parent: number}>(db, 
+        `SELECT parent FROM tags WHERE id = ${currentId} AND parent IS NOT NULL AND parent != 0`
+      );
+      
+      for (const parent of parents) {
+        if (!allIds.has(parent.parent)) {
+          allIds.add(parent.parent);
+          processQueue.push(parent.parent);
+        }
+      }
+    }
+    
+    return Array.from(allIds);
+  }
+
+  // 确保标签的完整层级结构
+  private async ensureCompleteTagHierarchy(db: Database, tagIds: number[]): Promise<number[]> {
+    // 获取所有子标签
+    const allSubTagIds = await this.getAllSubTagIds(db, tagIds);
+    // 获取所有父标签
+    const allParentTagIds = await this.getAllParentTagIds(db, allSubTagIds);
+    
+    // 合并所有标签ID并去重
+    const completeTagIds = new Set([...allSubTagIds, ...allParentTagIds]);
+    return Array.from(completeTagIds);
   }
 }
 
