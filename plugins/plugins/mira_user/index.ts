@@ -1,4 +1,5 @@
-import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
+import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 import express from 'express';
 import path from "path";
 
@@ -21,7 +22,6 @@ class UserPlugin extends ServerPlugin {
             { action: 'connect', type: 'library', field: 'password' },
         ]);
 
-        console.log({path: path.join(this.pluginDir, 'web')})
         // 开放登录页面
         httpServer.app
             .use('/user', express.static(path.join(this.pluginDir, 'web')))
@@ -85,7 +85,10 @@ class UserPlugin extends ServerPlugin {
 
         this.loadUsersFromJson();
         // 绑定登录前事件
-        this.eventEmitter.on('client::before_connect', this.onUserLogin.bind(this));
+        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        if (obj) {
+            obj.eventManager.on('client::before_connect', this.onUserLogin.bind(this));
+        }
     }
 
     // 登录页面地址生成函数

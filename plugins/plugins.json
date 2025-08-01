@@ -11,7 +11,7 @@
     },
      {
         "name": "mira_user",
-        "enabled": false,
+        "enabled": true,
         "path": "plugins/mira_user"
     },
     {

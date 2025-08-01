@@ -22,7 +22,6 @@ class ThumbPlugin extends ServerPlugin {
         console.log('Thumbnail plugin initialized');
 
         const obj = httpServer.libraries.get(dbService.getLibraryId());
-        console.log({obj})
         if(obj){
              obj.eventManager.on('file::created', this.onFileCreated.bind(this));
             obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
