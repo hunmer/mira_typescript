@@ -1,6 +1,6 @@
 {
   "name": "mira-app-server",
-  "version": "1.0.2",
+  "version": "1.0.6",
   "description": "Mira Server - standalone server application using mira-core",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["mira", "server"],
+  "keywords": [
+    "mira",
+    "server"
+  ],
   "author": "hunmer",
   "license": "ISC",
   "devDependencies": {
@@ -26,6 +29,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "mira-app-core":  "file:../mira-core"
+    "mira-app-core": "^1.0.4"
   }
 }

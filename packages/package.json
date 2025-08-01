@@ -12,9 +12,10 @@
     "build:core": "npm install && npm run build --workspace=mira-core",
     "build:server": "npm install && npm run build --workspace=mira-server",
     "build:storage": "npm install && npm run build --workspace=mira-storage-sqlite",
-    "build:plugins": "npm install && npm run build --workspace=../../../plugins/plugins/mira-thumb",
+    "build:plugins": "npm install && npm run build --workspace=D:/mira_typescript/plugins/plugins/mira_thumb",
     "start:server": "npm run start --workspace=mira-server",
     "dev:server": "npm run dev --workspace=mira-server",
+    "build:docker": "./mira-server/docker-build.bat",
     "clean": "Remove-Item *\\dist -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item *\\node_modules -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item ..\\plugins\\*\\dist -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item ..\\plugins\\*\\node_modules -Recurse -Force -ErrorAction SilentlyContinue",
     "install-all": "npm install && npm install --workspaces"
   },
