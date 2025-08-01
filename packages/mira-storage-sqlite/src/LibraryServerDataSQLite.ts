@@ -605,12 +605,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     importType: string
   ): Promise<void> {
     const destPath = path.join(await this.getItemPath(fileData), fileData.name);
+    const destDir = path.dirname(destPath);
+    console.log({filePath, destPath})
     switch (importType) {
       case 'link':
         // 保持原文件位置不变
         break;
       case 'copy':
-        const destDir = path.dirname(destPath);
         if (!fs.existsSync(destDir)) {
           fs.mkdirSync(destDir, { recursive: true });
         }
@@ -618,9 +619,8 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
         fileData.path = destPath;
         break;
       case 'move':
-        const destDir2 = path.dirname(destPath);
-        if (!fs.existsSync(destDir2)) {
-          fs.mkdirSync(destDir2, { recursive: true });
+        if (!fs.existsSync(destDir)) {
+          fs.mkdirSync(destDir, { recursive: true });
         }
         // 如果不同是跨盘符操作，则单独复制一份，再删除源文件
         if (path.parse(filePath).root !== path.parse(destPath).root) {

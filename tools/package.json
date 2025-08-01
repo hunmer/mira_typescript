@@ -1,0 +1,21 @@
+{
+  "name": "mira_scripts",
+  "version": "1.0.0",
+  "main": "index.js", 
+  "scripts": {
+    "build": "tsc",
+    "rebuild": "npm install && npm run build",
+    "dev": "ts-node index.ts",
+    "start:ts": "ts-node index.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
+  },
+  "author": "hunmer",
+  "license": "ISC",
+  "description": ""
+}

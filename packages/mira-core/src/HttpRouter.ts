@@ -163,7 +163,7 @@ export class HttpRouter {
         for (const file of files) {
           try {
             // 确保临时目录存在
-            const tempDir = path.join(__dirname, '../../temp');
+            const tempDir = path.join(__dirname, 'temp');
             if (!fs.existsSync(tempDir)) {
               fs.mkdirSync(tempDir, { recursive: true });
             }

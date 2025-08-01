@@ -97,7 +97,7 @@ class UserPlugin extends ServerPlugin {
 
     // 登录页面地址生成函数
     private getLoginUrl({ libraryId, clientId }: { libraryId: string, clientId: string }) {
-        return this.httpServer.getPublicURL(`user/index.html?libraryId=${libraryId}&clientId=${clientId}`)
+        return this.dbService.getPublicURL(`user/index.html?libraryId=${libraryId}&clientId=${clientId}`)
     }
 
     // 用户登录事件处理函数

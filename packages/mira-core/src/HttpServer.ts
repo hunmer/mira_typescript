@@ -59,10 +59,6 @@ export class MiraHttpServer {
         }
     }
 
-    getPublicURL(url: string) {
-        return `http://127.0.0.1:${this.port}/${url}`;
-    }
-
     async stop(): Promise<void> {
         this.server.close();
         this.httpRouter.close();

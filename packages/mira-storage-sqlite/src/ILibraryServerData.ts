@@ -1,7 +1,6 @@
-import { EventEmitter } from "events";
-
 export interface ILibraryServerData {
   readonly config?: Record<string, any>;
+  getPublicURL(url: string): string;
   initialize(): Promise<void>;
   createFile(fileData: Record<string, any>): Promise<Record<string, any>>;
   updateFile(id: number, fileData: Record<string, any>): Promise<boolean>;
