@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "rebuild": "npm install && npm run build",
     "dev": "ts-node src/index.ts",
     "start:ts": "ts-node src/index.ts"
   },
@@ -29,7 +30,7 @@
     "@types/multer": "^2.0.0",
     "axios": "^1.11.0",
     "express": "^5.1.0",
-    "mira-storage-sqlite": "^1.0.6",
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
     "multer": "^2.0.2",
     "queue": "^7.0.0",
     "ws": "^8.18.3"

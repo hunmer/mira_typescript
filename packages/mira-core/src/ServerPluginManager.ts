@@ -22,7 +22,8 @@ export class ServerPluginManager {
     fields: Record<string, any>[] = [];
 
     constructor({server, dbService, httpServer, pluginsDir}: {server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer, pluginsDir?: string}) {
-        this.pluginsDir = pluginsDir || path.join(__dirname, 'plugins');
+        this.pluginsDir =  path.join(pluginsDir ?? __dirname, 'plugins');
+        console.log({pluginsDir: this.pluginsDir});
         this.server = server;
         this.dbService = dbService;
         this.httpServer = httpServer;
@@ -48,7 +49,6 @@ export class ServerPluginManager {
         const config: PluginConfig[] = JSON.parse(
             fs.readFileSync(this.pluginsConfigPath, 'utf-8')
         );
-
         for (const pluginConfig of config) {
             if (pluginConfig.enabled) {
                 try {

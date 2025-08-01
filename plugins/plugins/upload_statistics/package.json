@@ -1,18 +1,25 @@
 {
   "name": "upload_statistics",
   "version": "1.0.0",
-  "main": "index.ts",
+    "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "rebuild": "npm install && npm run build",
+    "publish": "npm publish",
     "dev": "ts-node index.ts",
     "start:ts": "ts-node index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "mira_core": "file:../../../src/lib"
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
   },
   "keywords": [],
-  "author": "",
+  "author": "hunmer",
   "license": "ISC",
   "description": ""
 }

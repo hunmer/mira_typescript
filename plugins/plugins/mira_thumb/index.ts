@@ -20,7 +20,6 @@ class ThumbPlugin extends ServerPlugin {
         // Initialize queue with concurrency of 5
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
         console.log('Thumbnail plugin initialized');
-
         const obj = httpServer.libraries.get(dbService.getLibraryId());
         if(obj){
              obj.eventManager.on('file::created', this.onFileCreated.bind(this));

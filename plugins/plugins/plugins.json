@@ -2,21 +2,21 @@
      {
         "name": "mira_demo",
         "enabled": false,
-        "path": "plugins/mira_demo"
+        "path": "mira_demo"
     },
     {
         "name": "mira_thumb",
         "enabled": true,
-        "path": "plugins/mira_thumb"
+        "path": "mira_thumb"
     },
      {
         "name": "mira_user",
         "enabled": true,
-        "path": "plugins/mira_user"
+        "path": "mira_user"
     },
     {
         "name": "upload_statistics",
-        "enabled": false,
-        "path": "plugins/upload_statistics"
+        "enabled": true,
+        "path": "upload_statistics"
     }
 ]

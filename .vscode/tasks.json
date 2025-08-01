@@ -5,7 +5,7 @@
       "label": "build-mira-core",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "build"],
+      "args": ["run", "rebuild"],
       "options": {
         "cwd": "${workspaceFolder}/packages/mira-core"
       },

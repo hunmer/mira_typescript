@@ -23,7 +23,6 @@ export class LibraryStorage {
     this.libraries[libraryId] = {
       libraryService: dbServer,
       eventManager: new EventManager()
-
     }
     await dbServer.initialize();
     const pluginManager = new ServerPluginManager(

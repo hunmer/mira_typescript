@@ -24,10 +24,11 @@ class UserPlugin extends ServerPlugin {
 
         // 开放登录页面
         httpServer.app
-            .use('/user', express.static(path.join(this.pluginDir, 'web')))
+            .use('/user', express.static(path.join(pluginManager.getPluginDir('mira_user'), 'web')))
 
+        const libraryId = dbService.getLibraryId();
         // 登录接口
-        httpServer.getRouter().registerRounter('/user/login', 'post', async (req, res) => {
+        httpServer.getRouter().registerRounter(libraryId,'/user/login', 'post', async (req, res, next) => {
             try {
                 const { username, password, libraryId, clientId } = req.body;
                 if (!username || !password) {
@@ -49,10 +50,11 @@ class UserPlugin extends ServerPlugin {
                 console.error('登录错误:', error);
                 res.status(500).json({ success: false, message: '服务器内部错误' });
             }
+            next();
         });
 
         // 注册接口
-        httpServer.getRouter().registerRounter('/user/register', 'post', async (req, res) => {
+        httpServer.getRouter().registerRounter(libraryId,'/user/register', 'post', async (req, res, next) => {
             try {
                 const { username, password, libraryId, clientId } = req.body;
                 if (!username || !password) {
@@ -76,11 +78,13 @@ class UserPlugin extends ServerPlugin {
                 console.error('注册错误:', error);
                 res.status(500).json({ success: false, message: '服务器内部错误' });
             }
+            next();
         });
 
         // 获取所有用户接口
-        httpServer.getRouter().registerRounter('/user/list', 'get', async (req, res) => {
+        httpServer.getRouter().registerRounter(libraryId,'/user/list', 'get', async (req, res, next) => {
             res.status(200).json(this.userList.map(u => ({ username: u.username })));
+            next();
         });
 
         this.loadUsersFromJson();
@@ -98,7 +102,6 @@ class UserPlugin extends ServerPlugin {
 
     // 用户登录事件处理函数
     private async onUserLogin(event: any): Promise<boolean> {
-        console.log('onUserLogin:', event);
         const { message, ws } = event.args;
         const { libraryId, clientId, fields } = message;
         const { username, password } = fields;

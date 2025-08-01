@@ -1,5 +1,5 @@
-import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira_core';
-
+import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
+import { ILibraryServerData } from 'mira-storage-sqlite';
 class UploadStatistics extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private httpServer: MiraHttpServer;
@@ -29,13 +29,6 @@ class UploadStatistics extends ServerPlugin {
                         openConversationId: 'YOUR_CONVERSATION_ID', // 替换为实际的会话ID
                         robotCode: 'YOUR_ROBOT_CODE' // 替换为实际的机器人Code
                     },
-                    responseHandler: (response: any) => {
-                        // {errcode: 0, errmsg: 'ok'}
-                        return response;
-                    },
-                    errorHandler: (error: any) => {
-                        throw error;
-                    }
                 }
             ],
         });
@@ -69,9 +62,16 @@ class UploadStatistics extends ServerPlugin {
             { action: 'create', type: 'file', field: 'username' },
         ]);
 
+        const libraryId = dbService.getLibraryId();
+        httpServer.getRouter().registerRounter(libraryId, '/upload_statistics/send', 'get', async (req, res) => {
+            this.generateAndSendReport()
+            res.status(200).json({ message: 'Report sent successfully' });
+        });
+
         // 获取所有统计接口
-        httpServer.getRouter().registerRounter('/upload_statistics/list', 'get', async (req, res) => {
+        httpServer.getRouter().registerRounter(libraryId, '/upload_statistics/list', 'get', async (req, res) => {
             const { username, startDate, endDate } = req.query;
+            console.log({ username, startDate, endDate });
             const filters: Record<string, any> = {};
 
             if (username) {
@@ -100,7 +100,11 @@ class UploadStatistics extends ServerPlugin {
         });
 
         // 绑定文件创建事件
-        this.eventEmitter.on('file::created', this.onAfterUploaded.bind(this));
+
+        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        if (obj) {
+            obj.eventManager.on('file::created', this.onAfterUploaded.bind(this));
+        }
     }
 
     /**
@@ -153,17 +157,11 @@ class UploadStatistics extends ServerPlugin {
                         headers: api.headers,
                         data: {
                             ...api.body,
-                            markdown: JSON.stringify({ title: '素材上传排行榜', text: rankingText })
+                            markdown: JSON.stringify({ title: api.body.markdown.title, text: api.body.markdown.text.replace('{text}', rankingText)  })
                         }
                     });
-                    if (api.responseHandler) {
-                        api.responseHandler(response);
-                    }
                 } catch (error) {
                     console.error(`Failed to send report to ${api.path}:`, error);
-                    if (api.errorHandler) {
-                        api.errorHandler(error);
-                    }
                 }
             }
         } catch (error) {

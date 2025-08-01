@@ -36,7 +36,11 @@ export abstract class ServerPlugin {
     }
 
     protected loadConfig(defaultConfig: Record<string, any> = {}) {
-       this.configs = {...defaultConfig, ...this.readJson('config.json')};
+        const config = this.readJson('config.json');
+        this.configs = { ...defaultConfig, ...config || {} };
+        if (config == null) {
+            this.saveConfig();
+        }
     }
 
     protected writeJson(filename: string, data: any) {
