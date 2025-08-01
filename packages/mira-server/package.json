@@ -1,6 +1,6 @@
 {
   "name": "mira-app-server",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Mira Server - standalone server application using mira-core",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -5,68 +5,71 @@ import path from 'path';
 import fs from 'fs';
 import { MiraBackend } from './MiraBackend';
 
-// 配置multer文件上传
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tempDir = path.join(__dirname, '../../temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    cb(null, tempDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
 
-const upload = multer({
-  storage: storage,
-  // limits: {
-  //   fileSize: 100 * 1024 * 1024 // 限制100MB
-  // }
-});
 export class HttpRouter {
   private router: Router;
   private registerdRounters: Map<string, Map<string, Handler>> = new Map<string, Map<string, Handler>>();
   private libraryServices: ILibraryServerData[] = [];
   backend: MiraBackend;
+  upload: multer.Multer;
 
   constructor(bakend: MiraBackend) {
     this.backend = bakend;
+    // 配置multer文件上传
+    this.upload = multer({
+      storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+          const tempDir = path.join(this.backend.dataPath, 'temp');
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+          }
+          cb(null, tempDir);
+        },
+        filename: (req, file, cb) => {
+          // 处理中文名，确保文件名为utf8编码
+          const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          cb(null, uniqueSuffix + path.extname(originalName));
+        }
+      }),
+      // limits: {
+      //   fileSize: 100 * 1024 * 1024 // 限制100MB
+      // }
+    });
+
     this.router = express.Router();
     this.setupRoutes();
   }
 
-  registerRounter(libraryId: string, path: string, method: string,  router: Handler) {
+  registerRounter(libraryId: string, path: string, method: string, router: Handler) {
     // 获取或创建该路径的 handler Map
     if (!this.registerdRounters.has(path)) {
       this.registerdRounters.set(path, new Map<string, Handler>());
-      
+
       // 为该路径注册一个统一的处理函数
       const combinedHandler = async (req: Request, res: Response, next: any) => {
         // 从请求中获取 libraryId
         const requestLibraryId = req.body?.libraryId || req.query?.libraryId || req.params?.libraryId;
-        
+
         if (!requestLibraryId) {
           return res.status(400).send('Missing libraryId parameter');
         }
-        
+
         const handlersMap = this.registerdRounters.get(path);
         if (!handlersMap) {
           return res.status(404).send('No handlers found for this path');
         }
-        
+
         const handler = handlersMap.get(requestLibraryId);
         if (!handler) {
           return res.status(404).send(`No handler found for libraryId: ${requestLibraryId}`);
         }
-        
+
         console.log(`Processing request for path: ${path}, libraryId: ${requestLibraryId}`);
         // 调用对应的 handler
         handler(req, res, next);
       };
-      
+
       // 根据 method 注册到 express router
       switch (method.toLowerCase()) {
         case 'post':
@@ -79,7 +82,7 @@ export class HttpRouter {
           throw new Error('不支持的方法');
       }
     }
-    
+
     // 将新的 handler 添加到 Map 中，以 libraryId 为 key
     this.registerdRounters.get(path)!.set(libraryId, router);
   }
@@ -88,9 +91,9 @@ export class HttpRouter {
     if (!this.registerdRounters.has(path)) {
       return;
     }
-    
+
     const handlersMap = this.registerdRounters.get(path)!;
-    
+
     if (libraryId) {
       // 移除特定 libraryId 的 handler
       if (handler) {
@@ -103,7 +106,7 @@ export class HttpRouter {
         // 移除该 libraryId 的 handler
         handlersMap.delete(libraryId);
       }
-      
+
       // 如果没有更多 handler，移除整个路径
       if (handlersMap.size === 0) {
         this.registerdRounters.delete(path);
@@ -145,7 +148,7 @@ export class HttpRouter {
 
   private setupRoutes(): void {
     // 上传文件
-    this.router.post('/libraries/upload', upload.array('files'), async (req: Request, res) => {
+    this.router.post('/libraries/upload', this.upload.array('files'), async (req: Request, res) => {
       const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
       const clientId = req.body.clientId || null;
       const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
@@ -162,38 +165,20 @@ export class HttpRouter {
         const results = [];
         for (const file of files) {
           try {
-            // 确保临时目录存在
-            const tempDir = path.join(__dirname, 'temp');
-            if (!fs.existsSync(tempDir)) {
-              fs.mkdirSync(tempDir, { recursive: true });
-            }
 
             // 生成唯一文件名并保存文件
             const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-            const tempFilePath = path.join(tempDir, `${Date.now()}-${originalName}`);
-            console.log({ originalName, tempFilePath });
-
-            // 确保有有效的文件数据
-            if (file.buffer) {
-              await fs.promises.writeFile(tempFilePath, file.buffer);
-            } else if (file.path) {
-              // 如果使用diskStorage，文件已保存到指定路径
-              await fs.promises.copyFile(file.path, tempFilePath);
-            } else {
-              throw new Error('No valid file data available');
-            }
-
-            const {tags, folder_id} =  payload.data || {}
+            const { tags, folder_id } = payload.data || {}
             const fileData = {
               name: req.body.name || originalName,
               tags: JSON.stringify(tags || []),
               folder_id: folder_id || null,
             };
 
-            const result = await obj.libraryService.createFileFromPath(tempFilePath, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
+            const result = await obj.libraryService.createFileFromPath(file.path, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
             results.push({
               success: true,
-              file: tempFilePath,
+              file: file.path,
               result
             });
 
@@ -209,7 +194,7 @@ export class HttpRouter {
             if (clientId) {
               const ws = this.backend.webSocketServer.getWsClientById(libraryId, clientId);
               ws && this.backend.webSocketServer.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
-              this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::created', {...result, libraryId});
+              this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
             }
           } catch (error) {
             console.error(`Error processing file ${file.originalname}:`, error);

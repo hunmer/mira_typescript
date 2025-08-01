@@ -4,8 +4,11 @@
   "description": "Mira TypeScript project - monorepo with core, server, and plugins",
   "scripts": {
     "build:core": "cd D:/mira_typescript/packages/mira-core && npm run rebuild",
+    "publish:core": "cd D:/mira_typescript/ && node switch-dependencies.js build mira-app-core",
     "build:server": "cd D:/mira_typescript/packages/mira-server && npm run rebuild",
+    "publish:server": "cd D:/mira_typescript/ && node switch-dependencies.js build mira-app-server",
     "build:storage": "cd D:/mira_typescript/packages/mira-storage-sqlite && npm run rebuild",
+    "publish:storage": "cd D:/mira_typescript/ && node switch-dependencies.js build mira-storage-sqlite",
     "build:mira_thumb": "cd D:/mira_typescript/plugins/plugins/mira_thumb && npm run rebuild",
     "build:mira_user": "cd D:/mira_typescript/plugins/plugins/mira_user && npm run rebuild",
     "publish:mira_user": "cd D:/mira_typescript/ && node switch-dependencies.js build mira-user",
