@@ -2,70 +2,72 @@
   "packageMappings": {
     "mira-app-core": {
       "onlineVersions": [
-
+        "1.0.14"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/packages/mira-core/"
       ],
-      "defaultOnline": "1.0.13",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira-core/",
+      "defaultOnline": "1.0.14",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-storage-sqlite": {
       "onlineVersions": [
-   
+        "1.0.11"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/packages/mira-storage-sqlite/"
       ],
-      "defaultOnline": "1.0.10",
+      "defaultOnline": "1.0.11",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-storage-sqlite/",
       "buildPath": "packages/mira-storage-sqlite",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-app-server": {
       "onlineVersions": [
-    
+        "1.0.10"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/packages/mira-server/"
       ],
-      "defaultOnline": "1.0.9",
+      "defaultOnline": "1.0.10",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-server/",
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_thumb": {
       "onlineVersions": [
- 
+        "1.0.12"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/plugins/plugins/mira_thumb/"
       ],
-      "defaultOnline": "1.0.11",
+      "defaultOnline": "1.0.12",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_user": {
       "onlineVersions": [
+        "1.0.3"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/plugins/plugins/mira_user/"
       ],
-      "defaultOnline": "1.0.2",
+      "defaultOnline": "1.0.3",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira_user/",
       "buildPath": "plugins/plugins/mira_user",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "upload_statistics": {
       "onlineVersions": [
+        "1.0.3"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/plugins/plugins/upload_statistics/"
       ],
-      "defaultOnline": "1.0.2",
+      "defaultOnline": "1.0.3",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/upload_statistics/",
       "buildPath": "plugins/plugins/upload_statistics",
       "buildCommand": "npm install && npm run build && npm publish"
