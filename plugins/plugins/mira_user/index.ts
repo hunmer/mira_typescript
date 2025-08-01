@@ -1,6 +1,5 @@
-import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
+import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin, express } from 'mira-app-core';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import express from 'express';
 import path from "path";
 
 class UserPlugin extends ServerPlugin {

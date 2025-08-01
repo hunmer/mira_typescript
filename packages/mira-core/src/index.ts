@@ -25,3 +25,6 @@ export { TagHandler } from './handlers/TagHandler';
 export type * from './event-manager';
 export type * from './ServerPluginManager';
 export type * from './WebSocketRouter';
+
+import express = require('express');
+export { express };

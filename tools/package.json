@@ -12,8 +12,8 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
-    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
+    "mira-storage-sqlite": "file:../packages/mira-storage-sqlite/",
+    "mira-app-core": "file:../packages/mira-core/"
   },
   "author": "hunmer",
   "license": "ISC",
