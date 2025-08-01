@@ -76,12 +76,13 @@
         "1.0.7",
         "1.0.8",
         "1.0.9",
-        "1.0.10"
+        "1.0.10",
+        "1.0.11"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/plugins/plugins/mira_thumb/"
       ],
-      "defaultOnline": "1.0.10",
+      "defaultOnline": "1.0.11",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
