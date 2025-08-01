@@ -249,18 +249,18 @@ export class HttpRouter {
 
   private async parseLibraryItem(req: express.Request, res: express.Response): Promise<{ library: any, item: any } | void> {
     const { libraryId, id } = req.params;
-    const library = this.backend.libraries.get(libraryId);
-    if (!library) {
+    const obj = this.backend.libraries.get(libraryId);
+    if (!obj) {
       res.status(404).send('Library not found');
       return;
     }
 
-    const item = await library.getFile(parseInt(id));
+    const item = await obj.libraryService.getFile(parseInt(id));
     if (!item) {
       res.status(404).send('Item not found');
       return;
     }
-    return { library, item };
+    return { library: obj.libraryService, item };
   }
 
   private getContentType(ext: string): string {

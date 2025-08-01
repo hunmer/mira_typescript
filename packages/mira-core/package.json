@@ -1,11 +1,12 @@
 {
   "name": "mira-app-core",
-  "version": "1.0.10",
+  "version": "1.0.13",
   "description": "Core library for Mira TypeScript project - provides base functionality without auto-execution",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "start": "node dist/index.js",
     "rebuild": "npm install && npm run build",
     "dev": "ts-node src/index.ts",
     "start:ts": "ts-node src/index.ts"

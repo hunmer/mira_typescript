@@ -12,12 +12,15 @@
         "1.0.7",
         "1.0.8",
         "1.0.9",
-        "1.0.10"
+        "1.0.10",
+        "1.0.11",
+        "1.0.12",
+        "1.0.13"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-core/"
       ],
-      "defaultOnline": "1.0.10",
+      "defaultOnline": "1.0.13",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -54,12 +57,13 @@
         "1.0.5",
         "1.0.6",
         "1.0.7",
-        "1.0.8"
+        "1.0.8",
+        "1.0.9"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-server/"
       ],
-      "defaultOnline": "1.0.8",
+      "defaultOnline": "1.0.9",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-server/",
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
