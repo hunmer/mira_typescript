@@ -47,29 +47,30 @@
       "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
       "cwd": "${workspaceFolder}/packages/mira-server",
       "runtimeArgs": [
-        "-r",
-        "ts-node/register"
+      "--inspect",
+      "-r",
+      "ts-node/register"
       ],
       "env": {
-        "NODE_ENV": "development",
-        "DATA_PATH": "${workspaceFolder}/data",
-        "HTTP_PORT": "3000",
-        "WS_PORT": "8081",
-        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
+      "NODE_ENV": "development",
+      "DATA_PATH": "${workspaceFolder}/data",
+      "HTTP_PORT": "3000",
+      "WS_PORT": "8081",
+      "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
       },
       "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
       "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
+      "${workspaceFolder}/**",
+      "!**/node_modules/**"
       ],
       "skipFiles": [
-        "<node_internals>/**",
-        "**/node_modules/**"
+      "<node_internals>/**",
+      "**/node_modules/**"
       ],
       "outFiles": [
-        "${workspaceFolder}/packages/**/dist/**/*.js"
+      "${workspaceFolder}/packages/**/dist/**/*.js"
       ]
     },
     {

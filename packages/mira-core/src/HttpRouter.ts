@@ -144,15 +144,15 @@ export class HttpRouter {
   }
 
   private setupRoutes(): void {
-  
     // 上传文件
     this.router.post('/libraries/upload', upload.array('files'), async (req: Request, res) => {
       const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
       const clientId = req.body.clientId || null;
       const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
       const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
-      const library = this.backend.libraries.get(libraryId);
-      if (!library) return res.status(404).send('Library not found');
+      const obj = this.backend.libraries.get(libraryId);
+      console.log({ libraryId, sourcePath, clientId, fields, payload, obj });
+      if (!obj) return res.status(404).send('Library not found');
 
       // 解析上传的文件
       const files = req.files as Express.Multer.File[];
@@ -171,6 +171,7 @@ export class HttpRouter {
             // 生成唯一文件名并保存文件
             const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
             const tempFilePath = path.join(tempDir, `${Date.now()}-${originalName}`);
+            console.log({ originalName, tempFilePath });
 
             // 确保有有效的文件数据
             if (file.buffer) {
@@ -189,7 +190,7 @@ export class HttpRouter {
               folder_id: folder_id || null,
             };
 
-            const result = await library.createFileFromPath(tempFilePath, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
+            const result = await obj.libraryService.createFileFromPath(tempFilePath, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
             results.push({
               success: true,
               file: tempFilePath,
@@ -204,12 +205,14 @@ export class HttpRouter {
                 fields, payload
               }, result, libraryId
             });
+
             if (clientId) {
               const ws = this.backend.webSocketServer.getWsClientById(libraryId, clientId);
               ws && this.backend.webSocketServer.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
               this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::created', {...result, libraryId});
             }
           } catch (error) {
+            console.error(`Error processing file ${file.originalname}:`, error);
             results.push({
               success: false,
               file: file.path,

@@ -17,8 +17,8 @@
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",
     "queue": "^7.0.0",
-    "mira-storage-sqlite": "^1.0.9",
-    "mira-app-core": "^1.0.6"
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.27",

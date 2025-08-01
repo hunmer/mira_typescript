@@ -36,7 +36,6 @@ export class MiraWebsocketServer {
       const clientId = url.searchParams.get('clientId');
       const libraryId = url.searchParams.get('libraryId');
       if (clientId == null || libraryId == null) {
-        console.error('Missing clientId or libraryId in WebSocket connection');
         return ws.close();
       }
 
@@ -96,7 +95,6 @@ export class MiraWebsocketServer {
   }
 
   sendToWebsocket(ws: WebSocket, data: Record<string, any>): void {
-    console.log({ response: data });
     ws.send(JSON.stringify(data));
   }
 
@@ -119,7 +117,6 @@ export class MiraWebsocketServer {
     ws.on('message', async (message: string) => {
       try {
         const data = JSON.parse(message);
-        console.log('Incoming message:', data)
         await this.handleMessage(ws, data);
       } catch (e) {
         this.sendToWebsocket(ws, {

@@ -1,6 +1,6 @@
 {
   "name": "mira_user",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,8 +14,8 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-storage-sqlite": "^1.0.9",
-    "mira-app-core": "^1.0.6"
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

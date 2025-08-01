@@ -10,7 +10,7 @@ interface FileImportOptions {
 export class PathFilesImporter {
   constructor(
     private libraryData: LibraryServerDataSQLite,
-  ) {}
+  ) { }
 
   async importFilesFromPath(
     sourcePath: string,
@@ -44,14 +44,17 @@ export class PathFilesImporter {
 
     for (const file of files) {
       const fullPath = path.join(dirPath, file);
-      const stats = fs.statSync(fullPath);
-
-      if (stats.isDirectory()) {
-        await this.importDirectoryFiles(sourcePath, fullPath, options);
-      } else if (stats.isFile()) {
-        await this.importSingleFile(sourcePath, fullPath, options);
-        processed++;
-        process.stdout.write(`\rProcessed ${processed} files`);
+      try {
+        const stats = fs.statSync(fullPath);
+        if (stats.isDirectory()) {
+          await this.importDirectoryFiles(sourcePath, fullPath, options);
+        } else if (stats.isFile()) {
+          await this.importSingleFile(sourcePath, fullPath, options);
+          processed++;
+          process.stdout.write(`\rProcessed ${processed} files`);
+        }
+      } catch (err) {
+        console.error(`Failed to process file ${fullPath}:`, err);
       }
     }
   }
@@ -97,11 +100,11 @@ export class PathFilesImporter {
         }
         const savePath = path.join(targetDir, fileData.name);
         const saveDir = path.dirname(savePath);
-        
+
         if (!fs.existsSync(saveDir)) {
           try {
             fs.mkdirSync(saveDir, { recursive: true });
-          } catch (err) {}
+          } catch (err) { }
         }
         console.log(filePath);
         if (options.importType === 'copy') {
@@ -144,7 +147,7 @@ export class PathFilesImporter {
       }
 
       // 创建新文件夹
-      console.log({msg: 'create_folder', part, parts})
+      console.log({ msg: 'create_folder', part, parts })
       const newFolderId = await this.libraryData.createFolder({
         title: part,
         parent_id: currentParentId
@@ -169,11 +172,11 @@ async function main(sourcePath: string, options?: FileImportOptions & { targetDb
       path: options?.targetDbPath
     }
   };
-  
-  const libraryData = new LibraryServerDataSQLite({} as any, config);
+
+  const libraryData = new LibraryServerDataSQLite(config, {});
   await libraryData.initialize();
   const importer = new PathFilesImporter(libraryData);
-  
+
   try {
     console.log('Importing files...');
     await importer.importFilesFromPath(sourcePath, options);
@@ -186,13 +189,82 @@ async function main(sourcePath: string, options?: FileImportOptions & { targetDb
   }
 }
 
+// 解析命令行参数
+function parseArgs(args: string[]): { sourcePath?: string; options: FileImportOptions & { targetDbPath?: string } } {
+  const options: FileImportOptions & { targetDbPath?: string } = {
+    importType: 'copy', // 默认为复制
+  };
+  let sourcePath: string | undefined;
+
+  for (const arg of args) {
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.slice(2).split('=');
+      switch (key) {
+        case 'source':
+        case 'sourcePath':
+          sourcePath = value;
+          break;
+        case 'target':
+        case 'targetDbPath':
+          options.targetDbPath = value;
+          break;
+        case 'importType':
+          if (value === 'copy' || value === 'move') {
+            options.importType = value;
+          }
+          break;
+        case 'maxFolderDepth':
+          options.maxFolderDepth = parseInt(value);
+          break;
+        case 'help':
+          console.log(`Usage: ts-node pathFilesToLibrary.ts --source=<sourcePath> [options]
+Options:
+  --source=<path>          Source path to import files from (required)
+  --target=<path>          Target database path
+  --importType=<type>      Import type: 'copy' or 'move' (default: 'copy')
+  --maxFolderDepth=<num>   Maximum folder depth to preserve
+  --help                   Show this help message
+
+Examples:
+  ts-node pathFilesToLibrary.ts --source=/path/to/files --target=library.db --importType=move
+  ts-node pathFilesToLibrary.ts --source=./files --maxFolderDepth=3`);
+          process.exit(0);
+          break;
+      }
+    } else if (!sourcePath) {
+      // 支持旧的位置参数方式作为 fallback
+      sourcePath = arg;
+    }
+  }
+
+  return { sourcePath, options };
+}
+
 // 如果是直接执行此文件而不是被导入
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const options: FileImportOptions & { targetDbPath?: string } = {
-    importType: 'move', // 默认为复制
-    targetDbPath: args[1],
-    maxFolderDepth: args[2] ? parseInt(args[2]) : undefined,
-  };
-  main(args[0], options).catch(console.error);
+
+  if (args.length === 0 || args.includes('--help')) {
+    console.log(`Usage: ts-node pathFilesToLibrary.ts --source=<sourcePath> [options]
+Options:
+  --source=<path>          Source path to import files from (required)
+  --target=<path>          Target database path
+  --importType=<type>      Import type: 'copy' or 'move' (default: 'copy')
+  --maxFolderDepth=<num>   Maximum folder depth to preserve
+  --help                   Show this help message
+
+Examples:
+  ts-node pathFilesToLibrary.ts --source=/path/to/files --target=library.db --importType=move
+  ts-node pathFilesToLibrary.ts --source=./files --maxFolderDepth=3`);
+    process.exit(0);
+  }
+
+  const { sourcePath, options } = parseArgs(args);
+
+  if (!sourcePath) {
+    console.error('Error: Source path is required. Use --source=<path> or --help for usage information.');
+    process.exit(1);
+  }
+
+  main(sourcePath, options).catch(console.error);
 }
