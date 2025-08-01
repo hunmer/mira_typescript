@@ -166,6 +166,7 @@ async function buildAndPublishPackages(targetPackages, dryRun = false, versionBu
       }
       
       console.log(`   ✅ Successfully built and published ${packageName} v${newVersion}`);
+      console.log(`   📦 Install command: npm install ${packageName}@${newVersion}`);
       
     } catch (error) {
       console.error(`   ❌ Error building ${packageName}:`, error.message);

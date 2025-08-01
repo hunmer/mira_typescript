@@ -1,14 +1,16 @@
 # 使用Node.js官方镜像作为基础
 FROM node:20-alpine
 
-# 安装构建依赖（用于编译native modules如sqlite3）
+# 安装构建依赖和 FFmpeg（用于编译native modules如sqlite3）
 RUN apk add --no-cache \
     python3 \
     py3-setuptools \
     make \
     g++ \
     sqlite \
-    sqlite-dev
+    sqlite-dev \
+    ffmpeg \
+    ffmpeg-dev
 
 # 创建工作目录
 WORKDIR /app
@@ -21,6 +23,8 @@ COPY . .
 
 # 设置环境变量修复distutils问题并安装依赖
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
+ENV FFMPEG_PATH=/usr/bin/ffmpeg
+ENV FFPROBE_PATH=/usr/bin/ffprobe
 
 # 清理现有的node_modules和package-lock.json（如果存在）
 RUN rm -rf node_modules package-lock.json
@@ -31,8 +35,11 @@ RUN npm install
 # 构建项目
 RUN npm run build
 
-# 清理构建依赖以减小镜像大小
-RUN apk del python3 make g++
+# 验证 FFmpeg 安装
+RUN ffmpeg -version && ffprobe -version
+
+# 清理构建依赖以减小镜像大小（保留 ffmpeg）
+RUN apk del python3 make g++ ffmpeg-dev
 
 # 暴露端口
 EXPOSE 3000

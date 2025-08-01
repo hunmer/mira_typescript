@@ -11,12 +11,13 @@
         "1.0.6",
         "1.0.7",
         "1.0.8",
-        "1.0.9"
+        "1.0.9",
+        "1.0.10"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/packages/mira-core/"
       ],
-      "defaultOnline": "1.0.9",
+      "defaultOnline": "1.0.10",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -63,7 +64,7 @@
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
     },
-    "mira-thumb": {
+    "mira_thumb": {
       "onlineVersions": [
         "1.0.0",
         "1.0.1",
@@ -71,17 +72,21 @@
         "1.0.3",
         "1.0.4",
         "1.0.5",
-        "1.0.6"
+        "1.0.6",
+        "1.0.7",
+        "1.0.8",
+        "1.0.9",
+        "1.0.10"
       ],
       "offlinePaths": [
         "file:D:/mira_typescript/plugins/plugins/mira_thumb/"
       ],
-      "defaultOnline": "1.0.6",
+      "defaultOnline": "1.0.10",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
-    "mira-user": {
+    "mira_user": {
       "onlineVersions": [
         "1.0.0",
         "1.0.1",

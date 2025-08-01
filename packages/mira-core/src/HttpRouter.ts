@@ -154,7 +154,6 @@ export class HttpRouter {
       const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
       const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
       const obj = this.backend.libraries.get(libraryId);
-      console.log({ libraryId, sourcePath, clientId, fields, payload, obj });
       if (!obj) return res.status(404).send('Library not found');
 
       // 解析上传的文件
