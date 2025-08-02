@@ -37,7 +37,8 @@
     "plugins/plugins/upload_statistics/package.json",
     "packages/mira-core/package.json",
     "packages/mira-server/package.json",
-    "packages/mira-storage-sqlite/package.json"
+    "packages/mira-storage-sqlite/package.json",
+    "tools/package.json"
   ],
   "description": "Configuration for dependency switching script. Package versions are read directly from each package's package.json file."
 }

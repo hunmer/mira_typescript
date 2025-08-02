@@ -35,6 +35,12 @@
       "defaultOffline": "file:D:/mira_typescript/packages/upload_statistics/",
       "buildPath": "plugins/plugins/upload_statistics",
       "buildCommand": "npm install && npm run build && npm publish"
+    },
+    "mira-scripts-core": {
+      "defaultOnline": "1.0.3",
+      "defaultOffline": "file:D:/mira_typescript/mira-scripts-core/",
+      "buildPath": "mira-scripts-core",
+      "buildCommand": "npm install && npm run build && npm publish"
     }
   },
   "targetFiles": [
@@ -43,7 +49,8 @@
     "plugins/plugins/upload_statistics/package.json",
     "packages/mira-core/package.json",
     "packages/mira-server/package.json",
-    "packages/mira-storage-sqlite/package.json"
+    "packages/mira-storage-sqlite/package.json",
+    "tools/package.json"
   ],
   "description": "Configuration for dependency switching script. Each package can have multiple online versions and offline paths to choose from."
 }

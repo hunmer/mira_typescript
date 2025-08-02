@@ -13,6 +13,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
-  "include": ["*.ts"],
+  "include": ["*.ts", "scripts/pathFilesToLibrary.ts", "scripts/convertLibraryData.ts"],
   "exclude": ["node_modules", "dist"]
 }
