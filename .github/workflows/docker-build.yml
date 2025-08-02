@@ -25,6 +25,25 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Verify workspace structure
+      run: |
+        echo "Checking workspace structure..."
+        ls -la packages/
+        ls -la packages/mira-storage-sqlite/
+        ls -la packages/mira-storage-sqlite/src/
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'packages/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        cd packages
+        npm install
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -33,7 +52,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.SECERT }}
+        password: ${{ secrets.SECERT }} # 不允许GITHUB_TOKEN为变量名称
 
     - name: Extract metadata
       id: meta

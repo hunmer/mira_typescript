@@ -32,6 +32,9 @@ COPY packages/mira-core/src ./packages/mira-core/src
 COPY packages/mira-server/src ./packages/mira-server/src
 COPY packages/mira-storage-sqlite/src ./packages/mira-storage-sqlite/src
 
+# 复制插件目录（如果存在）
+COPY plugins ./plugins
+
 # 设置环境变量修复distutils问题并安装依赖
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 ENV FFMPEG_PATH=/usr/bin/ffmpeg
