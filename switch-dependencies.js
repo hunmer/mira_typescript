@@ -158,14 +158,8 @@ async function buildPackages(targetPackages, dryRun = false, versionBump = 'patc
     console.log(`\n📦 Processing ${packageName}:`);
     console.log(`   Path: ${buildPath}`);
     
-    // Step 1: Update version
-    const newVersion = updatePackageVersion(buildPath, packageName, versionBump, dryRun);
-    if (!newVersion) {
-      console.error(`   ❌ Failed to update version for ${packageName}, skipping`);
-      continue;
-    }
     
-    // Step 2: Execute build command (without publish)
+    // Step 1: Execute build command (without publish)
     console.log(`   Command: ${buildCommand}`);
     
     if (dryRun) {
@@ -197,7 +191,7 @@ async function buildPackages(targetPackages, dryRun = false, versionBump = 'patc
         console.warn(`   ⚠️  Warnings: ${stderr.trim()}`);
       }
       
-      console.log(`   ✅ Successfully built ${packageName} v${newVersion}`);
+      console.log(`   ✅ Successfully built ${packageName}`);
       
     } catch (error) {
       console.error(`   ❌ Error building ${packageName}:`, error.message);
