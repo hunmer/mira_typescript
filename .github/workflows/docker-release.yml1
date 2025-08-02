@@ -3,7 +3,7 @@ name: Release Docker Image
 on:
   release:
     types: [published]
-
+    
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/mira-server
@@ -37,6 +37,9 @@ jobs:
     - name: Build and push Docker image
       id: build
       uses: docker/build-push-action@v5
+      permissions:
+        id-token: write
+        contents: read
       with:
         context: .
         file: ./packages/mira-server/Dockerfile
