@@ -28,6 +28,18 @@ export class MiraHttpServer {
         this.httpRouter = new HttpRouter(backend);
         this.app.use(express.json());
 
+        // 允许所有CORS
+        this.app.use((req, res, next) => {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+            if (req.method === "OPTIONS") {
+            res.sendStatus(200);
+            } else {
+            next();
+            }
+        });
+
         this.server = http.createServer(this.app);
         this.app.use('/api', this.httpRouter.getRouter());
 

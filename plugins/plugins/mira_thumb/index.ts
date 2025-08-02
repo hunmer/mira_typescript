@@ -52,7 +52,7 @@ class ThumbPlugin extends ServerPlugin {
             // 
         }
         // 缩略图操作
-        httpServer.getRouter().registerRounter(dbService.getLibraryId(), '/thumb/:action', 'get', async (req, res, next) => {
+        httpServer.getRouter().registerRounter(dbService.getLibraryId(), '/thumb/:action', 'get', async (req, res) => {
             const action = req.params.action;
             if (action === 'scan') {
                 this.processPendingThumbnails();

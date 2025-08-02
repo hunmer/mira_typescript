@@ -2,12 +2,13 @@
   "packageMappings": {
     "mira-app-core": {
       "onlineVersions": [
-        "1.0.14"
+        "1.0.14",
+        "1.0.15"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/packages/mira-core/"
       ],
-      "defaultOnline": "1.0.14",
+      "defaultOnline": "1.0.15",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
@@ -26,12 +27,14 @@
     },
     "mira-app-server": {
       "onlineVersions": [
-        "1.0.10"
+        "1.0.10",
+        "1.0.11",
+        "1.0.12"
       ],
       "offlinePaths": [
         "file://Users/Zhuanz/mira_typescript/packages/mira-server/"
       ],
-      "defaultOnline": "1.0.10",
+      "defaultOnline": "1.0.12",
       "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-server/",
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
