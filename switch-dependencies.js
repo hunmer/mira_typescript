@@ -26,9 +26,9 @@ function showUsage() {
 Usage: node switch-dependencies.js [mode] [packages...] [options]
 
 Modes:
-  online    - Switch to online versions (npm registry)
+  online    - Switch to online versions (npm registry, reads current version from package.json)
   offline   - Switch to local file paths
-  list      - List available versions and paths for packages
+  list      - List current versions and paths for packages
   build     - Build and publish packages (one-click upgrade and publish)
   
 Packages (optional, if not specified, all configured packages will be used):
@@ -55,7 +55,43 @@ Examples:
 
 Configuration:
 The script uses package mappings from dependency-switch-config.json
+Version information is read directly from each package's package.json file
 `);
+}
+
+/**
+ * Get current version from package.json
+ * @param {string} packageName - Name of the package
+ * @returns {string|null} Current version or null if not found
+ */
+function getCurrentVersion(packageName) {
+  if (!PACKAGE_MAPPINGS[packageName]) {
+    return null;
+  }
+  
+  const mapping = PACKAGE_MAPPINGS[packageName];
+  const buildPath = mapping.buildPath;
+  
+  if (!buildPath) {
+    console.warn(`⚠️  No buildPath configured for ${packageName}`);
+    return null;
+  }
+  
+  try {
+    const packageJsonPath = path.resolve(buildPath, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      console.warn(`⚠️  package.json not found at: ${packageJsonPath}`);
+      return null;
+    }
+    
+    const content = fs.readFileSync(packageJsonPath, 'utf8');
+    const packageJson = JSON.parse(content);
+    
+    return packageJson.version || null;
+  } catch (error) {
+    console.warn(`⚠️  Error reading version for ${packageName}:`, error.message);
+    return null;
+  }
 }
 
 /**
@@ -68,27 +104,19 @@ function listPackageOptions(targetPackages) {
   targetPackages.forEach(packageName => {
     if (PACKAGE_MAPPINGS[packageName]) {
       const mapping = PACKAGE_MAPPINGS[packageName];
+      const currentVersion = getCurrentVersion(packageName);
+      
       console.log(`📦 ${packageName}:`);
       
-      console.log('  Online versions:');
-      if (mapping.onlineVersions && mapping.onlineVersions.length > 0) {
-        mapping.onlineVersions.forEach((version, index) => {
-          const isDefault = version === mapping.defaultOnline;
-          console.log(`    ${index + 1}. ^${version}${isDefault ? ' (default)' : ''}`);
-        });
+      console.log('  Current version:');
+      if (currentVersion) {
+        console.log(`    ^${currentVersion} (read from package.json)`);
       } else {
-        console.log(`    Default: ^${mapping.defaultOnline}`);
+        console.log(`    Unable to read version`);
       }
       
-      console.log('  Offline paths:');
-      if (mapping.offlinePaths && mapping.offlinePaths.length > 0) {
-        mapping.offlinePaths.forEach((path, index) => {
-          const isDefault = path === mapping.defaultOffline;
-          console.log(`    ${index + 1}. ${path}${isDefault ? ' (default)' : ''}`);
-        });
-      } else {
-        console.log(`    Default: ${mapping.defaultOffline}`);
-      }
+      console.log('  Offline path:');
+      console.log(`    ${mapping.defaultOffline}`);
       
       console.log('  Build configuration:');
       console.log(`    Path: ${mapping.buildPath || 'Not configured'}`);
@@ -219,56 +247,11 @@ function incrementVersion(version, bumpType = 'patch') {
  * @param {boolean} dryRun - Whether to show changes without executing
  */
 function updateConfigurationFile(packageName, newVersion, dryRun = false) {
-  try {
-    const configPath = path.resolve('dependency-switch-config.json');
-    
-    if (!dryRun) {
-      // Read current config
-      const configContent = fs.readFileSync(configPath, 'utf8');
-      const config = JSON.parse(configContent);
-      
-      if (config.packageMappings[packageName]) {
-        const mapping = config.packageMappings[packageName];
-        
-        // Update defaultOnline to new version
-        mapping.defaultOnline = newVersion;
-        
-        // Add new version to onlineVersions if not already present
-        if (!mapping.onlineVersions) {
-          mapping.onlineVersions = [];
-        }
-        
-        if (!mapping.onlineVersions.includes(newVersion)) {
-          mapping.onlineVersions.push(newVersion);
-          mapping.onlineVersions.sort((a, b) => {
-            // Sort versions properly (1.0.9 < 1.0.10)
-            const aParts = a.split('.').map(Number);
-            const bParts = b.split('.').map(Number);
-            
-            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-              const aPart = aParts[i] || 0;
-              const bPart = bParts[i] || 0;
-              
-              if (aPart !== bPart) {
-                return aPart - bPart;
-              }
-            }
-            return 0;
-          });
-        }
-        
-        // Write updated config back to file
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-        console.log(`   ✅ Updated configuration file with new version ${newVersion}`);
-      }
-    } else {
-      console.log(`   📋 Would update configuration file:`);
-      console.log(`     - Set defaultOnline to: ${newVersion}`);
-      console.log(`     - Add ${newVersion} to onlineVersions array`);
-    }
-    
-  } catch (error) {
-    console.error(`   ❌ Error updating configuration file:`, error.message);
+  // Since we no longer store version history in config, we just show what would be done
+  if (dryRun) {
+    console.log(`   📋 Would update package.json version to: ${newVersion}`);
+  } else {
+    console.log(`   ✅ Version updated to ${newVersion} (config no longer stores version history)`);
   }
 }
 
@@ -400,25 +383,16 @@ function updatePackageJson(filePath, mode, targetPackages, customVersion = null,
             let newValue;
             
             if (mode === 'online') {
-              // Use custom version or default
-              const version = customVersion || mapping.defaultOnline;
-              const availableVersions = mapping.onlineVersions || [mapping.defaultOnline];
-              if (!availableVersions.includes(version)) {
-                console.warn(`⚠️  Version ${version} not found for ${packageName}, using default`);
-                newValue = `^${mapping.defaultOnline}`;
-              } else {
-                newValue = `^${version}`;
+              // Use custom version or get current version from package.json
+              const version = customVersion || getCurrentVersion(packageName);
+              if (!version) {
+                console.warn(`⚠️  Could not determine version for ${packageName}, skipping`);
+                return;
               }
+              newValue = `^${version}`;
             } else if (mode === 'offline') {
-              // Use custom path or default
-              const path = customPath || mapping.defaultOffline;
-              const availablePaths = mapping.offlinePaths || [mapping.defaultOffline];
-              if (!availablePaths.includes(path)) {
-                console.warn(`⚠️  Path ${path} not found for ${packageName}, using default`);
-                newValue = mapping.defaultOffline;
-              } else {
-                newValue = path;
-              }
+              // Use custom path or default offline path
+              newValue = customPath || mapping.defaultOffline;
             }
             
             packageJson[depType][packageName] = newValue;
@@ -500,25 +474,11 @@ async function main() {
 
   // Validate custom options for online/offline modes
   if (mode === 'online' && parsed.version) {
-    const hasValidVersion = targetPackages.some(pkg => 
-      PACKAGE_MAPPINGS[pkg] && 
-      PACKAGE_MAPPINGS[pkg].onlineVersions && 
-      PACKAGE_MAPPINGS[pkg].onlineVersions.includes(parsed.version)
-    );
-    if (!hasValidVersion) {
-      console.warn(`⚠️  Custom version ${parsed.version} not found in any target package`);
-    }
+    console.log(`   Using custom version: ${parsed.version} (override current package.json version)`);
   }
 
   if (mode === 'offline' && parsed.path) {
-    const hasValidPath = targetPackages.some(pkg => 
-      PACKAGE_MAPPINGS[pkg] && 
-      PACKAGE_MAPPINGS[pkg].offlinePaths && 
-      PACKAGE_MAPPINGS[pkg].offlinePaths.includes(parsed.path)
-    );
-    if (!hasValidPath) {
-      console.warn(`⚠️  Custom path ${parsed.path} not found in any target package`);
-    }
+    console.log(`   Using custom path: ${parsed.path} (override default offline path)`);
   }
 
   console.log(`🔄 Switching to ${mode} mode for packages: ${targetPackages.join(', ')}`);

@@ -1,38 +1,32 @@
 {
   "packageMappings": {
     "mira-app-core": {
-      "defaultOnline": "1.0.15",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira-core/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-core/",
       "buildPath": "packages/mira-core",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-storage-sqlite": {
-      "defaultOnline": "1.0.12",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-storage-sqlite/",
       "buildPath": "packages/mira-storage-sqlite",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-app-server": {
-      "defaultOnline": "1.0.15",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira-server/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira-server/",
       "buildPath": "packages/mira-server",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_thumb": {
-      "defaultOnline": "1.0.13",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_user": {
-      "defaultOnline": "1.0.4",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira_user/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/mira_user/",
       "buildPath": "plugins/plugins/mira_user",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "upload_statistics": {
-      "defaultOnline": "1.0.4",
-      "defaultOffline": "file:D:/mira_typescript/packages/upload_statistics/",
+      "defaultOffline": "file://Users/Zhuanz/mira_typescript/packages/upload_statistics/",
       "buildPath": "plugins/plugins/upload_statistics",
       "buildCommand": "npm install && npm run build && npm publish"
     }
@@ -45,5 +39,5 @@
     "packages/mira-server/package.json",
     "packages/mira-storage-sqlite/package.json"
   ],
-  "description": "Configuration for dependency switching script. Each package can have multiple online versions and offline paths to choose from."
+  "description": "Configuration for dependency switching script. Package versions are read directly from each package's package.json file."
 }
