@@ -15,11 +15,25 @@ RUN apk add --no-cache \
 # 创建工作目录
 WORKDIR /app
 
-# 复制package.json和package-lock.json
-COPY package*.json ./
+# 首先复制根目录的 package.json 和相关配置文件
+COPY packages/package*.json ./packages/
+COPY packages/mira-server/package*.json ./packages/mira-server/
+COPY packages/mira-core/package*.json ./packages/mira-core/
+COPY packages/mira-storage-sqlite/package*.json ./packages/mira-storage-sqlite/
 
-# 复制项目文件（需要在npm install之前复制，因为prepublish脚本会运行build）
-COPY . .
+# 复制 tsconfig 和其他配置文件
+COPY tsconfig.json ./
+COPY packages/mira-server/tsconfig.json ./packages/mira-server/
+COPY packages/mira-core/tsconfig.json ./packages/mira-core/
+COPY packages/mira-storage-sqlite/tsconfig.json ./packages/mira-storage-sqlite/
+
+# 复制源代码
+COPY packages/mira-core/src ./packages/mira-core/src
+COPY packages/mira-server/src ./packages/mira-server/src
+COPY packages/mira-storage-sqlite/src ./packages/mira-storage-sqlite/src
+
+# 复制插件目录
+COPY plugins ./plugins
 
 # 设置环境变量修复distutils问题并安装依赖
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
@@ -27,12 +41,25 @@ ENV FFMPEG_PATH=/usr/bin/ffmpeg
 ENV FFPROBE_PATH=/usr/bin/ffprobe
 
 # 清理现有的node_modules和package-lock.json（如果存在）
-RUN rm -rf node_modules package-lock.json
+RUN rm -rf packages/*/node_modules packages/*/package-lock.json
 
-# 先安装依赖
+# 先安装根目录的依赖
+WORKDIR /app/packages
 RUN npm install
 
-# 构建项目
+# 安装并构建 mira-core
+WORKDIR /app/packages/mira-core
+RUN npm install
+RUN npm run build
+
+# 安装并构建 mira-storage-sqlite
+WORKDIR /app/packages/mira-storage-sqlite
+RUN npm install
+RUN npm run build
+
+# 安装并构建 mira-server
+WORKDIR /app/packages/mira-server
+RUN npm install
 RUN npm run build
 
 # 验证 FFmpeg 安装
@@ -40,6 +67,9 @@ RUN ffmpeg -version && ffprobe -version
 
 # 清理构建依赖以减小镜像大小（保留 ffmpeg）
 RUN apk del python3 make g++ ffmpeg-dev
+
+# 设置工作目录为 mira-server
+WORKDIR /app/packages/mira-server
 
 # 暴露端口
 EXPOSE 3000

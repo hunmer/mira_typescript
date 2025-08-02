@@ -33,7 +33,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.SECERT  }}
+        password: ${{ secrets.SECRET }}
 
     - name: Extract metadata
       id: meta
