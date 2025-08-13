@@ -52,8 +52,7 @@
       </a-form>
 
       <div class="mt-6 text-center text-sm text-gray-500">
-        <p>默认管理员账号：{{ defaultAdmin.username }}</p>
-        <p>默认密码：{{ defaultAdmin.password }}</p>
+        <p>请使用服务器配置的管理员账号登录</p>
       </div>
     </div>
   </div>
@@ -78,11 +77,6 @@ const loginForm = reactive<LoginForm>({
   username: '',
   password: ''
 })
-
-const defaultAdmin = {
-  username: import.meta.env.VITE_INITIAL_ADMIN_USERNAME || 'admin',
-  password: import.meta.env.VITE_INITIAL_ADMIN_PASSWORD || 'admin123'
-}
 
 const rules: Record<string, Rule[]> = {
   username: [

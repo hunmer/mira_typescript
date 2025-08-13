@@ -701,7 +701,7 @@ const uploadPlugin = async () => {
     const formData = new FormData()
     formData.append('file', fileList.value[0])
     
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const headers: Record<string, string> = {}
     if (token) {
       headers.Authorization = `Bearer ${token}`

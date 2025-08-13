@@ -11,14 +11,12 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@types/sql.js": "^1.4.9",
     "@vueuse/core": "^10.7.0",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.6.2",
     "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
     "sortablejs": "^1.15.1",
-    "sql.js": "^1.8.0",
     "vue": "^3.4.0",
     "vue-json-viewer": "^3.0.4",
     "vue-router": "^4.2.5"

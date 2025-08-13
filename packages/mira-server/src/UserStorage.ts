@@ -13,6 +13,7 @@ export interface User {
     created_at: number;
     updated_at: number;
     is_active: boolean;
+    email?: string; // 添加可选的邮箱字段
 }
 
 // 会话接口定义
@@ -62,6 +63,7 @@ export class UserStorage {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
+                email TEXT,
                 role TEXT NOT NULL DEFAULT 'user',
                 permissions TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL,
@@ -83,6 +85,13 @@ export class UserStorage {
 
         await this.executeSql(createUsersTable);
         await this.executeSql(createSessionsTable);
+
+        // 为已存在的表添加 email 字段（如果不存在）
+        try {
+            await this.executeSql('ALTER TABLE users ADD COLUMN email TEXT');
+        } catch (error) {
+            // 如果字段已存在，忽略错误
+        }
 
         // 创建索引以提高查询性能
         await this.executeSql('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
@@ -121,7 +130,7 @@ export class UserStorage {
     }
 
     // 密码哈希
-    private hashPassword(password: string): string {
+    public hashPassword(password: string): string {
         const salt = crypto.randomBytes(16).toString('hex');
         const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
         return `${salt}:${hash}`;
@@ -143,12 +152,13 @@ export class UserStorage {
     // 用户操作方法
     async createUser(userData: Omit<User, 'id'>): Promise<number> {
         const query = `
-            INSERT INTO users (username, password, role, permissions, created_at, updated_at, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (username, password, email, role, permissions, created_at, updated_at, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const params = [
             userData.username,
             userData.password,
+            userData.email || null,
             userData.role,
             JSON.stringify(userData.permissions),
             userData.created_at,
@@ -280,6 +290,10 @@ export class UserStorage {
         if (userData.username !== undefined) {
             fields.push('username = ?');
             params.push(userData.username);
+        }
+        if (userData.email !== undefined) {
+            fields.push('email = ?');
+            params.push(userData.email);
         }
         if (userData.password !== undefined) {
             fields.push('password = ?');

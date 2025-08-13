@@ -5,7 +5,7 @@ import { api } from '@/utils/api'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
-    const token = ref<string | null>(localStorage.getItem('token'))
+    const token = ref<string | null>(sessionStorage.getItem('token'))
 
     const isAuthenticated = computed(() => !!token.value)
 
@@ -17,7 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
             if (data.success) {
                 token.value = data.data.token
                 user.value = data.data.user
-                localStorage.setItem('token', token.value || '')
+                // 使用 sessionStorage 而非 localStorage，会话结束后自动清除
+                sessionStorage.setItem('token', token.value || '')
                 return { success: true }
             } else {
                 return {
@@ -45,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
             // 无论后端调用是否成功，都清除本地状态
             token.value = null
             user.value = null
-            localStorage.removeItem('token')
+            sessionStorage.removeItem('token')
         }
     }
 

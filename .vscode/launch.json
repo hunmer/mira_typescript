@@ -47,7 +47,7 @@
       "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
       "cwd": "${workspaceFolder}/packages/mira-server",
       "runtimeArgs": [
-        "--inspect=9229",
+        "--inspect=9230",
         "-r",
         "ts-node/register"
       ],

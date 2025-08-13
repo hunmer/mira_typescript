@@ -63,9 +63,10 @@
 
     <!-- 添加/编辑管理员对话框 -->
     <a-modal
-      :value="showAddDialog"
+      v-model:open="showAddDialog"
       :title="editingAdmin ? '编辑管理员' : '添加管理员'"
       width="500px"
+      @cancel="closeDialog"
     >
       <a-form
         ref="adminFormRef"
@@ -75,7 +76,7 @@
       >
         <a-form-item label="用户名" name="username">
           <a-input
-            :value="adminForm.username"
+            v-model:value="adminForm.username"
             placeholder="请输入用户名"
             :disabled="!!editingAdmin"
           />
@@ -83,7 +84,7 @@
         
         <a-form-item label="邮箱" name="email">
           <a-input
-            :value="adminForm.email"
+            v-model:value="adminForm.email"
             placeholder="请输入邮箱地址"
             type="email"
           />
@@ -95,7 +96,7 @@
           name="password"
         >
           <a-input
-            :value="adminForm.password"
+            v-model:value="adminForm.password"
             type="password"
             placeholder="请输入密码"
             show-password
@@ -108,7 +109,7 @@
           name="confirmPassword"
         >
           <a-input
-            :value="adminForm.confirmPassword"
+            v-model:value="adminForm.confirmPassword"
             type="password"
             placeholder="请确认密码"
             show-password
@@ -117,28 +118,10 @@
       </a-form>
       
       <template #footer>
-        <a-button @click="showAddDialog = false">取消</a-button>
+        <a-button @click="closeDialog">取消</a-button>
         <a-button type="primary" @click="saveAdmin">确定</a-button>
       </template>
     </a-modal>
-
-    <!-- 初始管理员设置提示 -->
-    <a-alert
-      v-if="showInitialAdminTip"
-      title="初始管理员设置"
-      type="info"
-      class="mt-6"
-      :closable="false"
-    >
-      <template #default>
-        <p class="mb-2">可以通过环境变量设置初始管理员账号：</p>
-        <div class="bg-gray-100 p-3 rounded text-sm font-mono">
-          <p>VITE_INITIAL_ADMIN_USERNAME={{ initialAdmin.username }}</p>
-          <p>VITE_INITIAL_ADMIN_PASSWORD={{ initialAdmin.password }}</p>
-          <p>VITE_INITIAL_ADMIN_EMAIL={{ initialAdmin.email }}</p>
-        </div>
-      </template>
-    </a-alert>
   </div>
 </template>
 
@@ -154,7 +137,6 @@ import { api } from '@/utils/api'
 const authStore = useAuthStore()
 const loading = ref(false)
 const showAddDialog = ref(false)
-const showInitialAdminTip = ref(true)
 const editingAdmin = ref<User | null>(null)
 const adminFormRef = ref<FormInstance>()
 
@@ -168,12 +150,6 @@ const adminForm = ref<CreateAdminForm>({
 })
 
 const currentUserId = computed(() => authStore.user?.id)
-
-const initialAdmin = {
-  username: import.meta.env.VITE_INITIAL_ADMIN_USERNAME || 'admin',
-  password: import.meta.env.VITE_INITIAL_ADMIN_PASSWORD || 'admin123',
-  email: import.meta.env.VITE_INITIAL_ADMIN_EMAIL || 'admin@mira.local'
-}
 
 const validatePasswordConfirm = (_rule: any, value: string, callback: any) => {
   if (value !== adminForm.value.password) {
@@ -204,6 +180,15 @@ const adminRules: Record<string, Rule[]> = {
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString('zh-CN')
+}
+
+const closeDialog = () => {
+  showAddDialog.value = false
+  editingAdmin.value = null
+  adminForm.value = { username: '', email: '', password: '', confirmPassword: '' }
+  if (adminFormRef.value) {
+    adminFormRef.value.resetFields()
+  }
 }
 
 const loadAdmins = async () => {
@@ -250,9 +235,7 @@ const saveAdmin = async () => {
       message.success('管理员添加成功')
     }
     
-    showAddDialog.value = false
-    editingAdmin.value = null
-    adminForm.value = { username: '', email: '', password: '', confirmPassword: '' }
+    closeDialog()
     loadAdmins()
   } catch (error: any) {
     message.error(error.response?.data?.message || '操作失败')

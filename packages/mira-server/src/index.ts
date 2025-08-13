@@ -1,7 +1,9 @@
 import { MiraServer } from './MiraServer';
 import dotenv from 'dotenv';
+import path from 'path';
 
-// 加载环境变量
+// 加载环境变量 - 先加载根目录的 .env，再加载本地的 .env
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
 dotenv.config();
 
 async function startServer() {
@@ -9,12 +11,21 @@ async function startServer() {
     // 服务端启动文件
     console.log('🚀 Starting Mira Server...');
 
+    // 获取端口配置，优先使用环境变量
+    const httpPort = process.env.MIRA_SERVER_HTTP_PORT || process.env.HTTP_PORT || '8080';
+    const wsPort = process.env.MIRA_SERVER_WS_PORT || process.env.WS_PORT || '8081';
+    const dataPath = process.env.DATA_PATH || './data';
+
+    console.log(`📡 HTTP Server will start on port: ${httpPort}`);
+    console.log(`🔌 WebSocket Server will start on port: ${wsPort}`);
+    console.log(`📁 Data path: ${dataPath}`);
+
     const server = await MiraServer.createAndStart({
-      httpPort: process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT) : 8080,
-      wsPort: process.env.WS_PORT ? parseInt(process.env.WS_PORT) : 8081,
-      dataPath: process.env.DATA_PATH,
-      enableHttp: true,
-      enableWebSocket: true
+      httpPort: parseInt(httpPort),
+      wsPort: parseInt(wsPort),
+      dataPath: dataPath,
+      enableHttp: process.env.ENABLE_HTTP !== 'false',
+      enableWebSocket: process.env.ENABLE_WEBSOCKET !== 'false'
     });
 
     console.log('✅ Mira Server started successfully');
