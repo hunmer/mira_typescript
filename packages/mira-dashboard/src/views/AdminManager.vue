@@ -285,9 +285,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-manager {
-  max-width: 1200px;
-}
 
 .admin-table {
   background: white;

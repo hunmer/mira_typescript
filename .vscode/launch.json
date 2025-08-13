@@ -41,22 +41,20 @@
       ]
     },
     {
-      "name": "启动 Mira Server (开发模式)",
+      "name": "Launch Mira Server with Debugger",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
       "cwd": "${workspaceFolder}/packages/mira-server",
       "runtimeArgs": [
-        "--inspect",
+        "--inspect=9229",
         "-r",
         "ts-node/register"
       ],
       "env": {
         "NODE_ENV": "development",
-        "DATA_PATH": "${workspaceFolder}/data",
-        "HTTP_PORT": "3000",
-        "WS_PORT": "8081",
-        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json",
+        "NODE_OPTIONS": "--enable-source-maps"
       },
       "console": "integratedTerminal",
       "sourceMaps": true,
@@ -71,75 +69,8 @@
       ],
       "outFiles": [
         "${workspaceFolder}/packages/**/dist/**/*.js"
-      ]
-    },
-    {
-      "name": "启动 Mira Server (生产模式)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
-      "cwd": "${workspaceFolder}/packages/mira-server",
-      "runtimeArgs": [
-        "-r",
-        "ts-node/register"
       ],
-      "env": {
-        "NODE_ENV": "production",
-        "DATA_PATH": "${workspaceFolder}/data",
-        "HTTP_PORT": "3000",
-        "WS_PORT": "8081",
-        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
-      },
-      "console": "integratedTerminal",
-      "sourceMaps": true,
-      "smartStep": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**",
-        "**/node_modules/**"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/packages/**/dist/**/*.js"
-      ]
-    },
-    {
-      "name": "启动 Mira Server CLI",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/mira-server/src/cli.ts",
-      "cwd": "${workspaceFolder}/packages/mira-server",
-      "runtimeArgs": [
-        "-r",
-        "ts-node/register"
-      ],
-      "args": [
-        "--http-port",
-        "3000",
-        "--ws-port",
-        "8081",
-        "--data-path",
-        "${workspaceFolder}/data"
-      ],
-      "env": {
-        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
-      },
-      "console": "integratedTerminal",
-      "sourceMaps": true,
-      "smartStep": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**",
-        "**/node_modules/**"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/packages/**/dist/**/*.js"
-      ]
+      "preLaunchTask": "stop-mira-server-dev"
     },
     {
       "type": "chrome",

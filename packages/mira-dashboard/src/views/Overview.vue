@@ -1,6 +1,19 @@
 <template>
   <div class="overview-container">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">系统概览</h1>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">系统概览</h1>
+      <a-button 
+        type="primary" 
+        :loading="loading" 
+        @click="refreshData"
+        class="flex items-center"
+      >
+        <template #icon>
+          <ReloadOutlined />
+        </template>
+        刷新数据
+      </a-button>
+    </div>
     
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -88,8 +101,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { MonitorOutlined, ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import { MonitorOutlined, ClockCircleOutlined, InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import StatCard from '@/components/StatCard.vue'
+import { api } from '@/utils/api'
+import { message } from 'ant-design-vue'
+
+const loading = ref(false)
 
 const stats = ref({
   libraries: 0,
@@ -122,30 +139,93 @@ const recentActivities = ref([
   }
 ])
 
+// 格式化文件大小
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// 格式化运行时间
+const formatUptime = (seconds: number): string => {
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  
+  if (days > 0) {
+    return `${days}天 ${hours}小时`
+  } else if (hours > 0) {
+    return `${hours}小时 ${minutes}分钟`
+  } else {
+    return `${minutes}分钟`
+  }
+}
+
 const loadStats = async () => {
   try {
-    // 这里应该调用实际的API
+    // 并行请求所有需要的数据
+    const [librariesRes, pluginsRes, adminsRes] = await Promise.all([
+      api.get('/api/libraries'),
+      api.get('/api/plugins'),
+      api.get('/api/admins')
+    ])
+
+    const libraries = Array.isArray(librariesRes.data) ? librariesRes.data : []
+    const plugins = Array.isArray(pluginsRes.data) ? pluginsRes.data : []
+    const admins = Array.isArray(adminsRes.data) ? adminsRes.data : []
+
+    // 计算总数据库大小（所有库的文件大小总和）
+    const totalSize = libraries.reduce((sum: number, lib: any) => sum + (lib.size || 0), 0)
+
     stats.value = {
-      libraries: 12,
-      plugins: 8,
-      admins: 3,
-      dbSize: '128 MB'
+      libraries: libraries.length,
+      plugins: plugins.length,
+      admins: admins.length,
+      dbSize: formatFileSize(totalSize)
     }
+
+    // TODO: 获取最近活动
+    recentActivities.value = []
   } catch (error) {
     console.error('加载统计数据失败:', error)
+    message.error('加载统计数据失败，请稍后重试')
   }
 }
 
 const loadSystemInfo = async () => {
   try {
-    // 这里应该调用实际的API
+    // 获取系统健康信息
+    const healthRes = await api.get('/health')
+    const healthData = healthRes.data as any
+
     systemInfo.value = {
-      uptime: '5天 12小时',
-      version: '1.0.0',
+      uptime: formatUptime(healthData.uptime || 0),
+      version: healthData.version || '1.0.0',
       nodeVersion: process.version || '18.0.0'
     }
   } catch (error) {
     console.error('加载系统信息失败:', error)
+    // 如果健康检查失败，使用默认值
+    systemInfo.value = {
+      uptime: '未知',
+      version: '1.0.0',
+      nodeVersion: process.version || '18.0.0'
+    }
+  }
+}
+
+const refreshData = async () => {
+  loading.value = true
+  try {
+    await Promise.all([loadStats(), loadSystemInfo()])
+    message.success('数据刷新成功')
+  } catch (error) {
+    console.error('刷新数据失败:', error)
+    message.error('刷新数据失败，请稍后重试')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -156,9 +236,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.overview-container {
-  max-width: 1200px;
-}
 
 .system-info,
 .recent-activity {

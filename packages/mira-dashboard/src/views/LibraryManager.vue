@@ -11,119 +11,127 @@
     <!-- 搜索和筛选 -->
     <div class="flex gap-4 mb-6">
       <a-input
-        :value="searchQuery"
+        v-model:value="searchQuery"
         placeholder="搜索资源库..."
         class="w-64"
-        clearable
+        allow-clear
       >
         <template #prefix>
           <SearchOutlined />
         </template>
       </a-input>
       
-      <a-select v-model:value="statusFilter" placeholder="状态筛选" class="w-32">
-        <a-option label="全部" value="" />
-        <a-option label="活跃" value="active" />
-        <a-option label="未活跃" value="inactive" />
+      <a-select v-model:value="statusFilter" placeholder="状态筛选" class="w-32" allow-clear>
+        <a-select-option value="">全部</a-select-option>
+        <a-select-option value="active">活跃</a-select-option>
+        <a-select-option value="inactive">未活跃</a-select-option>
       </a-select>
     </div>
 
     <!-- 资源库列表 -->
     <a-table
       :loading="loading"
-      :data="filteredLibraries"
+      :data-source="filteredLibraries"
+      :row-key="(record: Library) => record.id"
+      :row-selection="{ 
+        selectedRowKeys: selectedLibraries, 
+        onChange: handleSelectionChange 
+      }"
       class="library-table"
-      @selection-change="handleSelectionChange"
     >
-      <a-table-column type="selection" width="55" />
-      
-      <a-table-column name="name" label="名称" min-width="150">
-        <template #default="{ row }">
+      <a-table-column title="名称" data-index="name" key="name" width="200">
+        <template #default="{ record }">
           <div class="flex items-center">
             <FolderOutlined class="mr-2" />
-            <span class="font-medium">{{ row.name }}</span>
+            <span class="font-medium">{{ record.name }}</span>
           </div>
         </template>
       </a-table-column>
       
-      <a-table-column name="path" label="路径" min-width="200" show-overflow-tooltip />
+      <a-table-column title="路径" data-index="path" key="path" :ellipsis="true" />
       
-      <a-table-column name="type" label="类型" width="100">
-        <template #default="{ row }">
-          <a-tag :type="row.type === 'local' ? 'success' : 'info'" size="small">
-            {{ row.type === 'local' ? '本地' : '远程' }}
+      <a-table-column title="类型" data-index="type" key="type" width="100">
+        <template #default="{ record }">
+          <a-tag :color="record.type === 'local' ? 'green' : 'blue'">
+            {{ record.type === 'local' ? '本地' : '远程' }}
           </a-tag>
         </template>
       </a-table-column>
       
-      <a-table-column name="status" label="状态" width="100">
-        <template #default="{ row }">
-          <a-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">
-            {{ row.status === 'active' ? '活跃' : '未活跃' }}
+      <a-table-column title="状态" data-index="status" key="status" width="100">
+        <template #default="{ record }">
+          <a-tag :color="record.status === 'active' ? 'green' : 'red'">
+            {{ record.status === 'active' ? '活跃' : '未活跃' }}
           </a-tag>
         </template>
       </a-table-column>
       
-      <a-table-column name="fileCount" label="文件数" width="100" />
+      <a-table-column title="文件数" data-index="fileCount" key="fileCount" width="100" />
       
-      <a-table-column name="size" label="大小" width="100">
-        <template #default="{ row }">
-          {{ formatFileSize(row.size) }}
+      <a-table-column title="大小" data-index="size" key="size" width="120">
+        <template #default="{ record }">
+          {{ formatFileSize(record.size) }}
         </template>
       </a-table-column>
       
-      <a-table-column label="操作" width="180" fixed="right">
-        <template #default="{ row }">
-          <a-button size="small" @click="editLibrary(row)">编辑</a-button>
-          <a-button size="small" type="primary" @click="toggleStatus(row)">
-            {{ row.status === 'active' ? '禁用' : '启用' }}
-          </a-button>
-          <a-button size="small" danger @click="deleteLibrary(row)">删除</a-button>
+      <a-table-column title="操作" key="action" width="200" fixed="right">
+        <template #default="{ record }">
+          <a-space>
+            <a-button size="small" @click="editLibrary(record)">编辑</a-button>
+            <a-button size="small" type="primary" @click="toggleStatus(record)">
+              {{ record.status === 'active' ? '禁用' : '启用' }}
+            </a-button>
+            <a-button 
+              size="small" 
+              danger 
+              :disabled="record.status === 'active'"
+              @click="deleteLibrary(record)"
+            >
+              删除
+            </a-button>
+          </a-space>
         </template>
       </a-table-column>
     </a-table>
 
     <!-- 添加/编辑对话框 -->
     <a-modal
-      :value="showAddDialog"
+      v-model:open="showAddDialog"
       :title="editingLibrary ? '编辑资源库' : '添加资源库'"
       width="500px"
+      @ok="saveLibrary"
+      @cancel="cancelEdit"
     >
       <a-form
         ref="libraryFormRef"
         :model="libraryForm"
         :rules="libraryRules"
-        label-width="80px"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 18 }"
       >
         <a-form-item label="名称" name="name">
-          <a-input :value="libraryForm.name" placeholder="请输入资源库名称" />
+          <a-input v-model:value="libraryForm.name" placeholder="请输入资源库名称" />
         </a-form-item>
         
         <a-form-item label="路径" name="path">
-          <a-input :value="libraryForm.path" placeholder="请输入资源库路径" />
+          <a-input v-model:value="libraryForm.path" placeholder="请输入资源库路径" />
         </a-form-item>
         
         <a-form-item label="类型" name="type">
-          <a-select v-model:value="libraryForm.type" class="w-full">
-            <a-option label="本地" value="local" />
-            <a-option label="远程" value="remote" />
+          <a-select v-model:value="libraryForm.type" style="width: 100%">
+            <a-select-option value="local">本地</a-select-option>
+            <a-select-option value="remote">远程</a-select-option>
           </a-select>
         </a-form-item>
         
         <a-form-item label="描述">
-          <a-input
-            :value="libraryForm.description"
-            type="textarea"
+          <a-textarea
+            v-model:value="libraryForm.description"
             placeholder="请输入描述（可选）"
             :rows="3"
           />
         </a-form-item>
       </a-form>
-      
-      <template #footer>
-        <a-button @click="showAddDialog = false">取消</a-button>
-        <a-button type="primary" @click="saveLibrary">确定</a-button>
-      </template>
     </a-modal>
   </div>
 </template>
@@ -140,7 +148,7 @@ const loading = ref(false)
 const showAddDialog = ref(false)
 const searchQuery = ref('')
 const statusFilter = ref('')
-const selectedLibraries = ref<Library[]>([])
+const selectedLibraries = ref<string[]>([])
 const editingLibrary = ref<Library | null>(null)
 const libraryFormRef = ref<FormInstance>()
 
@@ -167,8 +175,11 @@ const libraryRules: Record<string, Rule[]> = {
 
 const filteredLibraries = computed(() => {
   return libraries.value.filter(library => {
-    const matchesSearch = library.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         library.path.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const searchLower = searchQuery.value.toLowerCase()
+    const matchesSearch = !searchQuery.value || 
+                         library.name.toLowerCase().includes(searchLower) ||
+                         (library.path && library.path.toLowerCase().includes(searchLower)) ||
+                         (library.description && library.description.toLowerCase().includes(searchLower))
     const matchesStatus = !statusFilter.value || library.status === statusFilter.value
     return matchesSearch && matchesStatus
   })
@@ -177,7 +188,7 @@ const filteredLibraries = computed(() => {
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 B'
   const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
@@ -186,7 +197,7 @@ const loadLibraries = async () => {
   loading.value = true
   try {
     const response = await api.get('/api/libraries')
-    libraries.value = response.data as any
+    libraries.value = Array.isArray(response.data) ? response.data : []
   } catch (error) {
     message.error('加载资源库列表失败')
     console.error('Failed to load libraries:', error)
@@ -196,8 +207,8 @@ const loadLibraries = async () => {
   }
 }
 
-const handleSelectionChange = (selection: Library[]) => {
-  selectedLibraries.value = selection
+const handleSelectionChange = (selectedRowKeys: (string | number)[]) => {
+  selectedLibraries.value = selectedRowKeys as string[]
 }
 
 const editLibrary = (library: Library) => {
@@ -211,6 +222,12 @@ const editLibrary = (library: Library) => {
   showAddDialog.value = true
 }
 
+const cancelEdit = () => {
+  showAddDialog.value = false
+  editingLibrary.value = null
+  libraryForm.value = { name: '', path: '', type: 'local', description: '' }
+}
+
 const saveLibrary = async () => {
   if (!libraryFormRef.value) return
   
@@ -219,48 +236,82 @@ const saveLibrary = async () => {
     
     if (editingLibrary.value) {
       // 更新资源库
-      await api.put(`/libraries/${editingLibrary.value.id}`, libraryForm.value)
+      await api.put(`/api/libraries/${editingLibrary.value.id}`, libraryForm.value)
       message.success('资源库更新成功')
     } else {
       // 添加资源库
-      await api.post('/libraries', libraryForm.value)
+      await api.post('/api/libraries', libraryForm.value)
       message.success('资源库添加成功')
     }
     
-    showAddDialog.value = false
-    editingLibrary.value = null
-    libraryForm.value = { name: '', path: '', type: 'local', description: '' }
+    cancelEdit()
     loadLibraries()
   } catch (error: any) {
-    message.error(error.response?.data?.message || '操作失败')
+    if (error.response?.data?.message) {
+      message.error(error.response.data.message)
+    } else {
+      message.error('操作失败')
+    }
   }
 }
 
 const toggleStatus = async (library: Library) => {
   try {
     const newStatus = library.status === 'active' ? 'inactive' : 'active'
-    await api.patch(`/libraries/${library.id}/status`, { status: newStatus })
-    library.status = newStatus
+    await api.patch(`/api/libraries/${library.id}/status`, { status: newStatus })
+    
+    // 更新本地状态
+    const index = libraries.value.findIndex(lib => lib.id === library.id)
+    if (index !== -1) {
+      libraries.value[index].status = newStatus
+    }
+    
     message.success(`资源库已${newStatus === 'active' ? '启用' : '禁用'}`)
-  } catch (error) {
-    message.error('操作失败')
+  } catch (error: any) {
+    console.error('Toggle status error:', error)
+    if (error.response?.data?.error) {
+      message.error(error.response.data.error)
+    } else {
+      message.error('状态切换失败')
+    }
   }
 }
 
 const deleteLibrary = async (library: Library) => {
+  // 检查是否是激活状态，如果是，则不允许删除
+  if (library.status === 'active') {
+    message.warning('请先禁用资源库再进行删除操作')
+    return
+  }
+  
   try {
-    await Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除资源库 "${library.name}" 吗？此操作不可撤销。`,
-      okText: '确定',
-      cancelText: '取消'
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        title: '确认删除',
+        content: `确定要删除资源库 "${library.name}" 吗？此操作不可撤销。`,
+        okText: '确定',
+        cancelText: '取消',
+        onOk: () => {
+          resolve(true)
+        },
+        onCancel: () => {
+          resolve(false)
+        }
+      } as any)
     })
     
-    await api.delete(`/libraries/${library.id}`)
+    if (!confirmed) {
+      return // 用户取消操作
+    }
+    
+    await api.delete(`/api/libraries/${library.id}`)
     message.success('资源库删除成功')
     loadLibraries()
   } catch (error: any) {
-    if (error !== 'cancel') {
+    console.error('Delete library error:', error)
+    if (error.response?.data?.error) {
+      message.error(error.response.data.error)
+    } else {
       message.error('删除失败')
     }
   }
@@ -272,9 +323,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.library-manager {
-  max-width: 1200px;
-}
 
 .library-table {
   background: white;

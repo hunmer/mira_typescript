@@ -2,32 +2,45 @@ import { MiraWebsocketServer } from './WebSocketServer';
 import { LibraryStorage } from './LibraryStorage';
 import * as path from 'path';
 
+export interface MiraBackendOptions {
+  dataPath?: string;
+  wsPort?: number;
+  autoLoad?: boolean;
+  autoStart?: boolean;
+}
+
 export class MiraBackend {
   webSocketServer?: MiraWebsocketServer;
   libraries: LibraryStorage;
   dataPath: string;
 
-  constructor(options?: {
-    dataPath?: string,
-    wsPort?: number,
-    autoLoad?: boolean,
-    autoStart?: boolean
-  }) {
-    this.dataPath = options?.dataPath || process.env.DATA_PATH || path.join(process.cwd(), 'data');
+  constructor(options?: MiraBackendOptions) {
+    // 确保options有默认值
+    const config = options || {};
+
+    console.log('🎯 MiraBackend constructor received options:', JSON.stringify(config, null, 2));
+
+    this.dataPath = config.dataPath || process.env.DATA_PATH || path.join(process.cwd(), 'data');
+
+    console.log('📂 Data path resolved to:', this.dataPath);
+
+    // WebSocket服务器现在是可选的，由外部服务器管理
+    if (config.wsPort) {
+      console.log('🔌 Initializing WebSocket server on port:', config.wsPort);
+      this.webSocketServer = new MiraWebsocketServer(config.wsPort, this);
+    }
+
     this.libraries = new LibraryStorage(this);
 
     // 只有在明确要求时才自动加载
-    if (options?.autoLoad !== false) {
+    if (config.autoLoad !== false) {
+      console.log('📚 Auto-loading libraries...');
       this.libraries.loadAll().then((loaded) => console.log(`${loaded} Libraries loaded`));
     }
 
-    // WebSocket服务器现在是可选的，由外部服务器管理
-    if (options?.wsPort) {
-      this.webSocketServer = new MiraWebsocketServer(options.wsPort, this);
-    }
-
     // 只有在明确要求时才自动启动
-    if (options?.autoStart === true) {
+    if (config.autoStart === true) {
+      console.log('🚀 Auto-starting backend...');
       this.start();
     }
   }

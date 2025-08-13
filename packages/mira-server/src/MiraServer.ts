@@ -28,8 +28,13 @@ export class MiraServer {
         console.log('🚀 Initializing Mira Server...');
         console.log('📋 Configuration:', this.config);
 
-        // 初始化后端
-        this.backend = new MiraBackend();
+        // 初始化后端 - 只传递MiraBackend认识的属性
+        this.backend = new MiraBackend({
+            dataPath: this.config.dataPath,
+            wsPort: this.config.wsPort,
+            autoLoad: true,
+            autoStart: true
+        });
     }
 
     public async start(): Promise<void> {

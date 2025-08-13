@@ -101,13 +101,28 @@ export class ServerPluginManager {
                 console.error(`Error reading package.json for plugin ${pluginConfig.name}:`, error);
             }
 
+            // 检查是否有图标文件
+            let icon = null;
+            const iconExtensions = ['.png', '.jpg', '.jpeg', '.svg', '.ico'];
+            for (const ext of iconExtensions) {
+                const iconPath = path.join(pluginDir, `icon${ext}`);
+                if (fs.existsSync(iconPath)) {
+                    // 返回相对于插件目录的路径，前端可以通过API获取
+                    icon = `/api/plugins/${pluginConfig.name}/icon${ext}`;
+                    break;
+                }
+            }
+
             return {
                 name: pluginConfig.name,
                 enabled: pluginConfig.enabled,
                 path: pluginConfig.path,
                 ...packageInfo,
                 status: pluginConfig.enabled ? 'active' : 'inactive',
-                configurable: true
+                configurable: true,
+                icon: icon || (packageInfo as any).icon || null, // 支持package.json中的icon字段
+                category: (packageInfo as any).category || 'general', // 添加分类
+                tags: (packageInfo as any).tags || [] // 添加标签
             };
         });
     }

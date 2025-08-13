@@ -23,6 +23,11 @@ export interface Plugin {
     main: string
     createdAt: string
     updatedAt: string
+    icon?: string | null
+    category?: string
+    tags?: string[]
+    libraryId?: string
+    libraryName?: string
 }
 
 export interface DatabaseTable {

@@ -1,9 +1,7 @@
 import express, { Router, Request, Response, Handler } from 'express';
-import multer from 'multer';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import path from 'path';
-import fs from 'fs';
 import { MiraBackend } from './MiraBackend';
+import { LibraryRoutes, PluginRoutes, DatabaseRoutes, FileRoutes } from './routes';
 
 
 export class HttpRouter {
@@ -11,32 +9,9 @@ export class HttpRouter {
   private registerdRounters: Map<string, Map<string, Handler>> = new Map<string, Map<string, Handler>>();
   private libraryServices: ILibraryServerData[] = [];
   backend: MiraBackend;
-  upload: multer.Multer;
 
   constructor(bakend: MiraBackend) {
     this.backend = bakend;
-    // 配置multer文件上传
-    this.upload = multer({
-      storage: multer.diskStorage({
-        destination: (req, file, cb) => {
-          const tempDir = path.join(this.backend.dataPath, 'temp');
-          if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-          }
-          cb(null, tempDir);
-        },
-        filename: (req, file, cb) => {
-          // 处理中文名，确保文件名为utf8编码
-          const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-          cb(null, uniqueSuffix + path.extname(originalName));
-        }
-      }),
-      // limits: {
-      //   fileSize: 100 * 1024 * 1024 // 限制100MB
-      // }
-    });
-
     this.router = express.Router();
     this.setupRoutes();
   }
@@ -147,281 +122,17 @@ export class HttpRouter {
   }
 
   private setupRoutes(): void {
-    // 获取资源库列表
-    this.router.get('/libraries', async (req: Request, res: Response) => {
-      try {
-        const libraries = [];
-        for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
-          if (libraryObj.libraryService) {
-            const stats = await libraryObj.libraryService.getStats();
-            libraries.push({
-              id: id,
-              name: libraryObj.libraryService.config.name,
-              path: libraryObj.libraryService.config.path,
-              type: libraryObj.libraryService.config.type || 'local',
-              status: 'active',
-              fileCount: stats.totalFiles,
-              size: stats.totalSize,
-              description: libraryObj.libraryService.config.description || '',
-              createdAt: libraryObj.libraryService.config.createdAt || new Date().toISOString(),
-              updatedAt: libraryObj.libraryService.config.updatedAt || new Date().toISOString()
-            });
-          }
-        }
-        res.json(libraries);
-      } catch (error) {
-        console.error('Error getting libraries:', error);
-        res.status(500).json({ error: 'Failed to get libraries' });
-      }
-    });
+    // 使用分离的路由模块
+    const libraryRoutes = new LibraryRoutes(this.backend);
+    const pluginRoutes = new PluginRoutes(this.backend);
+    const databaseRoutes = new DatabaseRoutes(this.backend);
+    const fileRoutes = new FileRoutes(this.backend);
 
-    // 获取数据库表列表
-    this.router.get('/database/tables', async (req: Request, res: Response) => {
-      try {
-        // 这里需要根据实际的数据库实现来获取表信息
-        // 暂时返回一个基本的表列表，后续可以扩展
-        const libraryCount = Object.keys(this.backend.libraries.libraries).length;
-        const tables = [
-          { name: 'users', schema: '', rowCount: 0 },
-          { name: 'libraries', schema: '', rowCount: libraryCount },
-          { name: 'plugins', schema: '', rowCount: 0 },
-          { name: 'files', schema: '', rowCount: 0 },
-          { name: 'tags', schema: '', rowCount: 0 }
-        ];
-        res.json(tables);
-      } catch (error) {
-        console.error('Error getting database tables:', error);
-        res.status(500).json({ error: 'Failed to get database tables' });
-      }
-    });
-
-    // 获取表数据
-    this.router.get('/database/tables/:tableName/data', async (req: Request, res: Response) => {
-      try {
-        const { tableName } = req.params;
-        let data: any[] = [];
-
-        if (tableName === 'libraries') {
-          for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
-            if (libraryObj.libraryService) {
-              const stats = await libraryObj.libraryService.getStats();
-              data.push({
-                id: id,
-                name: libraryObj.libraryService.config.name,
-                path: libraryObj.libraryService.config.path,
-                type: libraryObj.libraryService.config.type || 'local',
-                file_count: stats.totalFiles,
-                size: stats.totalSize,
-                created_at: libraryObj.libraryService.config.createdAt || new Date().toISOString()
-              });
-            }
-          }
-        }
-
-        res.json(data);
-      } catch (error) {
-        console.error('Error getting table data:', error);
-        res.status(500).json({ error: 'Failed to get table data' });
-      }
-    });
-
-    // 获取表结构
-    this.router.get('/database/tables/:tableName/schema', async (req: Request, res: Response) => {
-      try {
-        const { tableName } = req.params;
-        let schema: any[] = [];
-
-        if (tableName === 'libraries') {
-          schema = [
-            { name: 'id', type: 'TEXT', notnull: 1, pk: 1, dflt_value: null },
-            { name: 'name', type: 'TEXT', notnull: 1, pk: 0, dflt_value: null },
-            { name: 'path', type: 'TEXT', notnull: 1, pk: 0, dflt_value: null },
-            { name: 'type', type: 'TEXT', notnull: 0, pk: 0, dflt_value: 'local' },
-            { name: 'file_count', type: 'INTEGER', notnull: 0, pk: 0, dflt_value: '0' },
-            { name: 'size', type: 'INTEGER', notnull: 0, pk: 0, dflt_value: '0' },
-            { name: 'created_at', type: 'DATETIME', notnull: 0, pk: 0, dflt_value: 'CURRENT_TIMESTAMP' }
-          ];
-        }
-
-        res.json(schema);
-      } catch (error) {
-        console.error('Error getting table schema:', error);
-        res.status(500).json({ error: 'Failed to get table schema' });
-      }
-    });
-
-    // 获取插件列表
-    this.router.get('/plugins', async (req: Request, res: Response) => {
-      try {
-        const plugins = [];
-        for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
-          if (libraryObj.pluginManager) {
-            // 获取该库的插件信息
-            const libraryPlugins = libraryObj.pluginManager.getPluginsList();
-            plugins.push(...libraryPlugins.map((plugin: any) => ({
-              id: `${id}-${plugin.name}`,
-              name: plugin.name,
-              version: plugin.version || '1.0.0',
-              description: plugin.description || '',
-              author: plugin.author || 'Unknown',
-              status: plugin.status || 'active',
-              configurable: plugin.configurable || false,
-              dependencies: plugin.dependencies || [],
-              main: plugin.main || 'index.js',
-              libraryId: id,
-              createdAt: plugin.createdAt || new Date().toISOString(),
-              updatedAt: plugin.updatedAt || new Date().toISOString()
-            })));
-          }
-        }
-        res.json(plugins);
-      } catch (error) {
-        console.error('Error getting plugins:', error);
-        res.status(500).json({ error: 'Failed to get plugins' });
-      }
-    });
-
-    // 上传文件
-    this.router.post('/libraries/upload', this.upload.array('files'), async (req: Request, res) => {
-      const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
-      const clientId = req.body.clientId || null;
-      const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
-      const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
-      const obj = this.backend.libraries.get(libraryId);
-      if (!obj) return res.status(404).send('Library not found');
-
-      // 解析上传的文件
-      const files = req.files as Express.Multer.File[];
-      if (!files || !files.length) return res.status(400).send('No files uploaded.');
-
-      try {
-        const results = [];
-        for (const file of files) {
-          try {
-
-            // 生成唯一文件名并保存文件
-            const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-            const { tags, folder_id } = payload.data || {}
-            const fileData = {
-              name: req.body.name || originalName,
-              tags: JSON.stringify(tags || []),
-              folder_id: folder_id || null,
-            };
-
-            const result = await obj.libraryService.createFileFromPath(file.path, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
-            results.push({
-              success: true,
-              file: file.path,
-              result
-            });
-
-            // 发布公告
-            // 发送WebSocket事件（如果可用）
-            if (this.backend.webSocketServer) {
-              this.backend.webSocketServer.broadcastPluginEvent('file::created', {
-                message: {
-                  type: 'file',
-                  action: 'create',
-                  fields, payload
-                }, result, libraryId
-              });
-
-              if (clientId) {
-                const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
-                ws && this.backend.webSocketServer?.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
-                this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
-              }
-            }
-          } catch (error) {
-            console.error(`Error processing file ${file.originalname}:`, error);
-            results.push({
-              success: false,
-              file: file.path,
-              error: error instanceof Error ? error.message : String(error)
-            });
-          }
-        }
-        res.send({ results });
-      } catch (error) {
-        console.error('Error uploading files:', error);
-        res.status(500).send('Internal server error while processing the upload.');
-      }
-    });
-
-    // 添加文件流路由
-    this.router.get('/thumb/:libraryId/:id', async (req, res) => {
-      try {
-        const ret = await this.parseLibraryItem(req, res);
-        if (ret) {
-          const thumbPath = await ret.library.getItemThumbPath(ret.item, { isNetworkImage: false });
-          if (!fs.existsSync(thumbPath)) return res.status(404).send('Thumbnail not found');
-
-          res.setHeader('Content-Type', 'image/png');
-          fs.createReadStream(thumbPath).pipe(res);
-        }
-
-      } catch (err) {
-        console.error('Error serving thumbnail:', err);
-        res.status(500).send('Internal server error');
-      }
-    });
-
-
-    this.router.get('/file/:libraryId/:id', async (req, res) => {
-      const ret = await this.parseLibraryItem(req, res);
-      if (ret) {
-        const filePath = await ret.library.getItemFilePath(ret.item);
-        if (!filePath || !fs.existsSync(filePath)) {
-          return res.status(404).send('File not found');
-        }
-
-        const fileExt = path.extname(filePath).toLowerCase();
-        const contentType = this.getContentType(fileExt);
-        res.setHeader('Content-Type', contentType);
-        fs.createReadStream(filePath).pipe(res);
-      }
-    });
-  }
-
-
-  private async parseLibraryItem(req: express.Request, res: express.Response): Promise<{ library: any, item: any } | void> {
-    const { libraryId, id } = req.params;
-    const obj = this.backend.libraries.get(libraryId);
-    if (!obj) {
-      res.status(404).send('Library not found');
-      return;
-    }
-
-    const item = await obj.libraryService.getFile(parseInt(id));
-    if (!item) {
-      res.status(404).send('Item not found');
-      return;
-    }
-    return { library: obj.libraryService, item };
-  }
-
-  private getContentType(ext: string): string {
-    const mimeTypes: Record<string, string> = {
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.pdf': 'application/pdf',
-      '.txt': 'text/plain',
-      '.html': 'text/html',
-      '.json': 'application/json',
-      '.mp4': 'video/mp4',
-      '.mp3': 'audio/mpeg',
-      '.zip': 'application/zip',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.xls': 'application/vnd.ms-excel',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.ppt': 'application/vnd.ms-powerpoint',
-      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    };
-
-    return mimeTypes[ext] || 'application/octet-stream';
+    // 注册各个路由模块
+    this.router.use('/libraries', libraryRoutes.getRouter());
+    this.router.use('/plugins', pluginRoutes.getRouter());
+    this.router.use('/database', databaseRoutes.getRouter());
+    this.router.use('/', fileRoutes.getRouter()); // 文件路由直接挂载到根路径，因为它包含/thumb和/file等路径
   }
 
   getRouter(): Router {
