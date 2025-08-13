@@ -3,14 +3,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ServerPluginManager } from './ServerPluginManager';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { MiraHttpServer } from './HttpServer';
+import { EventManager } from './event-manager';
+import { MiraWebsocketServer } from './WebSocketServer';
+import { MiraBackend } from './MiraBackend';
 
 export abstract class ServerPlugin {
     protected configs: Record<string, any> = {};
     protected readonly pluginDir: string;
     protected readonly pluginDataDir: string;
 
-    constructor(protected readonly pluginName: string, pluginManager: ServerPluginManager, dbServer: ILibraryServerData, httpServer: MiraHttpServer) {
+    constructor(protected readonly pluginName: string, pluginManager: ServerPluginManager, dbServer: ILibraryServerData) {
         this.pluginDir = pluginManager.getPluginDir(pluginName);
         this.pluginDataDir = path.join(this.pluginDir, 'data');
         this.ensureDirExists();

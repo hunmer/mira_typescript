@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "切换在线版",
       "cwd": "${workspaceFolder}",
-        "console": "integratedTerminal",
+      "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
       "args": [
@@ -19,7 +19,7 @@
       "request": "launch",
       "name": "切换离线版",
       "cwd": "${workspaceFolder}",
-        "console": "integratedTerminal",
+      "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
       "args": [
@@ -31,7 +31,7 @@
       "type": "node",
       "request": "launch",
       "name": "打包并上传全部",
-        "console": "integratedTerminal",
+      "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
       "cwd": "${workspaceFolder}",
@@ -47,30 +47,30 @@
       "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
       "cwd": "${workspaceFolder}/packages/mira-server",
       "runtimeArgs": [
-      "--inspect",
-      "-r",
-      "ts-node/register"
+        "--inspect",
+        "-r",
+        "ts-node/register"
       ],
       "env": {
-      "NODE_ENV": "development",
-      "DATA_PATH": "${workspaceFolder}/data",
-      "HTTP_PORT": "3000",
-      "WS_PORT": "8081",
-      "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
+        "NODE_ENV": "development",
+        "DATA_PATH": "${workspaceFolder}/data",
+        "HTTP_PORT": "3000",
+        "WS_PORT": "8081",
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json"
       },
       "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
       "resolveSourceMapLocations": [
-      "${workspaceFolder}/**",
-      "!**/node_modules/**"
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
       ],
       "skipFiles": [
-      "<node_internals>/**",
-      "**/node_modules/**"
+        "<node_internals>/**",
+        "**/node_modules/**"
       ],
       "outFiles": [
-      "${workspaceFolder}/packages/**/dist/**/*.js"
+        "${workspaceFolder}/packages/**/dist/**/*.js"
       ]
     },
     {
@@ -140,6 +140,49 @@
       "outFiles": [
         "${workspaceFolder}/packages/**/dist/**/*.js"
       ]
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Mira Dashboard (Chrome)",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/packages/mira-dashboard/src",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-user-data",
+      "preLaunchTask": "start-mira-dashboard-dev"
+    },
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Debug Mira Dashboard (Edge)",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/packages/mira-dashboard/src",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/edge-debug-user-data",
+      "preLaunchTask": "start-mira-dashboard-dev"
+    },
+    {
+      "name": "Debug Full Stack",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/packages/mira-server",
+      "program": "${workspaceFolder}/packages/mira-server/dist/index.js",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/**/dist/**/*.js"
+      ],
+      "preLaunchTask": "build-mira-server",
+      "postDebugTask": "start-mira-dashboard-dev"
     },
   ]
 }

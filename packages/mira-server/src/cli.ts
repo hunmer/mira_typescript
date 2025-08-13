@@ -1,46 +1,94 @@
 #!/usr/bin/env node
 
-import { MiraBackend } from 'mira-app-core';
+import { MiraServer } from './MiraServer';
+import { program } from 'commander';
+import dotenv from 'dotenv';
+import path from 'path';
 
-// CLI 启动脚本
-function main() {
-  const args = process.argv.slice(2);
-  const options: any = {};
+// 加载环境变量
+dotenv.config();
 
-  // 简单的参数解析
-  for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
-      case '--http-port':
-        options.httpPort = parseInt(args[++i]);
-        break;
-      case '--ws-port':
-        options.wsPort = parseInt(args[++i]);
-        break;
-      case '--data-path':
-        options.dataPath = args[++i];
-        break;
-      case '--help':
-        console.log(`
-Mira Server CLI
+program
+  .name('mira-server')
+  .description('Mira Server - Media Library Management System')
+  .version('1.0.0');
 
-Usage: mira-server [options]
+program
+  .command('start')
+  .description('Start the Mira server')
+  .option('-p, --port <number>', 'HTTP port number', '8080')
+  .option('-w, --ws-port <number>', 'WebSocket port number', '8081')
+  .option('-d, --data <path>', 'Data directory path')
+  .option('--no-http', 'Disable HTTP server')
+  .option('--no-websocket', 'Disable WebSocket server')
+  .option('--env <path>', 'Environment file path')
+  .action(async (options) => {
+    try {
+      // 如果指定了env文件，加载它
+      if (options.env) {
+        dotenv.config({ path: path.resolve(options.env) });
+      }
 
-Options:
-  --http-port <port>   HTTP server port (default: 3000)
-  --ws-port <port>     WebSocket server port (default: 8081)
-  --data-path <path>   Data directory path (default: ./data)
-  --help               Show this help message
-        `);
+      console.log('🚀 Starting Mira Server with CLI...');
+      console.log('📋 Options:', options);
+
+      const server = await MiraServer.createAndStart({
+        httpPort: parseInt(options.port),
+        wsPort: parseInt(options.wsPort),
+        dataPath: options.data,
+        enableHttp: options.http !== false,
+        enableWebSocket: options.websocket !== false
+      });
+
+      console.log('✅ Mira Server started via CLI');
+
+      // 优雅关闭处理
+      process.on('SIGINT', async () => {
+        console.log('\n📴 Received SIGINT, gracefully shutting down...');
+        await server.stop();
         process.exit(0);
-        break;
+      });
+
+      process.on('SIGTERM', async () => {
+        console.log('\n📴 Received SIGTERM, gracefully shutting down...');
+        await server.stop();
+        process.exit(0);
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
     }
-  }
+  });
 
-  console.log('Starting Mira Server...');
-  const server = MiraBackend.createAndStart(options);
-  console.log('Mira Server started successfully');
-}
+program
+  .command('version')
+  .description('Show version information')
+  .action(() => {
+    console.log('Mira Server v1.0.0');
+    console.log('Node.js', process.version);
+    console.log('Platform:', process.platform);
+  });
 
-if (require.main === module) {
-  main();
+program
+  .command('health')
+  .description('Check server health')
+  .option('-p, --port <number>', 'Server port', '8080')
+  .action(async (options) => {
+    try {
+      const axios = await import('axios');
+      const response = await axios.default.get(`http://localhost:${options.port}/health`);
+      console.log('✅ Server is healthy:', response.data);
+    } catch (error) {
+      console.error('❌ Server health check failed:', error);
+      process.exit(1);
+    }
+  });
+
+// 解析命令行参数
+program.parse(process.argv);
+
+// 如果没有提供命令，显示帮助
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
 }

@@ -147,6 +147,140 @@ export class HttpRouter {
   }
 
   private setupRoutes(): void {
+    // 获取资源库列表
+    this.router.get('/libraries', async (req: Request, res: Response) => {
+      try {
+        const libraries = [];
+        for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+          if (libraryObj.libraryService) {
+            const stats = await libraryObj.libraryService.getStats();
+            libraries.push({
+              id: id,
+              name: libraryObj.libraryService.config.name,
+              path: libraryObj.libraryService.config.path,
+              type: libraryObj.libraryService.config.type || 'local',
+              status: 'active',
+              fileCount: stats.totalFiles,
+              size: stats.totalSize,
+              description: libraryObj.libraryService.config.description || '',
+              createdAt: libraryObj.libraryService.config.createdAt || new Date().toISOString(),
+              updatedAt: libraryObj.libraryService.config.updatedAt || new Date().toISOString()
+            });
+          }
+        }
+        res.json(libraries);
+      } catch (error) {
+        console.error('Error getting libraries:', error);
+        res.status(500).json({ error: 'Failed to get libraries' });
+      }
+    });
+
+    // 获取数据库表列表
+    this.router.get('/database/tables', async (req: Request, res: Response) => {
+      try {
+        // 这里需要根据实际的数据库实现来获取表信息
+        // 暂时返回一个基本的表列表，后续可以扩展
+        const libraryCount = Object.keys(this.backend.libraries.libraries).length;
+        const tables = [
+          { name: 'users', schema: '', rowCount: 0 },
+          { name: 'libraries', schema: '', rowCount: libraryCount },
+          { name: 'plugins', schema: '', rowCount: 0 },
+          { name: 'files', schema: '', rowCount: 0 },
+          { name: 'tags', schema: '', rowCount: 0 }
+        ];
+        res.json(tables);
+      } catch (error) {
+        console.error('Error getting database tables:', error);
+        res.status(500).json({ error: 'Failed to get database tables' });
+      }
+    });
+
+    // 获取表数据
+    this.router.get('/database/tables/:tableName/data', async (req: Request, res: Response) => {
+      try {
+        const { tableName } = req.params;
+        let data: any[] = [];
+
+        if (tableName === 'libraries') {
+          for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+            if (libraryObj.libraryService) {
+              const stats = await libraryObj.libraryService.getStats();
+              data.push({
+                id: id,
+                name: libraryObj.libraryService.config.name,
+                path: libraryObj.libraryService.config.path,
+                type: libraryObj.libraryService.config.type || 'local',
+                file_count: stats.totalFiles,
+                size: stats.totalSize,
+                created_at: libraryObj.libraryService.config.createdAt || new Date().toISOString()
+              });
+            }
+          }
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error('Error getting table data:', error);
+        res.status(500).json({ error: 'Failed to get table data' });
+      }
+    });
+
+    // 获取表结构
+    this.router.get('/database/tables/:tableName/schema', async (req: Request, res: Response) => {
+      try {
+        const { tableName } = req.params;
+        let schema: any[] = [];
+
+        if (tableName === 'libraries') {
+          schema = [
+            { name: 'id', type: 'TEXT', notnull: 1, pk: 1, dflt_value: null },
+            { name: 'name', type: 'TEXT', notnull: 1, pk: 0, dflt_value: null },
+            { name: 'path', type: 'TEXT', notnull: 1, pk: 0, dflt_value: null },
+            { name: 'type', type: 'TEXT', notnull: 0, pk: 0, dflt_value: 'local' },
+            { name: 'file_count', type: 'INTEGER', notnull: 0, pk: 0, dflt_value: '0' },
+            { name: 'size', type: 'INTEGER', notnull: 0, pk: 0, dflt_value: '0' },
+            { name: 'created_at', type: 'DATETIME', notnull: 0, pk: 0, dflt_value: 'CURRENT_TIMESTAMP' }
+          ];
+        }
+
+        res.json(schema);
+      } catch (error) {
+        console.error('Error getting table schema:', error);
+        res.status(500).json({ error: 'Failed to get table schema' });
+      }
+    });
+
+    // 获取插件列表
+    this.router.get('/plugins', async (req: Request, res: Response) => {
+      try {
+        const plugins = [];
+        for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+          if (libraryObj.pluginManager) {
+            // 获取该库的插件信息
+            const libraryPlugins = libraryObj.pluginManager.getPluginsList();
+            plugins.push(...libraryPlugins.map((plugin: any) => ({
+              id: `${id}-${plugin.name}`,
+              name: plugin.name,
+              version: plugin.version || '1.0.0',
+              description: plugin.description || '',
+              author: plugin.author || 'Unknown',
+              status: plugin.status || 'active',
+              configurable: plugin.configurable || false,
+              dependencies: plugin.dependencies || [],
+              main: plugin.main || 'index.js',
+              libraryId: id,
+              createdAt: plugin.createdAt || new Date().toISOString(),
+              updatedAt: plugin.updatedAt || new Date().toISOString()
+            })));
+          }
+        }
+        res.json(plugins);
+      } catch (error) {
+        console.error('Error getting plugins:', error);
+        res.status(500).json({ error: 'Failed to get plugins' });
+      }
+    });
+
     // 上传文件
     this.router.post('/libraries/upload', this.upload.array('files'), async (req: Request, res) => {
       const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
@@ -182,18 +316,21 @@ export class HttpRouter {
             });
 
             // 发布公告
-            this.backend.webSocketServer.broadcastPluginEvent('file::created', {
-              message: {
-                type: 'file',
-                action: 'create',
-                fields, payload
-              }, result, libraryId
-            });
+            // 发送WebSocket事件（如果可用）
+            if (this.backend.webSocketServer) {
+              this.backend.webSocketServer.broadcastPluginEvent('file::created', {
+                message: {
+                  type: 'file',
+                  action: 'create',
+                  fields, payload
+                }, result, libraryId
+              });
 
-            if (clientId) {
-              const ws = this.backend.webSocketServer.getWsClientById(libraryId, clientId);
-              ws && this.backend.webSocketServer.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
-              this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
+              if (clientId) {
+                const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
+                ws && this.backend.webSocketServer?.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
+                this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
+              }
             }
           } catch (error) {
             console.error(`Error processing file ${file.originalname}:`, error);

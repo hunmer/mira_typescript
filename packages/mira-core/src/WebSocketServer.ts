@@ -5,7 +5,6 @@ import { WebSocketRouter } from './WebSocketRouter';
 import { ServerPluginManager } from './ServerPluginManager';
 import { EventArgs } from './event-manager';
 import { LibraryStorage } from './LibraryStorage';
-import { MiraHttpServer } from './HttpServer';
 import { MiraBackend } from './MiraBackend';
 
 interface LibraryClient {
@@ -18,13 +17,11 @@ export class MiraWebsocketServer {
   private libraryClients: LibraryClient = {};
   private wss?: WSServer;
   libraries: LibraryStorage;
-  private httpServer: MiraHttpServer;
   backend: MiraBackend;
 
   constructor(port: number, backend: MiraBackend) {
     this.port = port;
     this.backend = backend;
-    this.httpServer = this.backend.httpServer;
     this.libraries = this.backend.libraries;
   }
 
@@ -65,7 +62,7 @@ export class MiraWebsocketServer {
   }
 
   broadcastToClients(eventName: string, eventData: Record<string, any>): void {
-    const obj = this.libraries.get( eventData.libraryId);
+    const obj = this.libraries.get(eventData.libraryId);
     if (obj) {
       const eventManager = obj.eventManager;
       if (eventManager) {
@@ -100,7 +97,7 @@ export class MiraWebsocketServer {
 
   broadcastPluginEvent(eventName: string, data: Record<string, any>): Promise<boolean> {
     const libraryId = data?.libraryId ?? data?.message?.libraryId;
-     const obj = this.libraries.get( libraryId);
+    const obj = this.libraries.get(libraryId);
     if (obj) {
       const eventManager = obj.eventManager;
       if (eventManager) {
@@ -156,7 +153,7 @@ export class MiraWebsocketServer {
       return;
     }
 
-  const obj = this.libraries.get( libraryId);
+    const obj = this.libraries.get(libraryId);
     if (!obj) {
       this.sendToWebsocket(ws, {
         status: 'error',

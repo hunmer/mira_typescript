@@ -564,9 +564,9 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     return path.join(libraryPath, folderName);
   }
 
-   getPublicURL(url: string): string {
-     return  `${this.config['serverURL']}:${this.config['serverPort']}/${url}`;
-   }
+  getPublicURL(url: string): string {
+    return `${this.config['serverURL']}:${this.config['serverPort']}/${url}`;
+  }
 
   async getItemFilePath(item: Record<string, any>, options?: { isUrlFile: boolean }): Promise<string> {
     const libraryPath = await this.getLibraryPath();
@@ -606,7 +606,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   ): Promise<void> {
     const destPath = path.join(await this.getItemPath(fileData), fileData.name);
     const destDir = path.dirname(destPath);
-    console.log({filePath, destPath})
+    console.log({ filePath, destPath })
     switch (importType) {
       case 'link':
         // 保持原文件位置不变
@@ -752,5 +752,18 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
         return tag[key] === value;
       });
     });
+  }
+
+  async getStats(): Promise<{ totalFiles: number; totalSize: number }> {
+    try {
+      const result = await this.getSql('SELECT COUNT(*) as total_files, COALESCE(SUM(size), 0) as total_size FROM files WHERE recycled = 0');
+      return {
+        totalFiles: result[0]?.total_files || 0,
+        totalSize: result[0]?.total_size || 0
+      };
+    } catch (error) {
+      console.error('Error getting library stats:', error);
+      return { totalFiles: 0, totalSize: 0 };
+    }
   }
 }

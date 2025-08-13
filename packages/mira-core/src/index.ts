@@ -1,7 +1,6 @@
 
 // Core exports for mira_core package
 export { MiraWebsocketServer } from './WebSocketServer';
-export { MiraHttpServer } from './HttpServer';
 export { ServerPluginManager, PluginConfig } from './ServerPluginManager';
 export { EventArgs, EventSubscription, EventManager } from './event-manager';
 export { getLibrarysJson } from './LibraryList';

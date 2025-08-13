@@ -17,7 +17,7 @@ export interface ILibraryServerData {
     offset: number;
     total: number;
   }>;
-  
+
   // 文件夹相关方法
   createFolder(folderData: Record<string, any>): Promise<number>;
   updateFolder(id: number, folderData: Record<string, any>): Promise<boolean>;
@@ -28,7 +28,7 @@ export interface ILibraryServerData {
     limit?: number;
     offset?: number;
   }): Promise<Record<string, any>[]>;
-  
+
   // 标签相关方法
   createTag(tagData: Record<string, any>): Promise<number>;
   updateTag(id: number, tagData: Record<string, any>): Promise<boolean>;
@@ -39,12 +39,12 @@ export interface ILibraryServerData {
     limit?: number;
     offset?: number;
   }): Promise<Record<string, any>[]>;
-  
+
   // 事务管理
   beginTransaction(): Promise<void>;
   commitTransaction(): Promise<void>;
   rollbackTransaction(): Promise<void>;
-  
+
   // 其他方法
   close(): Promise<void>;
   createFileFromPath(
@@ -69,4 +69,5 @@ export interface ILibraryServerData {
   queryTag(query: Record<string, any>): Promise<Record<string, any>[]>;
   closeLibrary(): Promise<boolean>;
   getLibraryInfo(): Promise<Record<string, any>>;
+  getStats(): Promise<{ totalFiles: number; totalSize: number }>;
 }

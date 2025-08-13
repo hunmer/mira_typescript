@@ -13,5 +13,29 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true
-  }
+  },
+  "eslint.workingDirectories": [
+    "packages/mira-core",
+    "packages/mira-server",
+    "packages/mira-dashboard",
+    "packages/mira-storage-sqlite"
+  ],
+  "vetur.validation.template": false,
+  "vetur.validation.script": false,
+  "vetur.validation.style": false,
+  "vetur.format.defaultFormatter.html": "prettier",
+  "vetur.format.defaultFormatter.js": "prettier",
+  "vetur.format.defaultFormatter.ts": "prettier",
+  "vue.codeActions.enabled": true,
+  "vue.complete.casing.tags": "pascal",
+  "vue.complete.casing.props": "camel",
+  "emmet.includeLanguages": {
+    "vue-html": "html"
+  },
+  "tailwindCSS.includeLanguages": {
+    "vue": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    "class:\\s*['\"]([^'\"]*)['\"]"
+  ]
 }

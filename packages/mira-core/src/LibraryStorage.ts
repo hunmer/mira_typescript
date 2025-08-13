@@ -19,17 +19,21 @@ export class LibraryStorage {
 
   async load(dbConfig: Record<string, any>): Promise<LibraryServerDataSQLite> {
     const libraryId = dbConfig.id;
-    const dbServer = new LibraryServerDataSQLite(dbConfig, { webSocketServer: this.backend.webSocketServer, httpServer: this.backend.httpServer });
+    const dbServer = new LibraryServerDataSQLite(dbConfig, { webSocketServer: this.backend.webSocketServer });
     this.libraries[libraryId] = {
       libraryService: dbServer,
       eventManager: new EventManager()
     }
     await dbServer.initialize();
-    const pluginManager = new ServerPluginManager(
-      { server: this.backend.webSocketServer, dbService: dbServer, httpServer: this.backend.httpServer, pluginsDir: dbConfig.pluginsDir }
-    );
-    this.libraries[libraryId].pluginManager = pluginManager;
-    await pluginManager.loadPlugins();
+
+    if (this.backend.webSocketServer) {
+      const pluginManager = new ServerPluginManager(
+        { server: this.backend.webSocketServer, dbService: dbServer, pluginsDir: dbConfig.pluginsDir }
+      );
+      this.libraries[libraryId].pluginManager = pluginManager;
+      await pluginManager.loadPlugins();
+    }
+
     return dbServer;
   }
 

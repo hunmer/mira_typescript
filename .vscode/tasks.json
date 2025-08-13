@@ -5,7 +5,10 @@
       "label": "build-mira-core",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "rebuild"],
+      "args": [
+        "run",
+        "rebuild"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/packages/mira-core"
       },
@@ -21,7 +24,10 @@
       "label": "build-mira-server",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "build"],
+      "args": [
+        "run",
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/packages/mira-server"
       },
@@ -38,7 +44,10 @@
       "label": "build-all",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "build"],
+      "args": [
+        "run",
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/packages"
       },
@@ -57,9 +66,52 @@
       "label": "start-mira-server-dev",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "dev"],
+      "args": [
+        "run",
+        "dev"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/packages/mira-server"
+      },
+      "group": "test",
+      "isBackground": true,
+      "dependsOn": "build-mira-server",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "install-dashboard-deps",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "install"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/packages/mira-dashboard"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "start-mira-dashboard-dev",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/packages/mira-dashboard"
       },
       "group": "test",
       "isBackground": true,
@@ -72,12 +124,15 @@
       "problemMatcher": []
     },
     {
-      "label": "install-all-packages",
+      "label": "build-mira-dashboard",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "install-all"],
+      "args": [
+        "run",
+        "build"
+      ],
       "options": {
-        "cwd": "${workspaceFolder}/packages"
+        "cwd": "${workspaceFolder}/packages/mira-dashboard"
       },
       "group": "build",
       "presentation": {
@@ -86,6 +141,69 @@
         "focus": false,
         "panel": "shared"
       }
-    }
+    },
+    {
+      "label": "preview-mira-dashboard",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "preview"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/packages/mira-dashboard"
+      },
+      "group": "test",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "dependsOn": "build-mira-dashboard"
+    },
+    {
+      "label": "start-full-stack",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Starting full Mira stack..."
+      ],
+      "group": "test",
+      "dependsOn": [
+        "start-mira-server-dev",
+        "start-mira-dashboard-dev"
+      ],
+      "dependsOrder": "parallel",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "build-full-stack",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Building full Mira stack..."
+      ],
+      "group": "build",
+      "dependsOn": [
+        "build-mira-core",
+        "build-mira-server",
+        "build-mira-dashboard"
+      ],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
   ]
 }
