@@ -1,0 +1,19 @@
+{
+    "servers": {
+        "mcp-shrimp-task-manager": {
+            "command": "npx",
+            "args": [
+                "mcp-shrimp-task-manager"
+            ],
+            "env": {
+                "DATA_DIR": "D:\\mira_typescript\\.vscode\\mcp-data",
+                "TEMPLATES_USE": "zh",
+                "ENABLE_GUI": "true",
+                "WEB_PORT": "3456",
+                "MCP_PROMPT_PLAN_TASK": "",
+                "MCP_PROMPT_EXECUTE_TASK_APPEND": ""
+            },
+            "type": "stdio"
+        }
+    }
+}

@@ -1,4 +1,8 @@
 {
+  "mcp.configPath": "${workspaceFolder}/.vscode/mcp.json",
+  "mcp.server.port": "auto",
+  "mcp.server.autoStart": true,
+  "mcp.server.instanceIsolation": true,
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.suggest.autoImports": true,
   "typescript.format.enable": true,

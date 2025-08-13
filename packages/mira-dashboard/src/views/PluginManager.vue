@@ -1,7 +1,6 @@
 <template>
   <div class="plugin-manager">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">插件管理器</h1>
       <a-button type="primary" @click="showInstallDialog = true">
         <DownloadOutlined />
         安装插件
@@ -205,7 +204,6 @@
                     </a-menu-item>
                     <a-menu-divider />
                     <a-menu-item key="uninstall" class="text-red-500">
-                      <DeleteOutlined />
                       卸载
                     </a-menu-item>
                   </a-menu>
@@ -746,10 +744,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.plugin-manager {
-  padding: 20px;
-}
-
 /* 统计卡片样式 */
 .stats-card {
   padding: 20px;
@@ -991,19 +985,24 @@ onMounted(() => {
 }
 
 /* Tab样式覆盖 - 取消激活tab的紫色 */
-.library-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+.library-tabs :deep(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
   color: #1890ff !important;
 }
 
-.library-tabs .ant-tabs-tab-btn {
+.library-tabs :deep(.ant-tabs-tab .ant-tabs-tab-btn) {
   color: #666 !important;
 }
 
-.library-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+.library-tabs :deep(.ant-tabs-tab:hover .ant-tabs-tab-btn) {
   color: #1890ff !important;
 }
 
-.library-tabs .ant-tabs-ink-bar {
+.library-tabs :deep(.ant-tabs-ink-bar) {
   background: #1890ff !important;
+}
+
+.library-tabs :deep(.ant-tabs-tab.ant-tabs-tab-active) {
+  background: none !important;
+  border-color: #1890ff !important;
 }
 </style>

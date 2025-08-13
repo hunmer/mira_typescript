@@ -1,7 +1,6 @@
 <template>
   <div class="overview-container">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">系统概览</h1>
       <a-button 
         type="primary" 
         :loading="loading" 

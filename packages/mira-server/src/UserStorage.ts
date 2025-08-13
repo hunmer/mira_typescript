@@ -272,6 +272,78 @@ export class UserStorage {
         return rows.map(row => this.rowToUser(row));
     }
 
+    // 更新用户信息
+    async updateUser(id: number, userData: Partial<Omit<User, 'id' | 'created_at'>>): Promise<boolean> {
+        const fields: string[] = [];
+        const params: any[] = [];
+
+        if (userData.username !== undefined) {
+            fields.push('username = ?');
+            params.push(userData.username);
+        }
+        if (userData.password !== undefined) {
+            fields.push('password = ?');
+            params.push(this.hashPassword(userData.password));
+        }
+        if (userData.role !== undefined) {
+            fields.push('role = ?');
+            params.push(userData.role);
+        }
+        if (userData.permissions !== undefined) {
+            fields.push('permissions = ?');
+            params.push(JSON.stringify(userData.permissions));
+        }
+
+        if (fields.length === 0) {
+            return false; // 没有需要更新的字段
+        }
+
+        fields.push('updated_at = ?');
+        params.push(Date.now());
+        params.push(id);
+
+        const query = `UPDATE users SET ${fields.join(', ')} WHERE id = ? AND is_active = 1`;
+        const result = await this.runSql(query, params);
+        return result.changes > 0;
+    }
+
+    // 软删除用户
+    async softDeleteUser(id: number): Promise<boolean> {
+        const query = 'UPDATE users SET is_active = 0, updated_at = ? WHERE id = ? AND is_active = 1';
+        const result = await this.runSql(query, [Date.now(), id]);
+
+        if (result.changes > 0) {
+            // 撤销该用户的所有会话
+            await this.revokeAllUserSessions(id);
+            return true;
+        }
+        return false;
+    }
+
+    // 检查用户名是否存在(用于创建和更新时验证)
+    async isUsernameExists(username: string, excludeId?: number): Promise<boolean> {
+        let query = 'SELECT COUNT(*) as count FROM users WHERE username = ? AND is_active = 1';
+        const params: any[] = [username];
+
+        if (excludeId !== undefined) {
+            query += ' AND id != ?';
+            params.push(excludeId);
+        }
+
+        const rows = await this.getSql(query, params);
+        return rows[0].count > 0;
+    }
+
+    // 根据权限获取用户（扩展查询方法）
+    async getUsersWithPermission(permission: string): Promise<User[]> {
+        const users = await this.getAllUsers();
+        return users.filter(user =>
+            user.permissions.includes('*') ||
+            user.permissions.includes('admin:*') ||
+            user.permissions.includes(permission)
+        );
+    }
+
     // 数据库操作工具方法
     private executeSql(sql: string, params?: any[]): Promise<void> {
         return new Promise((resolve, reject) => {

@@ -56,8 +56,10 @@
       },
       "group": "test",
       "isBackground": true,
-      "dependsOn": "stop-mira-server-dev",
-      // "dependsOn": "build-mira-server",
+      "dependsOn": [
+        "stop-mira-server-dev",
+        "build-mira-server"
+      ],
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -80,8 +82,10 @@
           "NODE_OPTIONS": "--enable-source-maps"
         },
       },
-      // "dependsOn": "build-mira-dashboard",
-      "dependsOn": "stop-mira-dashboard-dev",
+      "dependsOn": [
+        "stop-mira-dashboard-dev",
+        "build-mira-dashboard"
+      ],
       "group": "test",
       "isBackground": true,
       "presentation": {

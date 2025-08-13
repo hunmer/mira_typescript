@@ -55,8 +55,8 @@ export class PluginRoutes {
                 for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
                     const libraryInfo: any = {
                         id: id,
-                        name: id, // 直接使用库ID作为名称
-                        description: `素材库: ${id}`,
+                        name: libraryObj.libraryService?.config.name || id,
+                        description: `素材库: ${id}`, // TODO: desc
                         plugins: []
                     };
 
