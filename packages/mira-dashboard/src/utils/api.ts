@@ -7,9 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 export const api = axios.create({
     baseURL: API_BASE_URL,
     timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    // 不设置默认的 Content-Type，让每个请求自己决定
 })
 
 // Request interceptor to add auth token and logging
@@ -17,6 +15,12 @@ api.interceptors.request.use(
     (config: any) => {
         // 记录请求开始时间
         config.metadata = { startTime: Date.now() }
+
+        // 如果不是 FormData，设置默认的 Content-Type
+        if (!(config.data instanceof FormData)) {
+            config.headers = config.headers || {}
+            config.headers['Content-Type'] = 'application/json'
+        }
 
         // 添加认证token
         const token = sessionStorage.getItem('token')

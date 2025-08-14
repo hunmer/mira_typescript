@@ -16,8 +16,12 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
 
 
   async initialize(): Promise<void> {
+    const basePath = await this.getLibraryPath();
+    if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath, { recursive: true });
+    }
     // 初始化数据库连接和表结构
-    const dbPath = path.join(await this.getLibraryPath(), 'library_data.db');
+    const dbPath = path.join(basePath, 'library_data.db');
     this.db = new Database(dbPath);
     // 创建文件表
     await this.executeSql(`

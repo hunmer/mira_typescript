@@ -1,11 +1,5 @@
 <template>
   <div class="plugin-manager">
-    <div class="flex justify-between items-center mb-6">
-      <a-button type="primary" @click="showInstallDialog = true">
-        <DownloadOutlined />
-        安装插件
-      </a-button>
-    </div>
 
     <!-- 总体统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -58,7 +52,7 @@
         :key="library.id" 
         :tab="library.name || library.id"
       >
-        <!-- 当前库的搜索和排序控制栏 -->
+        <!-- 当前库的搜索、排序控制栏和安装按钮 -->
         <div class="flex gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
           <a-input
             v-model:value="searchKeywords[library.id]"
@@ -100,6 +94,11 @@
               {{ getCategoryDisplayName(category) }}
             </a-select-option>
           </a-select>
+          
+          <a-button type="primary" @click="openInstallDialog(library.id)">
+            <DownloadOutlined />
+            安装插件
+          </a-button>
         </div>
 
         <!-- 当前库插件统计 -->
@@ -139,7 +138,7 @@
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <a-card
             v-for="plugin in getFilteredPlugins(library)"
-            :key="plugin.id"
+            :key="plugin.name"
             class="plugin-card transition-all duration-200"
             :class="{
               'border-green-200 bg-green-50': plugin.status === 'active',
@@ -336,7 +335,7 @@
     </a-drawer>
 
     <!-- 安装插件对话框 -->
-    <a-modal v-model:open="showInstallDialog" title="安装插件" width="500px" @ok="handleInstallOk">
+    <a-modal v-model:open="showInstallDialog" :title="`为 ${currentLibraryName} 安装插件`" width="500px" @ok="handleInstallOk">
       <a-tabs v-model:activeKey="installTab">
         <a-tab-pane key="local" tab="从本地安装">
           <a-upload
@@ -435,6 +434,7 @@ const sortOptions = reactive<{ [key: string]: string }>({})
 const categoryFilters = reactive<{ [key: string]: string }>({})
 const currentPages = reactive<{ [key: string]: number }>({})
 const pageSizes = reactive<{ [key: string]: number }>({})
+const currentInstallLibraryId = ref<string>('')
 
 const installForm = ref({
   name: '',
@@ -461,6 +461,12 @@ const activePluginsCount = computed(() => {
 const inactivePluginsCount = computed(() => {
   return librariesWithPlugins.value.reduce((total, library) => 
     total + library.plugins.filter(p => p.status === 'inactive').length, 0)
+})
+
+const currentLibraryName = computed(() => {
+  if (!currentInstallLibraryId.value) return '插件'
+  const library = librariesWithPlugins.value.find(lib => lib.id === currentInstallLibraryId.value)
+  return library ? library.name || library.id : '插件'
 })
 
 // 方法
@@ -542,6 +548,11 @@ const handleIconError = (event: Event) => {
   img.style.display = 'none'
 }
 
+const openInstallDialog = (libraryId: string) => {
+  currentInstallLibraryId.value = libraryId
+  showInstallDialog.value = true
+}
+
 const handleSearch = (libraryId: string) => {
   currentPages[libraryId] = 1 // 搜索时重置页码
 }
@@ -602,14 +613,15 @@ const togglePlugin = async (plugin: Plugin, checked?: boolean) => {
     
     // 使用新的POST接口避免URL字符冲突
     await api.post('/api/plugins/toggle-status', { 
-      pluginId: plugin.id,
+      pluginName: plugin.name,
+      libraryId: plugin.libraryId,
       status: newStatus 
     })
     
     plugin.status = newStatus
     
     // 如果在详情面板中，也要更新选中的插件状态
-    if (selectedPlugin.value && selectedPlugin.value.id === plugin.id) {
+    if (selectedPlugin.value && selectedPlugin.value.name === plugin.name) {
       selectedPlugin.value.status = newStatus
     }
     
@@ -622,7 +634,7 @@ const togglePlugin = async (plugin: Plugin, checked?: boolean) => {
 
 const configurePlugin = async (plugin: Plugin) => {
   try {
-    const response = await api.get(`/api/plugins/${plugin.id}/config`)
+    const response = await api.get(`/api/plugins/${plugin.name}/config`)
     pluginConfig.value = JSON.stringify(response.data, null, 2)
     configuringPlugin.value = plugin
     showConfigDialog.value = true
@@ -637,7 +649,7 @@ const savePluginConfig = async () => {
   
   try {
     const config = JSON.parse(pluginConfig.value)
-    await api.put(`/api/plugins/${configuringPlugin.value.id}/config`, config)
+    await api.put(`/api/plugins/${configuringPlugin.value.name}/config`, config)
     message.success('配置保存成功')
     showConfigDialog.value = false
   } catch (error: any) {
@@ -653,7 +665,7 @@ const handlePluginAction = async (command: string, plugin: Plugin) => {
   switch (command) {
     case 'update':
       try {
-        await api.post(`/api/plugins/${plugin.id}/update`)
+        await api.post(`/api/plugins/${plugin.name}/update`)
         message.success('插件更新成功')
         loadLibrariesWithPlugins()
       } catch (error) {
@@ -680,11 +692,11 @@ const handlePluginAction = async (command: string, plugin: Plugin) => {
         
         if (!confirmed) return
         
-        await api.delete(`/api/plugins/${plugin.id}`)
+        await api.delete(`/api/plugins/${plugin.name}`)
         message.success('插件卸载成功')
         
         // 如果卸载的是当前选中的插件，关闭详情面板
-        if (selectedPlugin.value && selectedPlugin.value.id === plugin.id) {
+        if (selectedPlugin.value && selectedPlugin.value.name === plugin.name) {
           showDetailDrawer.value = false
           selectedPlugin.value = null
         }
@@ -722,19 +734,32 @@ const uploadPlugin = async () => {
 
   try {
     const formData = new FormData()
-    formData.append('file', fileList.value[0])
+    // 获取原始文件对象，如果是ant-design-vue的文件对象，需要取originFileObj
+    const file = fileList.value[0].originFileObj || fileList.value[0]
+    formData.append('file', file)
+    if (currentInstallLibraryId.value) {
+      formData.append('libraryId', currentInstallLibraryId.value)
+    }
     
     const token = sessionStorage.getItem('token')
-    const headers: Record<string, string> = {}
+    const config: any = {}
     if (token) {
-      headers.Authorization = `Bearer ${token}`
+      config.headers = {
+        Authorization: `Bearer ${token}`
+        // 不设置 Content-Type，让浏览器自动设置 multipart/form-data
+      }
     }
 
-    await api.post('/api/plugins/upload', formData, { headers })
-    message.success('插件安装成功')
+    await api.post('/api/plugins/upload', formData, config)
+    message.success('插件上传安装成功，稍后刷新插件列表')
     showInstallDialog.value = false
     fileList.value = []
-    loadLibrariesWithPlugins()
+    currentInstallLibraryId.value = ''
+    
+    // 延迟3秒刷新插件列表
+    setTimeout(() => {
+      loadLibrariesWithPlugins()
+    }, 3000)
   } catch (error) {
     message.error('插件安装失败')
   }
@@ -747,11 +772,20 @@ const installFromRepository = async () => {
   }
 
   try {
-    await api.post('/api/plugins/install', installForm.value)
-    message.success('插件安装成功')
+    const requestData = {
+      ...installForm.value,
+      libraryId: currentInstallLibraryId.value
+    }
+    await api.post('/api/plugins/install', requestData)
+    message.success('插件安装成功，稍后刷新插件列表')
     showInstallDialog.value = false
     installForm.value = { name: '', version: 'latest' }
-    loadLibrariesWithPlugins()
+    currentInstallLibraryId.value = ''
+    
+    // 延迟3秒刷新插件列表
+    setTimeout(() => {
+      loadLibrariesWithPlugins()
+    }, 3000)
   } catch (error: any) {
     if (error.response?.data?.error) {
       message.error(error.response.data.error)

@@ -18,7 +18,6 @@
   {
     "name": "upload_statistics",
     "enabled": false,
-    "path": "upload_statistics",
-    "status": "inactive"
+    "path": "node_modules/upload_statistics"
   }
 ]

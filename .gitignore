@@ -3,3 +3,4 @@ node_modules
 dist
 temp/
 packages/mira-server/mira_server.tar
+packages/mira-server/data/

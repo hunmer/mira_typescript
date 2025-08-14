@@ -125,6 +125,30 @@
             <a-select-option value="remote">远程</a-select-option>
           </a-select>
         </a-form-item>
+
+        <a-form-item label="图标">
+          <a-input v-model:value="libraryForm.icon" placeholder="图标名称（默认：default）" />
+        </a-form-item>
+
+        <a-form-item label="启用哈希">
+          <a-switch v-model:checked="libraryForm.enableHash" />
+          <span class="ml-2 text-gray-500">启用文件哈希校验</span>
+        </a-form-item>
+
+        <!-- 远程库相关配置 -->
+        <template v-if="libraryForm.type === 'remote'">
+          <a-form-item label="服务器地址" name="serverURL">
+            <a-input v-model:value="libraryForm.serverURL" placeholder="例如：http://127.0.0.1" />
+          </a-form-item>
+
+          <a-form-item label="服务器端口" name="serverPort">
+            <a-input v-model:value="libraryForm.serverPort" placeholder="例如：3000" />
+          </a-form-item>
+        </template>
+
+        <a-form-item label="插件目录">
+          <a-input v-model:value="libraryForm.pluginsDir" placeholder="插件目录路径（可选）" />
+        </a-form-item>
         
         <a-form-item label="描述">
           <a-textarea
@@ -160,7 +184,12 @@ const libraryForm = ref({
   name: '',
   path: '',
   type: 'local' as 'local' | 'remote',
-  description: ''
+  description: '',
+  icon: 'default',
+  enableHash: false,
+  serverURL: '',
+  serverPort: '',
+  pluginsDir: ''
 })
 
 const libraryRules: Record<string, Rule[]> = {
@@ -172,6 +201,35 @@ const libraryRules: Record<string, Rule[]> = {
   ],
   type: [
     { required: true, message: '请选择资源库类型', trigger: 'change' }
+  ],
+  serverURL: [
+    { 
+      required: true, 
+      message: '请输入服务器地址', 
+      trigger: 'blur',
+      validator: (_rule: any, value: string) => {
+        if (libraryForm.value.type === 'remote' && !value) {
+          return Promise.reject('远程库需要填写服务器地址')
+        }
+        return Promise.resolve()
+      }
+    }
+  ],
+  serverPort: [
+    { 
+      required: true, 
+      message: '请输入服务器端口', 
+      trigger: 'blur',
+      validator: (_rule: any, value: string) => {
+        if (libraryForm.value.type === 'remote' && !value) {
+          return Promise.reject('远程库需要填写服务器端口')
+        }
+        if (value && (isNaN(Number(value)) || Number(value) < 1 || Number(value) > 65535)) {
+          return Promise.reject('端口号必须是1-65535之间的数字')
+        }
+        return Promise.resolve()
+      }
+    }
   ]
 }
 
@@ -219,7 +277,12 @@ const editLibrary = (library: Library) => {
     name: library.name,
     path: library.path,
     type: library.type,
-    description: library.description || ''
+    description: library.description || '',
+    icon: (library as any).icon || 'default',
+    enableHash: (library as any).customFields?.enableHash || false,
+    serverURL: (library as any).serverURL || '',
+    serverPort: (library as any).serverPort || '',
+    pluginsDir: (library as any).pluginsDir || ''
   }
   showAddDialog.value = true
 }
@@ -227,7 +290,17 @@ const editLibrary = (library: Library) => {
 const cancelEdit = () => {
   showAddDialog.value = false
   editingLibrary.value = null
-  libraryForm.value = { name: '', path: '', type: 'local', description: '' }
+  libraryForm.value = { 
+    name: '', 
+    path: '', 
+    type: 'local', 
+    description: '',
+    icon: 'default',
+    enableHash: false,
+    serverURL: '',
+    serverPort: '',
+    pluginsDir: ''
+  }
 }
 
 const saveLibrary = async () => {
@@ -236,13 +309,33 @@ const saveLibrary = async () => {
   try {
     await libraryFormRef.value.validate()
     
+    // 构建提交数据，符合后端期望的格式
+    const submitData = {
+      name: libraryForm.value.name,
+      path: libraryForm.value.path,
+      type: libraryForm.value.type,
+      description: libraryForm.value.description,
+      icon: libraryForm.value.icon,
+      customFields: {
+        path: libraryForm.value.path,
+        enableHash: libraryForm.value.enableHash
+      },
+      ...(libraryForm.value.type === 'remote' && {
+        serverURL: libraryForm.value.serverURL,
+        serverPort: libraryForm.value.serverPort
+      }),
+      ...(libraryForm.value.pluginsDir && {
+        pluginsDir: libraryForm.value.pluginsDir
+      })
+    }
+    
     if (editingLibrary.value) {
       // 更新资源库
-      await api.put(`/api/libraries/${editingLibrary.value.id}`, libraryForm.value)
+      await api.put(`/api/libraries/${editingLibrary.value.id}`, submitData)
       message.success('资源库更新成功')
     } else {
       // 添加资源库
-      await api.post('/api/libraries', libraryForm.value)
+      await api.post('/api/libraries', submitData)
       message.success('资源库添加成功')
     }
     

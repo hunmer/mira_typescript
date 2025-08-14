@@ -24,8 +24,8 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/ws": "^8.18.1",
-    "typescript": "^5.3.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",
@@ -34,6 +34,7 @@
     "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
     "multer": "^2.0.2",
     "queue": "^7.0.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "yauzl": "^3.2.0"
   }
 }
