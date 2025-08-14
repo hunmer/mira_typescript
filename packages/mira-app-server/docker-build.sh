@@ -11,7 +11,9 @@ docker rmi mira_server:latest 2>/dev/null || true
 
 # 构建 Docker 镜像
 echo "构建 Docker 镜像..."
-docker build -t mira_server:latest .
+cd ../..
+docker build -f packages/mira-app-server/Dockerfile -t mira_server:latest .
+cd packages/mira-app-server
 
 if [ $? -eq 0 ]; then
     echo "Docker 镜像构建成功！"

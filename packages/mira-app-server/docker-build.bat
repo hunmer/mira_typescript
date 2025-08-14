@@ -8,7 +8,9 @@ echo 清理之前的构建...
 docker rmi mira_server:latest 2>nul
 
 echo 构建 Docker 镜像...
-docker build -t mira_server:latest .
+cd ..\..
+docker build -f packages/mira-app-server/Dockerfile -t mira_server:latest .
+cd packages\mira-app-server
 
 echo Docker 镜像构建成功！
 echo 保存 Docker 镜像到 mira_server.tar...

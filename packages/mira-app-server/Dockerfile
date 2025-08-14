@@ -16,13 +16,15 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # 首先复制根目录的 package.json 和相关配置文件
+COPY tsconfig.json ./
 COPY packages/package*.json ./packages/
 COPY packages/mira-app-server/package*.json ./packages/mira-app-server/
+
+# 复制各包的 package.json
 COPY packages/mira-app-core/package*.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/package*.json ./packages/mira-storage-sqlite/
 
 # 复制 tsconfig 和其他配置文件
-COPY tsconfig.json ./
 COPY packages/mira-app-server/tsconfig.json ./packages/mira-app-server/
 COPY packages/mira-app-core/tsconfig.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/tsconfig.json ./packages/mira-storage-sqlite/
@@ -31,9 +33,6 @@ COPY packages/mira-storage-sqlite/tsconfig.json ./packages/mira-storage-sqlite/
 COPY packages/mira-app-core/src ./packages/mira-app-core/src
 COPY packages/mira-app-server/src ./packages/mira-app-server/src
 COPY packages/mira-storage-sqlite/src ./packages/mira-storage-sqlite/src
-
-# 复制插件目录（如果存在）
-COPY plugins ./plugins
 
 # 设置环境变量修复distutils问题并安装依赖
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
@@ -72,7 +71,7 @@ RUN apk del python3 make g++ ffmpeg-dev
 WORKDIR /app/packages/mira-app-server
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 8018
 EXPOSE 8081
 
 # 启动命令(使用JSON格式)
