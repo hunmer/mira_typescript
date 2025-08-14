@@ -1,11 +1,7 @@
-import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ServerPluginManager } from './ServerPluginManager';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { EventManager } from './event-manager';
-import { MiraWebsocketServer } from './WebSocketServer';
-import { MiraBackend } from './MiraBackend';
 
 export abstract class ServerPlugin {
     protected configs: Record<string, any> = {};

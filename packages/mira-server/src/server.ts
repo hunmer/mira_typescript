@@ -1,6 +1,6 @@
 // Mira Server package exports
 export { MiraServer, ServerConfig } from './MiraServer';
-export { HttpServer } from './HttpServer';
+export { MiraHttpServer } from './HttpServer';
 export { WebSocketServer } from './WebSocketServer';
 
 // Re-export from mira-core for convenience

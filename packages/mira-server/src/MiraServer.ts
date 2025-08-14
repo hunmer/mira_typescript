@@ -1,5 +1,5 @@
 import { MiraBackend } from "mira-app-core";
-import { HttpServer } from "./HttpServer";
+import { MiraHttpServer } from "./HttpServer";
 import { WebSocketServer } from "./WebSocketServer";
 
 export interface ServerConfig {
@@ -12,7 +12,7 @@ export interface ServerConfig {
 
 export class MiraServer {
     private backend: MiraBackend;
-    private httpServer?: HttpServer;
+    private httpServer?: MiraHttpServer;
     private wsServer?: WebSocketServer;
     private config: ServerConfig;
 
@@ -43,7 +43,7 @@ export class MiraServer {
 
             // 启动HTTP服务器
             if (this.config.enableHttp) {
-                this.httpServer = new HttpServer(this.backend, this.config.dataPath);
+                this.httpServer = new MiraHttpServer(this.backend, this.config.dataPath);
                 await this.httpServer.initialize();
                 await this.httpServer.start(this.config.httpPort!);
             }
@@ -98,7 +98,7 @@ export class MiraServer {
         return this.backend;
     }
 
-    public getHttpServer(): HttpServer | undefined {
+    public getHttpServer(): MiraHttpServer | undefined {
         return this.httpServer;
     }
 

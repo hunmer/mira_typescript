@@ -1,12 +1,13 @@
-import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
+import { ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
 import { ILibraryServerData } from 'mira-storage-sqlite';
+import { MiraHttpServer } from 'mira-server/dist/server';
 class UploadStatistics extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private httpServer: MiraHttpServer;
     private dbService: ILibraryServerData;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('upload_statistics', pluginManager, dbService, httpServer);
+        super('upload_statistics', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
         this.httpServer = httpServer;
@@ -37,18 +38,18 @@ class UploadStatistics extends ServerPlugin {
         if (this.configs.timerEnabled) {
             let countdown = this.configs.reportLoop
             setInterval(() => {
-                if(countdown != -1){
-                    if(--countdown == 0){
+                if (countdown != -1) {
+                    if (--countdown == 0) {
                         this.generateAndSendReport()
                         countdown = this.configs.reportLoop
                     }
                 }
-                if(this.configs.reportTime != ''){
+                if (this.configs.reportTime != '') {
                     const now = new Date();
                     const [reportHour, reportMinute] = this.configs.reportTime.split(':').map(Number);
                     const reportDate = new Date();
                     reportDate.setHours(reportHour, reportMinute, 0, 0);
-                    
+
                     if (now == reportDate) {
                         return this.generateAndSendReport();
                     }
@@ -63,13 +64,13 @@ class UploadStatistics extends ServerPlugin {
         ]);
 
         const libraryId = dbService.getLibraryId();
-        httpServer.getRouter().registerRounter(libraryId, '/upload_statistics/send', 'get', async (req, res) => {
+        httpServer.httpRouter.registerRounter(libraryId, '/upload_statistics/send', 'get', async (req, res) => {
             this.generateAndSendReport()
             res.status(200).json({ message: 'Report sent successfully' });
         });
 
         // 获取所有统计接口
-        httpServer.getRouter().registerRounter(libraryId, '/upload_statistics/list', 'get', async (req, res) => {
+        httpServer.httpRouter.registerRounter(libraryId, '/upload_statistics/list', 'get', async (req, res) => {
             const { username, startDate, endDate } = req.query;
             console.log({ username, startDate, endDate });
             const filters: Record<string, any> = {};
@@ -101,7 +102,7 @@ class UploadStatistics extends ServerPlugin {
 
         // 绑定文件创建事件
 
-        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onAfterUploaded.bind(this));
         }
@@ -157,7 +158,7 @@ class UploadStatistics extends ServerPlugin {
                         headers: api.headers,
                         data: {
                             ...api.body,
-                            markdown: JSON.stringify({ title: api.body.markdown.title, text: api.body.markdown.text.replace('{text}', rankingText)  })
+                            markdown: JSON.stringify({ title: api.body.markdown.title, text: api.body.markdown.text.replace('{text}', rankingText) })
                         }
                     });
                 } catch (error) {

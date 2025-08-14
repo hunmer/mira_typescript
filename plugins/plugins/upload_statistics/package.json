@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-server": "file:D:/mira_typescript/packages/mira-server/",
     "mira-app-core": "file:D:/mira_typescript/packages/mira-core/"
   },
   "keywords": [],

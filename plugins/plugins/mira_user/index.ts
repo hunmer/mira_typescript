@@ -1,5 +1,6 @@
-import { MiraHttpServer, ServerPluginManager, MiraWebsocketServer, ServerPlugin, express } from 'mira-app-core';
+import { ServerPluginManager, MiraWebsocketServer, ServerPlugin, addStaticResources } from 'mira-app-core';
 import { ILibraryServerData } from 'mira-storage-sqlite';
+import { MiraHttpServer } from 'mira-server/dist/server';
 import path from "path";
 
 class UserPlugin extends ServerPlugin {
@@ -8,7 +9,7 @@ class UserPlugin extends ServerPlugin {
     private logined_clients: string[] = [];
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('mira_user', pluginManager, dbService, httpServer);
+        super('mira_user', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
         console.log('mira_user plugin initialized');
@@ -21,11 +22,11 @@ class UserPlugin extends ServerPlugin {
 
         // 开放登录页面
         httpServer.app
-            .use('/user', express.static(path.join(pluginManager.getPluginDir('mira_user'), 'web')))
+            .use('/user', addStaticResources(path.join(pluginManager.getPluginDir('mira_user'), 'web')) as any);
 
         const libraryId = dbService.getLibraryId();
         // 登录接口
-        httpServer.getRouter().registerRounter(libraryId,'/user/login', 'post', async (req, res) => {
+        httpServer.httpRouter.registerRounter(libraryId, '/user/login', 'post', async (req, res) => {
             try {
                 const { username, password, libraryId, clientId } = req.body;
                 if (!username || !password) {
@@ -50,7 +51,7 @@ class UserPlugin extends ServerPlugin {
         });
 
         // 注册接口
-        httpServer.getRouter().registerRounter(libraryId,'/user/register', 'post', async (req, res) => {
+        httpServer.httpRouter.registerRounter(libraryId, '/user/register', 'post', async (req, res) => {
             try {
                 const { username, password, libraryId, clientId } = req.body;
                 if (!username || !password) {
@@ -77,12 +78,12 @@ class UserPlugin extends ServerPlugin {
         });
 
         // 获取所有用户接口
-        httpServer.getRouter().registerRounter(libraryId,'/user/list', 'get', async (req, res) => {
+        httpServer.httpRouter.registerRounter(libraryId, '/user/list', 'get', async (req, res) => {
             res.status(200).json(this.getUsers().map((u: any) => ({ username: u.username })));
         });
 
         // 绑定登录前事件
-        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('client::before_connect', this.onUserLogin.bind(this));
         }
@@ -97,7 +98,7 @@ class UserPlugin extends ServerPlugin {
     private async onUserLogin(event: any): Promise<boolean> {
         const { message, ws } = event.args;
         const { libraryId, clientId, fields } = message;
-        if( this.logined_clients.includes(clientId)) {
+        if (this.logined_clients.includes(clientId)) {
             return true;
         }
         const { username, password } = fields;

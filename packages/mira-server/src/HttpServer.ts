@@ -122,12 +122,13 @@ function createHttpLoggerMiddleware() {
     };
 }
 
-export class HttpServer {
-    protected app: Express;
-    protected httpServer: http.Server;
-    protected httpRouter: HttpRouter;
-    protected authRouter: AuthRouter;
-    protected backend: MiraBackend;
+export class MiraHttpServer {
+    // 开放所有属性
+    app: Express;
+    httpServer: http.Server;
+    httpRouter: HttpRouter;
+    authRouter: AuthRouter;
+    backend: MiraBackend;
 
     constructor(backend: MiraBackend, dataDir: string = './data') {
         this.backend = backend;
@@ -142,6 +143,29 @@ export class HttpServer {
     public async initialize(): Promise<void> {
         await this.authRouter.initialize();
         this.setupRoutes();
+    }
+
+    // 开放功能
+    public async request(options: {
+        method: string;
+        url: string;
+        headers?: Record<string, string>;
+        data?: any;
+    }): Promise<any> {
+        try {
+            const response = await axios.request({
+                method: options.method,
+                url: options.url,
+                headers: options.headers,
+                data: options.data
+            });
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Request failed: ${error.message}`);
+            }
+            throw error;
+        }
     }
 
     private setupMiddleware() {

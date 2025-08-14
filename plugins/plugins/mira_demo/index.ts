@@ -1,21 +1,19 @@
-import { MiraHttpServer, ILibraryServerData, ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
-
+import { ServerPluginManager, ServerPlugin, MiraWebsocketServer } from 'mira-app-core';
 import { EventEmitter } from 'events';
+import { ILibraryServerData } from 'mira-storage-sqlite';
+import { MiraHttpServer } from 'mira-server/dist/HttpServer';
 
 class DemoPlugin extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private readonly dbService: ILibraryServerData;
-    protected readonly eventEmitter: EventEmitter;
     private readonly pluginManager: ServerPluginManager;
 
-    constructor({pluginManager, server, dbService, httpServer}: {pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer}) {
-        super('mira_demo', pluginManager, dbService, httpServer);
+    constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
+        super('mira_demo', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
         this.pluginManager = pluginManager;
-        this.eventEmitter = dbService.getEventManager()!;
         console.log('Demo plugin initialized');
-        // this.eventEmitter.on('client::connected', this.onClientConnected.bind(this));
     }
 
     private async onClientConnected(args: any): Promise<void> {

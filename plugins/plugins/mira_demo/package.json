@@ -10,13 +10,19 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "mira-app-core": "file:../../mira-core"
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/",
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-server": "file:D:/mira_typescript/packages/mira-server/"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
-  "keywords": ["mira", "plugin", "demo"],
+  "keywords": [
+    "mira",
+    "plugin",
+    "demo"
+  ],
   "author": "hunmer",
   "license": "ISC",
   "description": "Demo plugin for Mira server"

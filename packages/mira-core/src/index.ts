@@ -26,4 +26,7 @@ export type * from './ServerPluginManager';
 export type * from './WebSocketRouter';
 
 import express = require('express');
-export { express };
+const addStaticResources = (dir: string) => {
+    return express.static(dir);
+};
+export { express, addStaticResources };

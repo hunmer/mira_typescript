@@ -1,4 +1,5 @@
-import { MiraWebsocketServer, EventArgs, ServerPluginManager, MiraHttpServer, ServerPlugin } from 'mira-app-core';
+import { MiraWebsocketServer, EventArgs, ServerPluginManager, ServerPlugin } from 'mira-app-core';
+import { MiraHttpServer } from 'mira-server/dist/server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
@@ -13,7 +14,7 @@ class ThumbPlugin extends ServerPlugin {
     taskQueue: Queue;
 
     constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
-        super('mira_thumb', pluginManager, dbService, httpServer);
+        super('mira_thumb', pluginManager, dbService);
         // 检查 ffmpeg 是否已安装，并设置 ffmpegPath
         try {
             let ffmpegPath = process.env.FFMPEG_PATH;
@@ -43,30 +44,30 @@ class ThumbPlugin extends ServerPlugin {
 
         // Initialize queue with concurrency of 5
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
-        
+
         console.log('Thumbnail plugin initialized');
-        const obj = httpServer.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onFileCreated.bind(this));
             obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
             // 
         }
         // 缩略图操作
-        httpServer.getRouter().registerRounter(dbService.getLibraryId(), '/thumb/:action', 'get', async (req, res) => {
+        httpServer.httpRouter.registerRounter(dbService.getLibraryId(), '/thumb/:action', 'get', async (req, res) => {
             const action = req.params.action;
             if (action === 'scan') {
                 this.processPendingThumbnails();
-                return res.status(200).json({ 
-                    success: true, 
+                return res.status(200).json({
+                    success: true,
                     message: '开始扫描缩略图',
-                    queueLength: this.taskQueue.length 
+                    queueLength: this.taskQueue.length
                 });
             } else if (action === 'progress') {
                 const pendingFiles = await this.getPendingThumbFiles();
                 const queueLength = this.taskQueue.length;
                 const totalPending = pendingFiles.length;
                 const processing = queueLength > 0;
-                
+
                 return res.status(200).json({
                     success: true,
                     data: {
@@ -82,23 +83,23 @@ class ThumbPlugin extends ServerPlugin {
                 this.taskQueue.stop();
                 this.taskQueue.splice(0, this.taskQueue.length);
                 this.taskQueue.start();
-                
-                return res.status(200).json({ 
-                    success: true, 
-                    message: '已取消缩略图生成任务' 
+
+                return res.status(200).json({
+                    success: true,
+                    message: '已取消缩略图生成任务'
                 });
             } else if (action === 'stats') {
                 // 获取缩略图统计信息
-                const allFiles = await this.dbService.getFiles({ 
-                    select: 'id,path,thumb', 
-                    filters: { limit: 9999999 }, 
-                    isUrlFile: false 
+                const allFiles = await this.dbService.getFiles({
+                    select: 'id,path,thumb',
+                    filters: { limit: 9999999 },
+                    isUrlFile: false
                 });
-                
+
                 const totalFiles = allFiles.result.length;
                 const withThumbs = allFiles.result.filter(f => f.thumb === 1).length;
                 const withoutThumbs = totalFiles - withThumbs;
-                
+
                 return res.status(200).json({
                     success: true,
                     data: {
@@ -243,10 +244,10 @@ class ThumbPlugin extends ServerPlugin {
                             await this.generateVideoThumbnail(filePath, thumbPath);
                             break;
                     }
-                    
+
                     processed++;
                     console.log('Thumbnail processed:', thumbPath, `(${processed}/${max})`);
-                    
+
                 } catch (err) {
                     console.error('Failed to process thumbnail:', err);
                     processed++;

@@ -323,15 +323,15 @@ export class PluginRoutes {
                                                     readStream.pipe(writeStream);
 
                                                     writeStream.on('finish', () => {
-                                                        // 检查是否是package.json文件
-                                                        if (entry.fileName.endsWith('package.json') && !entry.fileName.includes('/')) {
-                                                            try {
-                                                                packageInfo = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
-                                                                pluginName = packageInfo.name || path.basename(entry.fileName, '.json');
-                                                            } catch (e) {
-                                                                console.warn('Error reading package.json:', e);
-                                                            }
-                                                        }
+                                                        // 检查是否是package.json文件(暂时不需要)
+                                                        // if (entry.fileName.endsWith('package.json') && !entry.fileName.includes('/')) {
+                                                        //     try {
+                                                        //         packageInfo = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
+                                                        //         pluginName = packageInfo.name || path.basename(entry.fileName, '.json');
+                                                        //     } catch (e) {
+                                                        //         console.warn('Error reading package.json:', e);
+                                                        //     }
+                                                        // }
                                                         zipfile.readEntry();
                                                     });
 
@@ -368,7 +368,7 @@ export class PluginRoutes {
                                 await library.pluginManager.addPlugin({
                                     name: pluginName,
                                     enabled: false,
-                                    path: pluginName
+                                    path: 'node_modules/' + pluginName
                                 });
                             }
 
