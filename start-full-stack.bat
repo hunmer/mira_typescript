@@ -14,16 +14,16 @@ rem 进入项目根目录
 cd /d "%~dp0"
 
 echo 🔧 构建后端服务...
-cd packages\mira-core
+cd packages\mira-app-core
 if not exist "node_modules" (
-    echo 📦 安装 mira-core 依赖...
+    echo 📦 安装 mira-app-core 依赖...
     call npm install
 )
 call npm run rebuild
 
-cd ..\mira-server
+cd ..\mira-app-server
 if not exist "node_modules" (
-    echo 📦 安装 mira-server 依赖...
+    echo 📦 安装 mira-app-server 依赖...
     call npm install
 )
 call npm run build
@@ -44,7 +44,7 @@ echo ⚡ 按 Ctrl+C 停止所有服务
 echo.
 
 rem 使用 start 命令在新窗口中启动后端服务
-start "Mira Server" cmd /c "cd /d \"%~dp0packages\mira-server\" && npm run dev"
+start "Mira Server" cmd /c "cd /d \"%~dp0packages\mira-app-server\" && npm run dev"
 
 rem 等待2秒让后端服务启动
 timeout /t 2 /nobreak >nul

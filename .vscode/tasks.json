@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build-mira-core",
+      "label": "build-mira-app-core",
       "type": "shell",
       "command": "npm",
       "args": [
@@ -10,7 +10,7 @@
         "rebuild"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/packages/mira-core"
+        "cwd": "${workspaceFolder}/packages/mira-app-core"
       },
       "group": "build",
       "presentation": {
@@ -21,7 +21,7 @@
       }
     },
     {
-      "label": "build-mira-server",
+      "label": "build-mira-app-server",
       "type": "shell",
       "command": "npm",
       "args": [
@@ -29,10 +29,10 @@
         "build"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/packages/mira-server"
+        "cwd": "${workspaceFolder}/packages/mira-app-server"
       },
       "group": "build",
-      "dependsOn": "build-mira-core",
+      "dependsOn": "build-mira-app-core",
       "presentation": {
         "echo": true,
         "reveal": "silent",
@@ -41,7 +41,7 @@
       }
     },
     {
-      "label": "start-mira-server-dev",
+      "label": "start-mira-app-server-dev",
       "type": "shell",
       "command": "npm",
       "args": [
@@ -49,7 +49,7 @@
         "dev"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/packages/mira-server",
+        "cwd": "${workspaceFolder}/packages/mira-app-server",
         "env": {
           "NODE_OPTIONS": "--enable-source-maps --inspect=9229"
         }
@@ -57,8 +57,8 @@
       "group": "test",
       "isBackground": true,
       "dependsOn": [
-        "stop-mira-server-dev",
-        "build-mira-server"
+        "stop-mira-app-server-dev",
+        "build-mira-app-server"
       ],
       "presentation": {
         "echo": true,
@@ -124,7 +124,7 @@
       ],
       "group": "test",
       "dependsOn": [
-        "start-mira-server-dev",
+        "start-mira-app-server-dev",
         "start-mira-dashboard-dev"
       ],
       "dependsOrder": "parallel",
@@ -144,8 +144,8 @@
       ],
       "group": "build",
       "dependsOn": [
-        "build-mira-core",
-        "build-mira-server",
+        "build-mira-app-core",
+        "build-mira-app-server",
         "build-mira-dashboard"
       ],
       "dependsOrder": "sequence",
@@ -157,12 +157,12 @@
       }
     },
     {
-      "label": "stop-mira-server-dev",
+      "label": "stop-mira-app-server-dev",
       "type": "shell",
       "command": "powershell",
       "args": [
         "-Command",
-        "$port = 8080; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-server on port 8080' } else { Write-Host 'No process found on port 8080' }"
+        "$port = 8080; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-app-server on port 8080' } else { Write-Host 'No process found on port 8080' }"
       ],
       "group": "test",
       "presentation": {
@@ -198,7 +198,7 @@
       ],
       "group": "test",
       "dependsOn": [
-        "stop-mira-server-dev",
+        "stop-mira-app-server-dev",
         "stop-mira-dashboard-dev"
       ],
       "dependsOrder": "parallel",

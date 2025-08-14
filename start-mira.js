@@ -24,7 +24,7 @@ function loadEnvFile(envPath) {
 
 // 加载所有环境变量
 const rootEnv = loadEnvFile(path.join(__dirname, '.env'));
-const serverEnv = loadEnvFile(path.join(__dirname, 'packages/mira-server/.env'));
+const serverEnv = loadEnvFile(path.join(__dirname, 'packages/mira-app-server/.env'));
 const dashboardEnv = loadEnvFile(path.join(__dirname, 'packages/mira-dashboard/.env'));
 
 // 合并环境变量
@@ -43,7 +43,7 @@ switch (command) {
         if (service === 'server') {
             console.log(`🚀 Starting Mira Server on port ${env.HTTP_PORT || '8080'}...`);
             const serverProcess = spawn('npm', ['run', 'dev'], {
-                cwd: path.join(__dirname, 'packages/mira-server'),
+                cwd: path.join(__dirname, 'packages/mira-app-server'),
                 env,
                 stdio: 'inherit'
             });
@@ -53,7 +53,7 @@ switch (command) {
             });
 
         } else if (service === 'dashboard') {
-            console.log(`🚀 Starting Mira Dashboard on port ${env.VITE_APP_PORT || '3000'}...`);
+            console.log(`🚀 Starting Mira Dashboard on port ${env.APP_PORT || '3000'}...`);
             const dashboardProcess = spawn('npm', ['run', 'dev'], {
                 cwd: path.join(__dirname, 'packages/mira-dashboard'),
                 env,
@@ -69,7 +69,7 @@ switch (command) {
 
             // 启动服务器
             const serverProcess = spawn('npm', ['run', 'dev'], {
-                cwd: path.join(__dirname, 'packages/mira-server'),
+                cwd: path.join(__dirname, 'packages/mira-app-server'),
                 env,
                 stdio: 'inherit'
             });
@@ -91,5 +91,5 @@ switch (command) {
         console.log('Environment variables:');
         console.log(`HTTP_PORT: ${env.HTTP_PORT || '8080'}`);
         console.log(`WS_PORT: ${env.WS_PORT || '8081'}`);
-        console.log(`VITE_APP_PORT: ${env.VITE_APP_PORT || '3000'}`);
+        console.log(`APP_PORT: ${env.APP_PORT || '3000'}`);
 }

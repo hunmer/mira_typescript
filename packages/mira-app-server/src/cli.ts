@@ -9,7 +9,7 @@ import path from 'path';
 dotenv.config();
 
 program
-  .name('mira-server')
+  .name('mira-app-server')
   .description('Mira Server - Media Library Management System')
   .version('1.0.0');
 

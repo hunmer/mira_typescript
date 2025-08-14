@@ -44,8 +44,8 @@
       "name": "Launch Mira Server with Debugger",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/packages/mira-server/src/index.ts",
-      "cwd": "${workspaceFolder}/packages/mira-server",
+      "program": "${workspaceFolder}/packages/mira-app-server/src/index.ts",
+      "cwd": "${workspaceFolder}/packages/mira-app-server",
       "runtimeArgs": [
         "--inspect=9230",
         "-r",
@@ -53,7 +53,7 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-server/tsconfig.json",
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-app-server/tsconfig.json",
         "NODE_OPTIONS": "--enable-source-maps"
       },
       "console": "integratedTerminal",
@@ -70,7 +70,7 @@
       "outFiles": [
         "${workspaceFolder}/packages/**/dist/**/*.js"
       ],
-      "preLaunchTask": "stop-mira-server-dev"
+      "preLaunchTask": "stop-mira-app-server-dev"
     },
     {
       "type": "chrome",
@@ -96,8 +96,8 @@
       "name": "Debug Full Stack",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/packages/mira-server",
-      "program": "${workspaceFolder}/packages/mira-server/dist/index.js",
+      "cwd": "${workspaceFolder}/packages/mira-app-server",
+      "program": "${workspaceFolder}/packages/mira-app-server/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
@@ -112,7 +112,7 @@
       "outFiles": [
         "${workspaceFolder}/packages/**/dist/**/*.js"
       ],
-      "preLaunchTask": "build-mira-server",
+      "preLaunchTask": "build-mira-app-server",
       "postDebugTask": "start-mira-dashboard-dev"
     },
   ]

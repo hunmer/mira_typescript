@@ -17,19 +17,19 @@ WORKDIR /app
 
 # 首先复制根目录的 package.json 和相关配置文件
 COPY packages/package*.json ./packages/
-COPY packages/mira-server/package*.json ./packages/mira-server/
-COPY packages/mira-core/package*.json ./packages/mira-core/
+COPY packages/mira-app-server/package*.json ./packages/mira-app-server/
+COPY packages/mira-app-core/package*.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/package*.json ./packages/mira-storage-sqlite/
 
 # 复制 tsconfig 和其他配置文件
 COPY tsconfig.json ./
-COPY packages/mira-server/tsconfig.json ./packages/mira-server/
-COPY packages/mira-core/tsconfig.json ./packages/mira-core/
+COPY packages/mira-app-server/tsconfig.json ./packages/mira-app-server/
+COPY packages/mira-app-core/tsconfig.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/tsconfig.json ./packages/mira-storage-sqlite/
 
 # 复制源代码
-COPY packages/mira-core/src ./packages/mira-core/src
-COPY packages/mira-server/src ./packages/mira-server/src
+COPY packages/mira-app-core/src ./packages/mira-app-core/src
+COPY packages/mira-app-server/src ./packages/mira-app-server/src
 COPY packages/mira-storage-sqlite/src ./packages/mira-storage-sqlite/src
 
 # 复制插件目录（如果存在）
@@ -47,8 +47,8 @@ RUN rm -rf packages/*/node_modules packages/*/package-lock.json
 WORKDIR /app/packages
 RUN npm install
 
-# 安装并构建 mira-core
-WORKDIR /app/packages/mira-core
+# 安装并构建 mira-app-core
+WORKDIR /app/packages/mira-app-core
 RUN npm install
 RUN npm run build
 
@@ -57,8 +57,8 @@ WORKDIR /app/packages/mira-storage-sqlite
 RUN npm install
 RUN npm run build
 
-# 安装并构建 mira-server
-WORKDIR /app/packages/mira-server
+# 安装并构建 mira-app-server
+WORKDIR /app/packages/mira-app-server
 RUN npm install
 RUN npm run build
 
@@ -68,8 +68,8 @@ RUN ffmpeg -version && ffprobe -version
 # 清理构建依赖以减小镜像大小（保留 ffmpeg）
 RUN apk del python3 make g++ ffmpeg-dev
 
-# 设置工作目录为 mira-server
-WORKDIR /app/packages/mira-server
+# 设置工作目录为 mira-app-server
+WORKDIR /app/packages/mira-app-server
 
 # 暴露端口
 EXPOSE 3000

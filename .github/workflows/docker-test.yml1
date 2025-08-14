@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'packages/mira-server/**'
-      - 'packages/mira-core/**'
+      - 'packages/mira-app-server/**'
+      - 'packages/mira-app-core/**'
       - 'packages/mira-storage-sqlite/**'
       - '.github/workflows/docker-*.yml'
       - 'Dockerfile*'
@@ -26,9 +26,9 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./packages/mira-server/Dockerfile
+        file: ./packages/mira-app-server/Dockerfile
         push: false
-        tags: mira-server:test
+        tags: mira-app-server:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -36,8 +36,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./packages/mira-server/Dockerfile.optimized
+        file: ./packages/mira-app-server/Dockerfile.optimized
         push: false
-        tags: mira-server:test-optimized
+        tags: mira-app-server:test-optimized
         cache-from: type=gha
         cache-to: type=gha,mode=max

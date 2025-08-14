@@ -14,10 +14,10 @@ export default defineConfig(({ mode }) => {
             },
         },
         server: {
-            port: parseInt(env.VITE_APP_PORT) || 3000,
+            port: parseInt(env.APP_PORT) || 3000,
             proxy: {
                 '/api': {
-                    target: env.VITE_API_BASE_URL || 'http://localhost:8080',
+                    target: env.API_BASE_URL || 'http://localhost:3999',
                     changeOrigin: true,
                     rewrite: (path) => path.replace(/^\/api/, '')
                 }

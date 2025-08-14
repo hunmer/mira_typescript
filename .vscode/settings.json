@@ -19,8 +19,8 @@
     "**/dist": true
   },
   "eslint.workingDirectories": [
-    "packages/mira-core",
-    "packages/mira-server",
+    "packages/mira-app-core",
+    "packages/mira-app-server",
     "packages/mira-dashboard",
     "packages/mira-storage-sqlite"
   ],

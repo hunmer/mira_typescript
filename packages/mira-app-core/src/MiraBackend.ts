@@ -88,14 +88,14 @@ export class MiraBackend {
 
   /**
    * 创建并启动服务器的静态方法 (向后兼容)
-   * 注意：HTTP服务器功能已移动到 mira-server 包
+   * 注意：HTTP服务器功能已移动到 mira-app-server 包
    */
   static createAndStart(options?: {
     dataPath?: string,
     httpPort?: number,
     wsPort?: number
   }): MiraBackend {
-    console.warn('⚠️ MiraBackend.createAndStart is deprecated. Use MiraServer from mira-server package for full server functionality.');
+    console.warn('⚠️ MiraBackend.createAndStart is deprecated. Use MiraServer from mira-app-server package for full server functionality.');
     return new MiraBackend({
       dataPath: options?.dataPath,
       wsPort: options?.wsPort,

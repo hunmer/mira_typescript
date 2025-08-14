@@ -7,11 +7,11 @@ declare module '*.vue' {
 }
 
 interface ImportMetaEnv {
-    readonly VITE_APP_TITLE: string
-    readonly VITE_API_BASE_URL: string
-    readonly VITE_INITIAL_ADMIN_USERNAME: string
-    readonly VITE_INITIAL_ADMIN_PASSWORD: string
-    readonly VITE_INITIAL_ADMIN_EMAIL: string
+    readonly APP_TITLE: string
+    readonly API_BASE_URL: string
+    readonly INITIAL_ADMIN_USERNAME: string
+    readonly INITIAL_ADMIN_PASSWORD: string
+    readonly INITIAL_ADMIN_EMAIL: string
 }
 
 interface ImportMeta {

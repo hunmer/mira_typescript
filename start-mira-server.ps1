@@ -1,5 +1,5 @@
 # Mira Server 启动脚本
-# 使用方法: .\start-mira-server.ps1 [dev|prod] [选项]
+# 使用方法: .\start-mira-app-server.ps1 [dev|prod] [选项]
 
 param(
     [string]$Mode = "dev",
@@ -13,7 +13,7 @@ if ($Help) {
     Write-Host @"
 Mira Server 启动脚本
 
-用法: .\start-mira-server.ps1 [模式] [选项]
+用法: .\start-mira-app-server.ps1 [模式] [选项]
 
 模式:
   dev     开发模式 (使用 ts-node，默认)
@@ -26,9 +26,9 @@ Mira Server 启动脚本
   -Help              显示此帮助信息
 
 示例:
-  .\start-mira-server.ps1                           # 开发模式，默认设置
-  .\start-mira-server.ps1 prod                      # 生产模式
-  .\start-mira-server.ps1 dev -HttpPort 4000        # 开发模式，自定义端口
+  .\start-mira-app-server.ps1                           # 开发模式，默认设置
+  .\start-mira-app-server.ps1 prod                      # 生产模式
+  .\start-mira-app-server.ps1 dev -HttpPort 4000        # 开发模式，自定义端口
 "@
     exit 0
 }
@@ -57,7 +57,7 @@ Write-Host "数据路径: $DataPath" -ForegroundColor Yellow
 Write-Host "=========================" -ForegroundColor Cyan
 
 # 切换到服务器目录
-$ServerPath = Join-Path $PSScriptRoot "packages\mira-server"
+$ServerPath = Join-Path $PSScriptRoot "packages\mira-app-server"
 Set-Location $ServerPath
 
 try {

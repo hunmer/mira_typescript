@@ -1,6 +1,6 @@
 # Mira Server
 
-Mira Server是一个基于mira-core的独立服务器应用程序。
+Mira Server是一个基于mira-app-core的独立服务器应用程序。
 
 ## 安装
 
@@ -17,20 +17,20 @@ npm install mira-app-server
 ## 使用方法
 
 ### 全局安装后使用
-安装完成后，你可以在任何地方使用`mira-server`命令：
+安装完成后，你可以在任何地方使用`mira-app-server`命令：
 
 ```bash
 # 使用默认配置启动
-mira-server
+mira-app-server
 
 # 自定义端口启动
-mira-server --http-port 3001 --ws-port 8082
+mira-app-server --http-port 3001 --ws-port 8082
 
 # 自定义数据目录
-mira-server --data-path /path/to/your/data
+mira-app-server --data-path /path/to/your/data
 
 # 查看帮助
-mira-server --help
+mira-app-server --help
 ```
 
 ### 可用选项

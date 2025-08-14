@@ -1,6 +1,6 @@
 @echo off
 rem Mira Server 启动脚本 (批处理版本)
-rem 使用方法: start-mira-server.bat [dev|prod]
+rem 使用方法: start-mira-app-server.bat [dev|prod]
 
 setlocal
 
@@ -21,7 +21,7 @@ echo WebSocket 端口: %WS_PORT%
 echo 数据路径: %DATA_PATH%
 echo =========================
 
-cd /d "%~dp0packages\mira-server"
+cd /d "%~dp0packages\mira-app-server"
 
 if "%MODE%"=="prod" (
     echo 构建项目...

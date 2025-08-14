@@ -4,7 +4,7 @@ const path = require('path');
 function loadEnvVariables() {
     const envFiles = [
         path.join(__dirname, '.env'),
-        path.join(__dirname, 'packages/mira-server/.env'),
+        path.join(__dirname, 'packages/mira-app-server/.env'),
         path.join(__dirname, 'packages/mira-dashboard/.env')
     ];
 
@@ -35,4 +35,4 @@ Object.assign(process.env, envVars);
 console.log('Loaded environment variables:');
 console.log(`MIRA_SERVER_HTTP_PORT: ${process.env.MIRA_SERVER_HTTP_PORT || process.env.HTTP_PORT || '8080'}`);
 console.log(`MIRA_SERVER_WS_PORT: ${process.env.MIRA_SERVER_WS_PORT || process.env.WS_PORT || '8081'}`);
-console.log(`MIRA_DASHBOARD_PORT: ${process.env.MIRA_DASHBOARD_PORT || process.env.VITE_APP_PORT || '3000'}`);
+console.log(`MIRA_DASHBOARD_PORT: ${process.env.MIRA_DASHBOARD_PORT || process.env.APP_PORT || '3000'}`);

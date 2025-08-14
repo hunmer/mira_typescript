@@ -14,20 +14,20 @@ $rootPath = Split-Path $MyInvocation.MyCommand.Path
 # 构建后端服务
 Write-Host "🔧 构建后端服务..." -ForegroundColor Yellow
 
-# 构建 mira-core
-$coreePath = Join-Path $rootPath "packages\mira-core"
+# 构建 mira-app-core
+$coreePath = Join-Path $rootPath "packages\mira-app-core"
 Set-Location $coreePath
 if (-not (Test-Path "node_modules")) {
-    Write-Host "📦 安装 mira-core 依赖..." -ForegroundColor Cyan
+    Write-Host "📦 安装 mira-app-core 依赖..." -ForegroundColor Cyan
     npm install
 }
 npm run rebuild
 
-# 构建 mira-server
-$serverPath = Join-Path $rootPath "packages\mira-server"
+# 构建 mira-app-server
+$serverPath = Join-Path $rootPath "packages\mira-app-server"
 Set-Location $serverPath
 if (-not (Test-Path "node_modules")) {
-    Write-Host "📦 安装 mira-server 依赖..." -ForegroundColor Cyan
+    Write-Host "📦 安装 mira-app-server 依赖..." -ForegroundColor Cyan
     npm install
 }
 npm run build
@@ -62,7 +62,8 @@ Start-Sleep -Seconds 2
 # 启动前端服务
 try {
     npm run dev
-} finally {
+}
+finally {
     # 清理后台作业
     Stop-Job $serverJob -ErrorAction SilentlyContinue
     Remove-Job $serverJob -ErrorAction SilentlyContinue

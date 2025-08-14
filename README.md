@@ -7,8 +7,8 @@
 ```
 mira_typescript/
 ├── packages/
-│   ├── mira-core/              # 核心库
-│   ├── mira-server/            # 后端服务
+│   ├── mira-app-core/              # 核心库
+│   ├── mira-app-server/            # 后端服务
 │   ├── mira-dashboard/         # 前端管理面板 ⭐ 新增
 │   └── mira-storage-sqlite/    # SQLite 存储适配器
 ├── plugins/                    # 插件目录
@@ -18,7 +18,7 @@ mira_typescript/
 
 ## 功能特性
 
-### 后端服务 (mira-server)
+### 后端服务 (mira-app-server)
 - 🚀 基于 Node.js + TypeScript 的高性能服务
 - 📁 资源库管理（本地/远程）
 - 🔌 插件系统支持
@@ -64,7 +64,7 @@ npm run install-all
 #### 方式二：分别启动服务
 ```bash
 # 启动后端服务
-cd packages/mira-server
+cd packages/mira-app-server
 npm run dev
 
 # 启动前端管理面板
@@ -96,13 +96,13 @@ npm run dev
 
 ```env
 # 应用配置
-VITE_APP_TITLE=Mira Dashboard
-VITE_API_BASE_URL=http://localhost:8080
+APP_TITLE=Mira Dashboard
+API_BASE_URL=http://localhost:8080
 
 # 初始管理员配置
-VITE_INITIAL_ADMIN_USERNAME=admin
-VITE_INITIAL_ADMIN_PASSWORD=admin123
-VITE_INITIAL_ADMIN_EMAIL=admin@mira.local
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=admin123
+INITIAL_ADMIN_EMAIL=admin@mira.local
 ```
 
 ## 技术栈

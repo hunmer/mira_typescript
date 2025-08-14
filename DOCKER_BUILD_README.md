@@ -37,7 +37,7 @@
 ├── docker-release.yml    # Release发版工作流
 └── docker-hub-build.yml  # Docker Hub工作流（可选）
 
-packages/mira-server/
+packages/mira-app-server/
 ├── Dockerfile           # 原始Dockerfile
 ├── Dockerfile.optimized # 优化的多阶段构建Dockerfile
 └── ...
@@ -68,7 +68,7 @@ packages/mira-server/
 ### 使用GitHub Container Registry（推荐）
 1. 确保你的仓库有正确的权限设置
 2. 工作流会自动使用 `GITHUB_TOKEN` 进行认证
-3. 镜像将发布到 `ghcr.io/你的用户名/mira_typescript/mira-server`
+3. 镜像将发布到 `ghcr.io/你的用户名/mira_typescript/mira-app-server`
 
 ### 使用Docker Hub（可选）
 1. 在Docker Hub创建访问令牌：
@@ -106,12 +106,12 @@ packages/mira-server/
 
 ### 从GitHub Container Registry拉取：
 ```bash
-docker pull ghcr.io/你的用户名/mira_typescript/mira-server:main
+docker pull ghcr.io/你的用户名/mira_typescript/mira-app-server:main
 ```
 
 ### 从Docker Hub拉取：
 ```bash
-docker pull 你的用户名/mira-server:main
+docker pull 你的用户名/mira-app-server:main
 ```
 
 ## 本地测试
@@ -120,14 +120,14 @@ docker pull 你的用户名/mira-server:main
 
 ```bash
 # 测试原始Dockerfile
-cd packages/mira-server
-docker build -t mira-server:test .
+cd packages/mira-app-server
+docker build -t mira-app-server:test .
 
 # 测试优化版Dockerfile
-docker build -f Dockerfile.optimized -t mira-server:optimized .
+docker build -f Dockerfile.optimized -t mira-app-server:optimized .
 
 # 运行容器测试
-docker run -p 3000:3000 -p 8081:8081 mira-server:test
+docker run -p 3000:3000 -p 8081:8081 mira-app-server:test
 ```
 
 ## 发版流程建议

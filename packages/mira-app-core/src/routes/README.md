@@ -42,7 +42,7 @@
 ## 文件结构
 
 ```
-packages/mira-core/src/
+packages/mira-app-core/src/
 ├── HttpRouter.ts           # 主路由器（简化后）
 └── routes/
     ├── index.ts           # 路由模块导出文件

@@ -13,10 +13,10 @@
     "include": [],
     "references": [
         {
-            "path": "./packages/mira-core"
+            "path": "./packages/mira-app-core"
         },
         {
-            "path": "./packages/mira-server"
+            "path": "./packages/mira-app-server"
         },
         {
             "path": "./packages/mira-dashboard"

@@ -2,5 +2,5 @@
 node_modules
 dist
 temp/
-packages/mira-server/mira_server.tar
-packages/mira-server/data/
+packages/mira-app-server/mira_server.tar
+packages/mira-app-server/data/

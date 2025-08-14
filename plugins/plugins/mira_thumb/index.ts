@@ -1,5 +1,5 @@
 import { MiraWebsocketServer, EventArgs, ServerPluginManager, ServerPlugin } from 'mira-app-core';
-import { MiraHttpServer } from 'mira-server/dist/server';
+import { MiraHttpServer } from 'mira-app-server/dist/server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';

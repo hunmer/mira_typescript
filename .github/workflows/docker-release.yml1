@@ -6,7 +6,7 @@ on:
     
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/mira-server
+  IMAGE_NAME: ${{ github.repository }}/mira-app-server
 
 jobs:
   release:
@@ -42,7 +42,7 @@ jobs:
         contents: read
       with:
         context: .
-        file: ./packages/mira-server/Dockerfile
+        file: ./packages/mira-app-server/Dockerfile
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

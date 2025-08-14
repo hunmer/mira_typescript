@@ -15,7 +15,7 @@ function Load-EnvFile {
 
 # Load environment variables
 Load-EnvFile ".\\.env"
-Load-EnvFile ".\\packages\\mira-server\\.env"
+Load-EnvFile ".\\packages\\mira-app-server\\.env"
 
 # Get port configuration
 $ServerPort = if ($env:MIRA_SERVER_HTTP_PORT) { $env:MIRA_SERVER_HTTP_PORT } elseif ($env:HTTP_PORT) { $env:HTTP_PORT } else { "8080" }
@@ -26,5 +26,5 @@ Write-Host "📡 HTTP Server will start on port: $ServerPort" -ForegroundColor Y
 Write-Host "🔌 WebSocket Server will start on port: $WsPort" -ForegroundColor Yellow
 
 # Change to server directory and start
-Set-Location ".\packages\mira-server"
+Set-Location ".\packages\mira-app-server"
 npm run dev

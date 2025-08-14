@@ -45,7 +45,7 @@ Examples:
   node switch-dependencies.js online
   node switch-dependencies.js offline  
   node switch-dependencies.js online mira-app-core --version=1.0.1
-  node switch-dependencies.js offline mira-app-core --path="file:../../packages/mira-core"
+  node switch-dependencies.js offline mira-app-core --path="file:../../packages/mira-app-core"
   node switch-dependencies.js list
   node switch-dependencies.js list mira-app-core
   node switch-dependencies.js build mira-app-core
@@ -70,25 +70,25 @@ function getCurrentVersion(packageName) {
   if (!PACKAGE_MAPPINGS[packageName]) {
     return null;
   }
-  
+
   const mapping = PACKAGE_MAPPINGS[packageName];
   const buildPath = mapping.buildPath;
-  
+
   if (!buildPath) {
     console.warn(`⚠️  No buildPath configured for ${packageName}`);
     return null;
   }
-  
+
   try {
     const packageJsonPath = path.resolve(buildPath, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
       console.warn(`⚠️  package.json not found at: ${packageJsonPath}`);
       return null;
     }
-    
+
     const content = fs.readFileSync(packageJsonPath, 'utf8');
     const packageJson = JSON.parse(content);
-    
+
     return packageJson.version || null;
   } catch (error) {
     console.warn(`⚠️  Error reading version for ${packageName}:`, error.message);
@@ -102,28 +102,28 @@ function getCurrentVersion(packageName) {
  */
 function listPackageOptions(targetPackages) {
   console.log('📋 Available package options:\n');
-  
+
   targetPackages.forEach(packageName => {
     if (PACKAGE_MAPPINGS[packageName]) {
       const mapping = PACKAGE_MAPPINGS[packageName];
       const currentVersion = getCurrentVersion(packageName);
-      
+
       console.log(`📦 ${packageName}:`);
-      
+
       console.log('  Current version:');
       if (currentVersion) {
         console.log(`    ^${currentVersion} (read from package.json)`);
       } else {
         console.log(`    Unable to read version`);
       }
-      
+
       console.log('  Offline path:');
       console.log(`    ${mapping.defaultOffline}`);
-      
+
       console.log('  Build configuration:');
       console.log(`    Path: ${mapping.buildPath || 'Not configured'}`);
       console.log(`    Command: ${mapping.buildCommand || 'npm install && npm run build && npm publish'}`);
-      
+
       console.log('');
     }
   });
@@ -139,67 +139,67 @@ async function buildPackages(targetPackages, dryRun = false, versionBump = 'patc
   const { exec } = require('child_process');
   const { promisify } = require('util');
   const execAsync = promisify(exec);
-  
+
   console.log(`🔨 ${dryRun ? 'Dry run - showing' : 'Executing'} build for packages: ${targetPackages.join(', ')}`);
   console.log(`📈 Version bump type: ${versionBump}\n`);
-  
+
   for (const packageName of targetPackages) {
     if (!PACKAGE_MAPPINGS[packageName]) {
       console.warn(`⚠️  Package ${packageName} not found in configuration, skipping`);
       continue;
     }
-    
+
     const mapping = PACKAGE_MAPPINGS[packageName];
     const buildPath = mapping.buildPath || `packages/${packageName}`;
     // Extract build command without publish
     const fullCommand = mapping.buildCommand || 'npm install && npm run build';
     const buildCommand = fullCommand.replace(/\s*&&\s*npm\s+publish\s*$/, '').trim();
-    
+
     console.log(`\n📦 Processing ${packageName}:`);
     console.log(`   Path: ${buildPath}`);
-    
-    
+
+
     // Step 1: Execute build command (without publish)
     console.log(`   Command: ${buildCommand}`);
-    
+
     if (dryRun) {
       console.log(`   📋 Would execute: cd ${buildPath} && ${buildCommand}`);
       continue;
     }
-    
+
     try {
       console.log(`   🔄 Executing build...`);
-      
+
       // Check if build path exists
       const buildAbsolutePath = path.resolve(buildPath);
       if (!fs.existsSync(buildAbsolutePath)) {
         console.error(`   ❌ Build path does not exist: ${buildAbsolutePath}`);
         continue;
       }
-      
+
       // Execute the build command (without publish)
-      const { stdout, stderr } = await execAsync(buildCommand, { 
+      const { stdout, stderr } = await execAsync(buildCommand, {
         cwd: buildAbsolutePath,
         maxBuffer: 1024 * 1024 * 10 // 10MB buffer
       });
-      
+
       if (stdout) {
         console.log(`   📝 Output: ${stdout.trim()}`);
       }
-      
+
       if (stderr) {
         console.warn(`   ⚠️  Warnings: ${stderr.trim()}`);
       }
-      
+
       console.log(`   ✅ Successfully built ${packageName}`);
-      
+
     } catch (error) {
       console.error(`   ❌ Error building ${packageName}:`, error.message);
       if (error.stdout) console.log(`   📝 Stdout: ${error.stdout}`);
       if (error.stderr) console.error(`   📝 Stderr: ${error.stderr}`);
     }
   }
-  
+
   console.log(`\n🎉 Build process completed!`);
 }
 
@@ -213,96 +213,96 @@ async function publishPackages(targetPackages, dryRun = false, versionBump = 'pa
   const { exec } = require('child_process');
   const { promisify } = require('util');
   const execAsync = promisify(exec);
-  
+
   console.log(`🚀 ${dryRun ? 'Dry run - showing' : 'Executing'} build, publish and update dependencies for packages: ${targetPackages.join(', ')}`);
   console.log(`📈 Version bump type: ${versionBump}\n`);
-  
+
   const publishedVersions = new Map();
-  
+
   for (const packageName of targetPackages) {
     if (!PACKAGE_MAPPINGS[packageName]) {
       console.warn(`⚠️  Package ${packageName} not found in configuration, skipping`);
       continue;
     }
-    
+
     const mapping = PACKAGE_MAPPINGS[packageName];
     const buildPath = mapping.buildPath || `packages/${packageName}`;
     const buildCommand = mapping.buildCommand || 'npm install && npm run build && npm publish';
-    
+
     console.log(`\n📦 Processing ${packageName}:`);
     console.log(`   Path: ${buildPath}`);
-    
+
     // Step 1: Update version
     const newVersion = updatePackageVersion(buildPath, packageName, versionBump, dryRun);
     if (!newVersion) {
       console.error(`   ❌ Failed to update version for ${packageName}, skipping`);
       continue;
     }
-    
+
     publishedVersions.set(packageName, newVersion);
-    
+
     // Step 2: Execute build and publish command
     console.log(`   Command: ${buildCommand}`);
-    
+
     if (dryRun) {
       console.log(`   📋 Would execute: cd ${buildPath} && ${buildCommand}`);
       console.log(`   📋 Would update configuration file defaultOnline to: ${newVersion}`);
       continue;
     }
-    
+
     try {
       console.log(`   🔄 Executing build and publish...`);
-      
+
       // Check if build path exists
       const buildAbsolutePath = path.resolve(buildPath);
       if (!fs.existsSync(buildAbsolutePath)) {
         console.error(`   ❌ Build path does not exist: ${buildAbsolutePath}`);
         continue;
       }
-      
+
       // Execute the build and publish command
-      const { stdout, stderr } = await execAsync(buildCommand, { 
+      const { stdout, stderr } = await execAsync(buildCommand, {
         cwd: buildAbsolutePath,
         maxBuffer: 1024 * 1024 * 10 // 10MB buffer
       });
-      
+
       if (stdout) {
         console.log(`   📝 Output: ${stdout.trim()}`);
       }
-      
+
       if (stderr) {
         console.warn(`   ⚠️  Warnings: ${stderr.trim()}`);
       }
-      
+
       console.log(`   ✅ Successfully built and published ${packageName} v${newVersion}`);
-      
+
       // Step 3: Update configuration file
       updateConfigurationFile(packageName, newVersion, false);
-      
+
     } catch (error) {
       console.error(`   ❌ Error building/publishing ${packageName}:`, error.message);
       if (error.stdout) console.log(`   📝 Stdout: ${error.stdout}`);
       if (error.stderr) console.error(`   📝 Stderr: ${error.stderr}`);
-      
+
       // Remove from published versions since it failed
       publishedVersions.delete(packageName);
     }
   }
-  
+
   // Step 4: Update all target files with new versions
   if (publishedVersions.size > 0 && !dryRun) {
     console.log(`\n🔄 Updating dependencies in all target files...`);
-    
+
     let totalUpdated = 0;
     for (const relativePath of TARGET_FILES) {
       const absolutePath = path.resolve(relativePath);
       console.log(`\n📁 Processing: ${relativePath}`);
-      
+
       if (updatePackageJsonWithVersions(absolutePath, publishedVersions)) {
         totalUpdated++;
       }
     }
-    
+
     console.log(`\n✅ Updated dependencies in ${totalUpdated} file(s)`);
   } else if (dryRun && publishedVersions.size > 0) {
     console.log(`\n📋 Would update dependencies in all target files with new versions:`);
@@ -310,7 +310,7 @@ async function publishPackages(targetPackages, dryRun = false, versionBump = 'pa
       console.log(`   ${packageName}: ^${version}`);
     });
   }
-  
+
   console.log(`\n🎉 Publish process completed!`);
 }
 
@@ -322,13 +322,13 @@ async function publishPackages(targetPackages, dryRun = false, versionBump = 'pa
  */
 function incrementVersion(version, bumpType = 'patch') {
   const parts = version.split('.').map(Number);
-  
+
   if (parts.length !== 3) {
     throw new Error(`Invalid version format: ${version}`);
   }
-  
+
   let [major, minor, patch] = parts;
-  
+
   switch (bumpType) {
     case 'major':
       major += 1;
@@ -344,7 +344,7 @@ function incrementVersion(version, bumpType = 'patch') {
       patch += 1;
       break;
   }
-  
+
   return `${major}.${minor}.${patch}`;
 }
 
@@ -357,27 +357,27 @@ function incrementVersion(version, bumpType = 'patch') {
 function updateConfigurationFile(packageName, newVersion, dryRun = false) {
   try {
     const configPath = path.resolve('dependency-switch-config.json');
-    
+
     if (dryRun) {
       console.log(`   📋 Would update configuration file defaultOnline to: ${newVersion}`);
       return;
     }
-    
+
     // Read current config
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
-    
+
     if (config.packageMappings[packageName]) {
       // Update defaultOnline to new version
       config.packageMappings[packageName].defaultOnline = newVersion;
-      
+
       // Write updated config back to file
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
       console.log(`   ✅ Updated configuration file defaultOnline to: ${newVersion}`);
     } else {
       console.warn(`   ⚠️  Package ${packageName} not found in configuration`);
     }
-    
+
   } catch (error) {
     console.error(`   ❌ Error updating configuration file:`, error.message);
   }
@@ -394,41 +394,41 @@ function updateConfigurationFile(packageName, newVersion, dryRun = false) {
 function updatePackageVersion(packagePath, packageName, bumpType = 'patch', dryRun = false) {
   try {
     const packageJsonPath = path.join(packagePath, 'package.json');
-    
+
     if (!fs.existsSync(packageJsonPath)) {
       console.error(`   ❌ package.json not found in: ${packagePath}`);
       return null;
     }
-    
+
     const content = fs.readFileSync(packageJsonPath, 'utf8');
     const packageJson = JSON.parse(content);
-    
+
     if (!packageJson.version) {
       console.error(`   ❌ No version field found in: ${packageJsonPath}`);
       return null;
     }
-    
+
     const oldVersion = packageJson.version;
     const newVersion = incrementVersion(oldVersion, bumpType);
-    
+
     console.log(`   📈 Version: ${oldVersion} → ${newVersion} (${bumpType})`);
-    
+
     if (!dryRun) {
       packageJson.version = newVersion;
       fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
       console.log(`   ✅ Version updated in package.json`);
-      
+
       // Update configuration file with new version
       updateConfigurationFile(packageName, newVersion, dryRun);
     } else {
       console.log(`   📋 Would update version in package.json`);
-      
+
       // Show what would be updated in configuration file
       updateConfigurationFile(packageName, newVersion, dryRun);
     }
-    
+
     return newVersion;
-    
+
   } catch (error) {
     console.error(`   ❌ Error updating version in ${packagePath}:`, error.message);
     return null;
@@ -449,16 +449,16 @@ function parseArguments(args) {
     dryRun: false,
     versionBump: 'patch'
   };
-  
+
   if (args.length === 0) {
     return result;
   }
-  
+
   result.mode = args[0];
-  
+
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg.startsWith('--version=')) {
       result.version = arg.substring(10);
     } else if (arg.startsWith('--path=')) {
@@ -476,7 +476,7 @@ function parseArguments(args) {
       result.packages.push(arg);
     }
   }
-  
+
   return result;
 }
 /**
@@ -495,7 +495,7 @@ function updatePackageJsonWithVersions(filePath, publishedVersions) {
     // Read and parse package.json
     const content = fs.readFileSync(filePath, 'utf8');
     const packageJson = JSON.parse(content);
-    
+
     let hasChanges = false;
 
     // Update dependencies
@@ -505,9 +505,9 @@ function updatePackageJsonWithVersions(filePath, publishedVersions) {
           if (packageJson[depType][packageName]) {
             const oldValue = packageJson[depType][packageName];
             const newValue = `^${version}`;
-            
+
             packageJson[depType][packageName] = newValue;
-            
+
             if (oldValue !== newValue) {
               console.log(`  ${packageName}: ${oldValue} → ${newValue}`);
               hasChanges = true;
@@ -552,7 +552,7 @@ function updatePackageJson(filePath, mode, targetPackages, customVersion = null,
     // Read and parse package.json
     const content = fs.readFileSync(filePath, 'utf8');
     const packageJson = JSON.parse(content);
-    
+
     let hasChanges = false;
 
     // Update dependencies
@@ -563,7 +563,7 @@ function updatePackageJson(filePath, mode, targetPackages, customVersion = null,
             const mapping = PACKAGE_MAPPINGS[packageName];
             const oldValue = packageJson[depType][packageName];
             let newValue;
-            
+
             if (mode === 'online') {
               // Use custom version or get current version from package.json
               const version = customVersion || getCurrentVersion(packageName);
@@ -576,9 +576,9 @@ function updatePackageJson(filePath, mode, targetPackages, customVersion = null,
               // Use custom path or default offline path
               newValue = customPath || mapping.defaultOffline;
             }
-            
+
             packageJson[depType][packageName] = newValue;
-            
+
             if (oldValue !== newValue) {
               console.log(`  ${packageName}: ${oldValue} → ${newValue}`);
               hasChanges = true;
@@ -609,7 +609,7 @@ function updatePackageJson(filePath, mode, targetPackages, customVersion = null,
  */
 async function main() {
   const rawArgs = process.argv.slice(2);
-  
+
   if (rawArgs.length === 0 || rawArgs.includes('--help') || rawArgs.includes('-h')) {
     showUsage();
     return;
@@ -626,7 +626,7 @@ async function main() {
 
   // Determine which packages to work with
   const specifiedPackages = parsed.packages;
-  const targetPackages = specifiedPackages.length > 0 
+  const targetPackages = specifiedPackages.length > 0
     ? specifiedPackages.filter(pkg => PACKAGE_MAPPINGS[pkg])
     : Object.keys(PACKAGE_MAPPINGS);
 
@@ -679,14 +679,14 @@ async function main() {
   TARGET_FILES.forEach(relativePath => {
     const absolutePath = path.resolve(relativePath);
     console.log(`\n📁 Processing: ${relativePath}`);
-    
+
     if (updatePackageJson(absolutePath, mode, targetPackages, parsed.version, parsed.path)) {
       totalUpdated++;
     }
   });
 
   console.log(`\n🎉 Process completed! Updated ${totalUpdated} file(s).`);
-  
+
   if (totalUpdated > 0) {
     console.log(`\n💡 Don't forget to run 'npm install' in the updated packages to apply changes.`);
   }

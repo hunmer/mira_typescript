@@ -10,9 +10,9 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "mira-app-core": "file:D:/mira_typescript/packages/mira-core/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/",
     "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
-    "mira-server": "file:D:/mira_typescript/packages/mira-server/"
+    "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

@@ -28,13 +28,13 @@
 
 ```env
 # 应用配置
-VITE_APP_TITLE=Mira Dashboard
-VITE_API_BASE_URL=http://localhost:8080
+APP_TITLE=Mira Dashboard
+API_BASE_URL=http://localhost:8081
 
 # 初始管理员配置
-VITE_INITIAL_ADMIN_USERNAME=admin
-VITE_INITIAL_ADMIN_PASSWORD=admin123
-VITE_INITIAL_ADMIN_EMAIL=admin@mira.local
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=admin123
+INITIAL_ADMIN_EMAIL=admin@mira.local
 ```
 
 ## 开发环境启动

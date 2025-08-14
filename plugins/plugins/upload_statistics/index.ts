@@ -1,6 +1,6 @@
 import { ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { MiraHttpServer } from 'mira-server/dist/server';
+import { MiraHttpServer } from 'mira-app-server/dist/server';
 class UploadStatistics extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
     private httpServer: MiraHttpServer;

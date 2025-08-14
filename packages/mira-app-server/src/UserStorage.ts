@@ -100,8 +100,8 @@ export class UserStorage {
     }
 
     private async createDefaultAdmin(): Promise<void> {
-        const adminUsername = process.env.VITE_INITIAL_ADMIN_USERNAME || 'admin';
-        const adminPassword = process.env.VITE_INITIAL_ADMIN_PASSWORD || 'admin123';
+        const adminUsername = process.env.INITIAL_ADMIN_USERNAME || 'admin';
+        const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'admin123';
 
         // 检查是否已存在管理员用户
         const existingAdmin = await this.findUserByUsername(adminUsername);

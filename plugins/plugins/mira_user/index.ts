@@ -1,6 +1,6 @@
 import { ServerPluginManager, MiraWebsocketServer, ServerPlugin, addStaticResources } from 'mira-app-core';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { MiraHttpServer } from 'mira-server/dist/server';
+import { MiraHttpServer } from 'mira-app-server/dist/server';
 import path from "path";
 
 class UserPlugin extends ServerPlugin {

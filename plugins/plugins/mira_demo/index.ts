@@ -1,7 +1,7 @@
 import { ServerPluginManager, ServerPlugin, MiraWebsocketServer } from 'mira-app-core';
 import { EventEmitter } from 'events';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { MiraHttpServer } from 'mira-server/dist/HttpServer';
+import { MiraHttpServer } from 'mira-app-server/dist/HttpServer';
 
 class DemoPlugin extends ServerPlugin {
     private readonly server: MiraWebsocketServer;
