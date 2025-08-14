@@ -294,7 +294,7 @@ const executeSql = async () => {
   }
   
   try {
-    const response = await api.post('/database/query', { sql: sqlQuery.value })
+    const response = await api.post('/api/database/query', { sql: sqlQuery.value })
     sqlResult.value = response.data as any
     message.success('查询执行成功')
   } catch (error: any) {
@@ -314,11 +314,11 @@ const saveRow = async () => {
   try {
     if (editingRowIndex.value !== -1) {
       // 更新行
-      await api.put(`/database/tables/${selectedTable.value.name}/rows`, rowForm.value)
+      await api.put(`/api/database/tables/${selectedTable.value.name}/rows`, rowForm.value)
       message.success('行更新成功')
     } else {
       // 新增行
-      await api.post(`/database/tables/${selectedTable.value.name}/rows`, rowForm.value)
+      await api.post(`/api/database/tables/${selectedTable.value.name}/rows`, rowForm.value)
       message.success('行添加成功')
     }
     
@@ -342,7 +342,7 @@ const deleteRow = async (row: DatabaseRow, _index: number) => {
   cancelText: '取消'
 })
     
-    await api.delete(`/database/tables/${selectedTable.value.name}/rows`, { 
+    await api.delete(`/api/database/tables/${selectedTable.value.name}/rows`, { 
       data: row,
       headers: { 'Content-Type': 'application/json' }
     } as any)
@@ -359,7 +359,7 @@ const exportTable = async () => {
   if (!selectedTable.value) return
   
   try {
-    const response = await api.get(`/database/tables/${selectedTable.value.name}/export`, {
+    const response = await api.get(`/api/database/tables/${selectedTable.value.name}/export`, {
       responseType: 'blob'
     })
     

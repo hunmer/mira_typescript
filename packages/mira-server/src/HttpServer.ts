@@ -194,7 +194,7 @@ export class HttpServer {
         });
 
         // 创建管理员
-        this.app.post('/admins', this.authRouter.authMiddleware(), async (req, res) => {
+        this.app.post('/api/admins', this.authRouter.authMiddleware(), async (req, res) => {
             try {
                 const { username, email, password } = req.body;
 
@@ -250,7 +250,7 @@ export class HttpServer {
         });
 
         // 更新管理员
-        this.app.put('/admins/:id', this.authRouter.authMiddleware(), async (req, res) => {
+        this.app.put('/api/admins/:id', this.authRouter.authMiddleware(), async (req, res) => {
             try {
                 const { id } = req.params;
                 const { email, username, password } = req.body;
@@ -333,6 +333,19 @@ export class HttpServer {
 
         // API 路由（业务逻辑路由） 
         this.app.use('/api', this.httpRouter.getRouter() as any);
+
+        // API 健康检查端点
+        this.app.get('/api/health', (req, res) => {
+            res.json({
+                success: true,
+                status: 'ok',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                version: process.env.npm_package_version || '1.0.0',
+                nodeVersion: process.version,
+                environment: process.env.NODE_ENV || 'development'
+            });
+        });
 
         // 健康检查端点
         this.app.get('/health', (req, res) => {

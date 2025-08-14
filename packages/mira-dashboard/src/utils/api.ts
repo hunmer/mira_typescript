@@ -19,7 +19,7 @@ api.interceptors.request.use(
         config.metadata = { startTime: Date.now() }
 
         // 添加认证token
-        const token = localStorage.getItem('token')
+        const token = sessionStorage.getItem('token')
         if (token) {
             config.headers = config.headers || {}
             config.headers.Authorization = `Bearer ${token}`

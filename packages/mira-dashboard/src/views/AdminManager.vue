@@ -224,14 +224,14 @@ const saveAdmin = async () => {
     
     if (editingAdmin.value) {
       // 更新管理员（只更新邮箱）
-      await api.put(`/admins/${editingAdmin.value.id}`, {
+      await api.put(`/api/admins/${editingAdmin.value.id}`, {
         email: adminForm.value.email
       })
       message.success('管理员信息更新成功')
     } else {
       // 添加管理员
       const { confirmPassword, ...adminData } = adminForm.value
-      await api.post('/admins', adminData)
+      await api.post('/api/admins', adminData)
       message.success('管理员添加成功')
     }
     
@@ -251,7 +251,7 @@ const deleteAdmin = async (admin: User) => {
       cancelText: '取消'
     })
     
-    await api.delete(`/admins/${admin.id}`)
+    await api.delete(`/api/admins/${admin.id}`)
     message.success('管理员删除成功')
     loadAdmins()
   } catch (error: any) {

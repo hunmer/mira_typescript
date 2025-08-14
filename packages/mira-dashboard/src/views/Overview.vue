@@ -196,7 +196,7 @@ const loadStats = async () => {
 const loadSystemInfo = async () => {
   try {
     // 获取系统健康信息
-    const healthRes = await api.get('/health')
+    const healthRes = await api.get('/api/health')
     const healthData = healthRes.data as any
 
     systemInfo.value = {
