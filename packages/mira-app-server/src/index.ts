@@ -12,8 +12,8 @@ async function startServer() {
     console.log('🚀 Starting Mira Server...');
 
     // 获取端口配置，优先使用环境变量
-    const httpPort = process.env.MIRA_SERVER_HTTP_PORT || process.env.HTTP_PORT || '8080';
-    const wsPort = process.env.MIRA_SERVER_WS_PORT || process.env.WS_PORT || '8081';
+    const httpPort = process.env.MIRA_SERVER_HTTP_PORT || process.env.HTTP_PORT || '8081';
+    const wsPort = process.env.MIRA_SERVER_WS_PORT || process.env.WS_PORT || '8018';
     const dataPath = process.env.DATA_PATH || './data';
 
     console.log(`📡 HTTP Server will start on port: ${httpPort}`);

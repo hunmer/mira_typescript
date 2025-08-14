@@ -18,7 +18,7 @@ export class MiraServer {
 
     constructor(config: ServerConfig = {}) {
         this.config = {
-            httpPort: 8080,
+            httpPort: 8081,
             wsPort: 8081,
             enableHttp: true,
             enableWebSocket: true,

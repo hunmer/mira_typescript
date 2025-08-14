@@ -30,7 +30,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "打包并上传全部",
+      "name": "打包全部",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "smartStep": true,
@@ -38,6 +38,19 @@
       "args": [
         "${workspaceFolder}/switch-dependencies.js",
         "build",
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "上传全部",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "${workspaceFolder}/switch-dependencies.js",
+        "publish",
       ]
     },
     {

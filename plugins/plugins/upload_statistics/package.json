@@ -15,9 +15,9 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
-    "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/",
-    "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/"
+    "mira-storage-sqlite": "^1.0.13",
+    "mira-app-server": "^1.0.14",
+    "mira-app-core": "^1.0.17"
   },
   "keywords": [],
   "author": "hunmer",

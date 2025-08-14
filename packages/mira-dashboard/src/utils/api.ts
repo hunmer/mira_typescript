@@ -2,33 +2,8 @@ import axios from 'axios'
 import { message } from 'ant-design-vue'
 import { httpLogger, requestStats } from './http-logger'
 
-// 在生产环境中，尝试从全局变量获取 API URL，否则使用环境变量或默认值
-const getApiBaseUrl = () => {
-    // 检查是否有全局配置（用于 Docker 运行时配置）
-    if (typeof window !== 'undefined' && (window as any).__RUNTIME_CONFIG__) {
-        const runtimeApiUrl = (window as any).__RUNTIME_CONFIG__.API_BASE_URL
-        if (runtimeApiUrl) {
-            // 如果运行时配置的 API URL 是外部地址，直接使用
-            if (runtimeApiUrl.startsWith('http://') || runtimeApiUrl.startsWith('https://')) {
-                return runtimeApiUrl
-            }
-        }
-    }
-
-    // 开发环境使用 Vite 环境变量
-    const viteApiUrl = import.meta.env.API_BASE_URL
-    if (viteApiUrl) {
-        return viteApiUrl
-    }
-
-    // 默认情况下使用相对路径（通过 nginx 代理）
-    return ''
-}
-
-const API_BASE_URL = getApiBaseUrl()
-
 export const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081',
     timeout: 10000,
     // 不设置默认的 Content-Type，让每个请求自己决定
 })

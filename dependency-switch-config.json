@@ -1,7 +1,7 @@
 {
   "packageMappings": {
     "mira-app-core": {
-      "defaultOnline": "1.0.17",
+      "defaultOnline": "1.0.18",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-app-core/",
       "buildPath": "packages/mira-app-core",
       "buildCommand": "npm install && npm run build && npm publish"

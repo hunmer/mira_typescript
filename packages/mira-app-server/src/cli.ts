@@ -16,7 +16,7 @@ program
 program
   .command('start')
   .description('Start the Mira server')
-  .option('-p, --port <number>', 'HTTP port number', '8080')
+  .option('-p, --port <number>', 'HTTP port number', '8081')
   .option('-w, --ws-port <number>', 'WebSocket port number', '8081')
   .option('-d, --data <path>', 'Data directory path')
   .option('--no-http', 'Disable HTTP server')
@@ -73,7 +73,7 @@ program
 program
   .command('health')
   .description('Check server health')
-  .option('-p, --port <number>', 'Server port', '8080')
+  .option('-p, --port <number>', 'Server port', '8081')
   .action(async (options) => {
     try {
       const axios = await import('axios');

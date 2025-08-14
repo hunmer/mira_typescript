@@ -73,7 +73,7 @@ npm run dev
 ```
 
 ### 3. 访问应用
-- **后端API**: http://localhost:8080
+- **后端API**: http://localhost:8081
 - **前端管理面板**: http://localhost:3000
 - **默认登录**: 用户名 `admin`，密码 `admin123`
 
@@ -97,7 +97,7 @@ npm run dev
 ```env
 # 应用配置
 APP_TITLE=Mira Dashboard
-API_BASE_URL=http://localhost:8080
+API_BASE_URL=http://localhost:8081
 
 # 初始管理员配置
 INITIAL_ADMIN_USERNAME=admin

@@ -162,7 +162,7 @@
       "command": "powershell",
       "args": [
         "-Command",
-        "$port = 8080; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-app-server on port 8080' } else { Write-Host 'No process found on port 8080' }"
+        "$port = 8081; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-app-server on port 8081' } else { Write-Host 'No process found on port 8081' }"
       ],
       "group": "test",
       "presentation": {
@@ -178,7 +178,7 @@
       "command": "powershell",
       "args": [
         "-Command",
-        "$port = 3000; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-dashboard on port 3000' } else { Write-Host 'No process found on port 3000' }"
+        "$port = 3999; $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host 'Stopped mira-dashboard on port 3999' } else { Write-Host 'No process found on port 3999' }"
       ],
       "group": "test",
       "presentation": {
@@ -194,7 +194,7 @@
       "command": "powershell",
       "args": [
         "-Command",
-        "$ports = @(8080, 3000); foreach ($port in $ports) { $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host \"Stopped process on port $port\" } else { Write-Host \"No process found on port $port\" } }; Write-Host 'Stopped all Mira stack processes'"
+        "$ports = @(8081, 3999); foreach ($port in $ports) { $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess; if ($process) { Stop-Process -Id $process -Force; Write-Host \"Stopped process on port $port\" } else { Write-Host \"No process found on port $port\" } }; Write-Host 'Stopped all Mira stack processes'"
       ],
       "group": "test",
       "dependsOn": [

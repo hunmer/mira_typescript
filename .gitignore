@@ -4,3 +4,4 @@ dist
 temp/
 packages/mira-app-server/mira_server.tar
 packages/mira-app-server/data/
+.vscode/edge-debug-user-data/

@@ -417,7 +417,7 @@ export class MiraHttpServer {
         });
     }
 
-    public start(port: number = 8080): Promise<void> {
+    public start(port: number = 8081): Promise<void> {
         return new Promise((resolve, reject) => {
             this.httpServer.listen(port, (err?: Error) => {
                 if (err) {
