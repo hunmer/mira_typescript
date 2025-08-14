@@ -56,16 +56,37 @@ const router = createRouter({
 })
 
 // Navigation guard for authentication
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _from, next) => {
     const authStore = useAuthStore()
 
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        next('/login')
-    } else if (to.path === '/login' && authStore.isAuthenticated) {
-        next('/')
-    } else {
-        next()
+    // 如果目标路由需要认证
+    if (to.meta.requiresAuth !== false && to.path !== '/login') {
+        if (!authStore.isAuthenticated) {
+            console.log('User not authenticated, redirecting to login')
+            next('/login')
+            return
+        }
+
+        // 如果有token但没有用户信息，尝试初始化
+        if (authStore.token && !authStore.user) {
+            try {
+                await authStore.initializeAuth()
+            } catch (error) {
+                console.error('Auth initialization failed:', error)
+                next('/login')
+                return
+            }
+        }
     }
+
+    // 如果用户已登录但访问登录页，重定向到首页
+    if (to.path === '/login' && authStore.isAuthenticated) {
+        console.log('User already authenticated, redirecting to dashboard')
+        next('/')
+        return
+    }
+
+    next()
 })
 
 export default router

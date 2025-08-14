@@ -62,9 +62,16 @@ api.interceptors.response.use(
 
         // 错误处理
         if (error.response?.status === 401) {
+            // 清除所有认证相关的存储
+            sessionStorage.removeItem('token')
             localStorage.removeItem('token')
-            window.location.href = '/login'
-            message.error('登录已过期，请重新登录')
+            sessionStorage.clear()
+
+            // 重定向到登录页
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login'
+                message.error('登录已过期，请重新登录')
+            }
         } else if (error.response?.status >= 500) {
             message.error('服务器错误，请稍后重试')
         } else if (error.response?.status >= 400) {

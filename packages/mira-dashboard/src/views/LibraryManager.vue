@@ -28,7 +28,10 @@
     </div>
 
     <!-- 资源库列表 -->
+    <a-skeleton v-if="loading && libraries.length === 0" active :paragraph="{ rows: 8 }" />
+    
     <a-table
+      v-else
       :loading="loading"
       :data-source="filteredLibraries"
       :row-key="(record: Library) => record.id"

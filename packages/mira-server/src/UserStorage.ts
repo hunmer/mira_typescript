@@ -181,6 +181,18 @@ export class UserStorage {
         return this.rowToUser(rows[0]);
     }
 
+    // 查找用户名（包括已删除的用户）
+    async findUserByUsernameIncludeInactive(username: string): Promise<User | null> {
+        const query = 'SELECT * FROM users WHERE username = ? LIMIT 1';
+        const rows = await this.getSql(query, [username]);
+
+        if (rows.length === 0) {
+            return null;
+        }
+
+        return this.rowToUser(rows[0]);
+    }
+
     async findUserById(id: number): Promise<User | null> {
         const query = 'SELECT * FROM users WHERE id = ? AND is_active = 1 LIMIT 1';
         const rows = await this.getSql(query, [id]);
@@ -332,6 +344,35 @@ export class UserStorage {
             return true;
         }
         return false;
+    }
+
+    // 硬删除用户（彻底删除记录）
+    async hardDeleteUser(id: number): Promise<boolean> {
+        // 先删除相关的会话记录
+        await this.revokeAllUserSessions(id);
+
+        // 然后删除用户记录
+        const query = 'DELETE FROM users WHERE id = ?';
+        const result = await this.runSql(query, [id]);
+
+        return result.changes > 0;
+    }
+
+    // 删除非活跃用户（清理已软删除的用户，释放用户名）
+    async deleteInactiveUsers(): Promise<number> {
+        // 先删除这些用户的会话
+        const inactiveUsersQuery = 'SELECT id FROM users WHERE is_active = 0';
+        const inactiveUsers = await this.getSql(inactiveUsersQuery, []);
+
+        for (const user of inactiveUsers) {
+            await this.revokeAllUserSessions(user.id);
+        }
+
+        // 删除非活跃用户
+        const deleteQuery = 'DELETE FROM users WHERE is_active = 0';
+        const result = await this.runSql(deleteQuery, []);
+
+        return result.changes;
     }
 
     // 检查用户名是否存在(用于创建和更新时验证)

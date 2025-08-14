@@ -222,7 +222,151 @@ export class LibraryRoutes {
             }
         });
 
-        // 删除资源库
+        // 获取资源库统计信息
+        this.router.get('/:id/stats', async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params;
+                const libraryObj = this.backend.libraries.libraries[id];
+
+                if (!libraryObj || !libraryObj.libraryService) {
+                    return res.status(404).json({ error: 'Library not found' });
+                }
+
+                const stats = await libraryObj.libraryService.getStats();
+
+                // 获取文件夹数量
+                let totalFolders = 0;
+                try {
+                    const folderResult = await libraryObj.libraryService.getSql('SELECT COUNT(*) as total_folders FROM files WHERE type = "folder" AND recycled = 0');
+                    totalFolders = folderResult[0]?.total_folders || 0;
+                } catch (error) {
+                    console.warn('Failed to get folder count:', error);
+                }
+
+                // 获取标签数量
+                let totalTags = 0;
+                try {
+                    const tagResult = await libraryObj.libraryService.getSql('SELECT COUNT(DISTINCT tag) as total_tags FROM file_tags');
+                    totalTags = tagResult[0]?.total_tags || 0;
+                } catch (error) {
+                    console.warn('Failed to get tag count:', error);
+                }
+
+                // 获取文件类型分布
+                let fileTypes = {};
+                try {
+                    const typeResult = await libraryObj.libraryService.getSql('SELECT type, COUNT(*) as count FROM files WHERE recycled = 0 GROUP BY type');
+                    fileTypes = typeResult.reduce((acc: any, row: any) => {
+                        acc[row.type] = row.count;
+                        return acc;
+                    }, {});
+                } catch (error) {
+                    console.warn('Failed to get file types:', error);
+                }
+
+                const detailedStats = {
+                    totalFiles: stats.totalFiles || 0,
+                    totalFolders: totalFolders,
+                    totalSize: stats.totalSize || 0,
+                    totalTags: totalTags,
+                    fileTypes: fileTypes,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                res.json(detailedStats);
+            } catch (error) {
+                console.error('Error getting library stats:', error);
+                res.status(500).json({ error: 'Failed to get library stats' });
+            }
+        });
+
+        // SQL 查询接口
+        this.router.post('/:id/query', async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params;
+                const { sql } = req.body;
+
+                if (!sql) {
+                    return res.status(400).json({ error: 'SQL query is required' });
+                }
+
+                const libraryObj = this.backend.libraries.get(id);
+                if (!libraryObj || !libraryObj.libraryService) {
+                    return res.status(404).json({ error: 'Library not found' });
+                }
+
+                const result = await libraryObj.libraryService.getSql(sql);
+                res.json({ success: true, data: result });
+            } catch (error) {
+                console.error('Error executing SQL query:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Failed to execute SQL query',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                });
+            }
+        });
+
+        // 获取表结构信息
+        this.router.get('/:id/schema/:table', async (req: Request, res: Response) => {
+            try {
+                const { id, table } = req.params;
+
+                const libraryObj = this.backend.libraries.get(id);
+                if (!libraryObj || !libraryObj.libraryService) {
+                    return res.status(404).json({ error: 'Library not found' });
+                }
+
+                // 获取表结构
+                const schemaQuery = `PRAGMA table_info(${table})`;
+                const schema = await libraryObj.libraryService.getSql(schemaQuery);
+
+                res.json({ success: true, data: schema });
+            } catch (error) {
+                console.error('Error getting table schema:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Failed to get table schema',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                });
+            }
+        });
+
+        // 更新记录接口
+        this.router.put('/:id/record/:table/:recordId', async (req: Request, res: Response) => {
+            try {
+                const { id, table, recordId } = req.params;
+                const updateData = req.body;
+
+                const libraryObj = this.backend.libraries.get(id);
+                if (!libraryObj || !libraryObj.libraryService) {
+                    return res.status(404).json({ error: 'Library not found' });
+                }
+
+                // 构建 UPDATE SQL
+                const updateFields = Object.keys(updateData)
+                    .filter(key => key !== 'id')
+                    .map(key => `${key} = ?`)
+                    .join(', ');
+
+                const values = Object.keys(updateData)
+                    .filter(key => key !== 'id')
+                    .map(key => updateData[key]);
+
+                const updateSql = `UPDATE ${table} SET ${updateFields} WHERE id = ?`;
+                values.push(recordId);
+
+                const result = await libraryObj.libraryService.getSql(updateSql, values);
+                res.json({ success: true, data: result });
+            } catch (error) {
+                console.error('Error updating record:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Failed to update record',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                });
+            }
+        });        // 删除资源库
         this.router.delete('/:id', async (req: Request, res: Response) => {
             try {
                 const { id } = req.params;

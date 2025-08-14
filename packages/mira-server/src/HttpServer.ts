@@ -207,13 +207,20 @@ export class HttpServer {
 
                 const userStorage = this.authRouter.getAuthService().getUserStorage();
 
-                // 检查用户名是否已存在
-                const existingUser = await userStorage.findUserByUsername(username);
+                // 检查用户名是否已存在（包括已删除的用户）
+                const existingUser = await userStorage.findUserByUsernameIncludeInactive(username);
                 if (existingUser) {
-                    return res.status(400).json({
-                        success: false,
-                        message: '用户名已存在'
-                    });
+                    if (existingUser.is_active) {
+                        return res.status(400).json({
+                            success: false,
+                            message: '用户名已存在'
+                        });
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            message: '该用户名已被使用（已删除的账户），请使用其他用户名'
+                        });
+                    }
                 }
 
                 // 创建新管理员
@@ -241,6 +248,15 @@ export class HttpServer {
                 console.log(`✅ Created new admin: ${username}`);
             } catch (error: any) {
                 console.error('Error creating admin:', error);
+
+                // 处理数据库约束错误
+                if (error?.code === 'SQLITE_CONSTRAINT' && error?.message?.includes('UNIQUE constraint failed: users.username')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: '用户名已存在，请使用其他用户名'
+                    });
+                }
+
                 res.status(500).json({
                     success: false,
                     message: '创建管理员失败',
@@ -332,9 +348,7 @@ export class HttpServer {
         });
 
         // API 路由（业务逻辑路由） 
-        this.app.use('/api', this.httpRouter.getRouter() as any);
-
-        // API 健康检查端点
+        this.app.use('/api', this.httpRouter.getRouter() as any);        // API 健康检查端点
         this.app.get('/api/health', (req, res) => {
             res.json({
                 success: true,

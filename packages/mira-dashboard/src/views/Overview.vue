@@ -15,7 +15,18 @@
     </div>
     
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div v-if="loading && stats.libraries === 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <a-skeleton 
+        v-for="i in 4" 
+        :key="i"
+        :loading="true" 
+        active 
+        :paragraph="{ rows: 1 }"
+        class="stat-skeleton p-6 bg-white rounded-lg"
+      />
+    </div>
+    
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatCard
         title="资源库总数"
         :value="stats.libraries"
@@ -43,7 +54,22 @@
     </div>
 
     <!-- 系统信息 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div v-if="loading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <a-skeleton 
+        :loading="true" 
+        active 
+        :paragraph="{ rows: 4 }"
+        class="p-6 bg-white rounded-lg"
+      />
+      <a-skeleton 
+        :loading="true" 
+        active 
+        :paragraph="{ rows: 3 }"
+        class="p-6 bg-white rounded-lg"
+      />
+    </div>
+    
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <a-card class="system-info">
         <template #title>
           <div class="flex items-center">

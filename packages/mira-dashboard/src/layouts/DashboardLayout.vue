@@ -113,11 +113,17 @@ const handleMenuClick = ({ key }: { key: string }) => {
   router.push(key)
 }
 
-const handleMenuItemClick = ({ key }: { key: string }) => {
+const handleMenuItemClick = async ({ key }: { key: string }) => {
   if (key === 'logout') {
-    authStore.logout()
-    message.success('退出登录成功')
-    router.push('/login')
+    try {
+      await authStore.logout()
+      message.success('退出登录成功')
+      // 确保立即跳转到登录页
+      await router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      message.error('退出登录失败')
+    }
   }
 }
 

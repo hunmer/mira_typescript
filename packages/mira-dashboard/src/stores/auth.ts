@@ -47,6 +47,9 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = null
             user.value = null
             sessionStorage.removeItem('token')
+            // 清除所有可能的本地存储数据
+            sessionStorage.clear()
+            localStorage.removeItem('token')
         }
     }
 

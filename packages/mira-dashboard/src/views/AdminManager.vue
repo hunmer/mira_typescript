@@ -8,57 +8,54 @@
     </div>
 
     <!-- 管理员列表 -->
+    <a-skeleton v-if="loading && admins.length === 0" active :paragraph="{ rows: 8 }" />
+    
     <a-table
+      v-else
       :loading="loading"
-      :data="admins"
+      :dataSource="admins"
+      :columns="columns"
       class="admin-table"
+      rowKey="id"
     >
-      <a-table-column name="username" label="用户名" min-width="150">
-        <template #default="{ row }">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'username'">
           <div class="flex items-center">
-            <el-avatar :size="32" class="mr-3">
-              <UserOutlined />
-            </el-avatar>
-            <span class="font-medium">{{ row.username }}</span>
+            <a-avatar :size="32" class="mr-3">
+              <template #icon><UserOutlined /></template>
+            </a-avatar>
+            <span class="font-medium">{{ record.username }}</span>
           </div>
         </template>
-      </a-table-column>
-      
-      <a-table-column name="email" label="邮箱" min-width="200" />
-      
-      <a-table-column name="role" label="角色" width="100">
-        <template #default="{ row }">
-          <a-tag type="primary" size="small">
-            {{ row.role === 'admin' ? '管理员' : '用户' }}
+        
+        <template v-else-if="column.key === 'role'">
+          <a-tag color="blue">
+            {{ record.role === 'admin' ? '管理员' : '用户' }}
           </a-tag>
         </template>
-      </a-table-column>
-      
-      <a-table-column name="createdAt" label="创建时间" width="180">
-        <template #default="{ row }">
-          {{ formatDate(row.createdAt) }}
+        
+        <template v-else-if="column.key === 'createdAt'">
+          {{ formatDate(record.createdAt) }}
         </template>
-      </a-table-column>
-      
-      <a-table-column name="updatedAt" label="最后更新" width="180">
-        <template #default="{ row }">
-          {{ formatDate(row.updatedAt) }}
+        
+        <template v-else-if="column.key === 'updatedAt'">
+          {{ formatDate(record.updatedAt) }}
         </template>
-      </a-table-column>
-      
-      <a-table-column label="操作" width="150" fixed="right">
-        <template #default="{ row }">
-          <a-button size="small" @click="editAdmin(row)">编辑</a-button>
-          <a-button
-            size="small"
-            danger
-            @click="deleteAdmin(row)"
-            :disabled="row.id === currentUserId"
-          >
-            删除
-          </a-button>
+        
+        <template v-else-if="column.key === 'actions'">
+          <a-space>
+            <a-button size="small" @click="editAdmin(record)">编辑</a-button>
+            <a-button
+              size="small"
+              danger
+              @click="deleteAdmin(record)"
+              :disabled="record.id === currentUserId"
+            >
+              删除
+            </a-button>
+          </a-space>
         </template>
-      </a-table-column>
+      </template>
     </a-table>
 
     <!-- 添加/编辑管理员对话框 -->
@@ -149,6 +146,46 @@ const adminForm = ref<CreateAdminForm>({
   confirmPassword: ''
 })
 
+// 表格列定义
+const columns = [
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+    width: 200,
+  },
+  {
+    title: '邮箱',
+    dataIndex: 'email',
+    key: 'email',
+    width: 250,
+  },
+  {
+    title: '角色',
+    dataIndex: 'role',
+    key: 'role',
+    width: 100,
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    width: 180,
+  },
+  {
+    title: '最后更新',
+    dataIndex: 'updatedAt',
+    key: 'updatedAt',
+    width: 180,
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    fixed: 'right' as const,
+  },
+]
+
 const currentUserId = computed(() => authStore.user?.id)
 
 const validatePasswordConfirm = (_rule: any, value: string, callback: any) => {
@@ -231,33 +268,59 @@ const saveAdmin = async () => {
     } else {
       // 添加管理员
       const { confirmPassword, ...adminData } = adminForm.value
-      await api.post('/api/admins', adminData)
-      message.success('管理员添加成功')
+      const response = await api.post('/api/admins', adminData)
+      
+      // 只在API响应成功时显示消息（避免重复消息）
+      if ((response.data as any)?.success) {
+        message.success('管理员添加成功')
+      }
     }
     
     closeDialog()
-    loadAdmins()
+    await loadAdmins()
   } catch (error: any) {
-    message.error(error.response?.data?.message || '操作失败')
+    console.error('Save admin error:', error)
+    
+    // 处理特定的错误情况
+    if (error.response?.data?.message) {
+      message.error(error.response.data.message)
+    } else if (error.response?.status === 400) {
+      message.error('请求参数错误，请检查输入信息')
+    } else if (error.response?.status === 500) {
+      message.error('服务器内部错误，请稍后重试')
+    } else {
+      message.error('操作失败，请稍后重试')
+    }
   }
 }
 
 const deleteAdmin = async (admin: User) => {
   try {
-    await Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除管理员 "${admin.username}" 吗？此操作不可撤销。`,
-      okText: '确定',
-      cancelText: '取消'
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        title: '确认删除',
+        content: `确定要删除管理员 "${admin.username}" 吗？此操作不可撤销。`,
+        okText: '确定',
+        cancelText: '取消',
+        onOk: () => {
+          resolve(true)
+        },
+        onCancel: () => {
+          resolve(false)
+        }
+      } as any)
     })
+    
+    if (!confirmed) {
+      return // 用户取消操作
+    }
     
     await api.delete(`/api/admins/${admin.id}`)
     message.success('管理员删除成功')
-    loadAdmins()
+    await loadAdmins()
   } catch (error: any) {
-    if (error !== 'cancel') {
-      message.error('删除失败')
-    }
+    console.error('Delete admin error:', error)
+    message.error('删除失败')
   }
 }
 
@@ -267,9 +330,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
 .admin-table {
   background: white;
   border-radius: 8px;
+}
+
+.plugin-skeleton, .stat-skeleton {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 </style>

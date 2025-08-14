@@ -672,7 +672,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     });
   }
 
-  private getSql(sql: string, params?: any[]): Promise<any[]> {
+  getSql(sql: string, params?: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         reject(new Error('Database not initialized'));

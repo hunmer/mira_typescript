@@ -124,7 +124,19 @@
         </div>
 
         <!-- 插件网格视图 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div v-if="loading && library.plugins.length === 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <a-skeleton 
+            v-for="i in 8" 
+            :key="i"
+            :loading="true" 
+            active 
+            :avatar="{ size: 'large' }"
+            :paragraph="{ rows: 3 }"
+            class="plugin-skeleton"
+          />
+        </div>
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <a-card
             v-for="plugin in getFilteredPlugins(library)"
             :key="plugin.id"
@@ -405,6 +417,7 @@ interface LibraryWithPlugins {
 }
 
 // 响应式数据
+const loading = ref(false)
 const showInstallDialog = ref(false)
 const showConfigDialog = ref(false)
 const showDetailDrawer = ref(false)
@@ -555,6 +568,7 @@ const formatDate = (dateString: string) => {
 }
 
 const loadLibrariesWithPlugins = async () => {
+  loading.value = true
   try {
     const response = await api.get('/api/plugins/by-library')
     librariesWithPlugins.value = response.data as LibraryWithPlugins[]
@@ -576,6 +590,8 @@ const loadLibrariesWithPlugins = async () => {
     message.error('加载插件列表失败')
     console.error('Failed to load plugins:', error)
     librariesWithPlugins.value = []
+  } finally {
+    loading.value = false
   }
 }
 
@@ -583,7 +599,13 @@ const togglePlugin = async (plugin: Plugin, checked?: boolean) => {
   try {
     const newStatus = checked !== undefined ? (checked ? 'active' : 'inactive') : 
                      (plugin.status === 'active' ? 'inactive' : 'active')
-    await api.patch(`/api/plugins/${plugin.id}/status`, { status: newStatus })
+    
+    // 使用新的POST接口避免URL字符冲突
+    await api.post('/api/plugins/toggle-status', { 
+      pluginId: plugin.id,
+      status: newStatus 
+    })
+    
     plugin.status = newStatus
     
     // 如果在详情面板中，也要更新选中的插件状态
@@ -592,8 +614,9 @@ const togglePlugin = async (plugin: Plugin, checked?: boolean) => {
     }
     
     message.success(`插件已${newStatus === 'active' ? '启用' : '禁用'}`)
-  } catch (error) {
-    message.error('操作失败')
+  } catch (error: any) {
+    console.error('Toggle plugin error:', error)
+    message.error(`操作失败: ${error.response?.data?.error || error.message || '未知错误'}`)
   }
 }
 

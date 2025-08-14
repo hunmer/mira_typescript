@@ -23,7 +23,8 @@ export class PluginRoutes {
                         // 获取该库的插件信息
                         const libraryPlugins = libraryObj.pluginManager.getPluginsList();
                         plugins.push(...libraryPlugins.map((plugin: any) => ({
-                            id: `${id}-${plugin.name}`,
+                            id: id, // 使用纯library ID作为插件ID
+                            pluginName: plugin.name, // 单独存储插件名称
                             name: plugin.name,
                             version: plugin.version || '1.0.0',
                             description: plugin.description || '',
@@ -64,7 +65,8 @@ export class PluginRoutes {
                         // 获取该库的插件信息
                         const libraryPlugins = libraryObj.pluginManager.getPluginsList();
                         libraryInfo.plugins = libraryPlugins.map((plugin: any) => ({
-                            id: `${id}-${plugin.name}`,
+                            id: id, // 使用纯library ID作为插件ID
+                            pluginName: plugin.name, // 单独存储插件名称
                             name: plugin.name,
                             version: plugin.version || '1.0.0',
                             description: plugin.description || '',
@@ -181,14 +183,16 @@ export class PluginRoutes {
             }
         });
 
-        // 插件状态切换
-        this.router.patch('/:id/status', async (req: Request, res: Response) => {
+        // 插件状态切换 (POST方法，避免URL字符冲突)
+        this.router.post('/toggle-status', async (req: Request, res: Response) => {
             try {
-                const { id } = req.params;
-                const { status } = req.body;
+                const { pluginId, pluginName, status } = req.body;
 
-                const [libraryId, pluginName] = id.split('-', 2);
-                const libraryObj = this.backend.libraries.get(libraryId);
+                if (!pluginId || !pluginName || !status) {
+                    return res.status(400).json({ error: 'Plugin ID, plugin name and status are required' });
+                }
+
+                const libraryObj = this.backend.libraries.get(pluginId);
 
                 if (!libraryObj || !libraryObj.pluginManager) {
                     return res.status(404).json({ error: 'Library or plugin manager not found' });
@@ -196,21 +200,54 @@ export class PluginRoutes {
 
                 // 更新插件状态
                 const pluginsConfigPath = path.join(libraryObj.pluginManager.pluginsDir, 'plugins.json');
-                const config = JSON.parse(fs.readFileSync(pluginsConfigPath, 'utf-8'));
+                let config = [];
+
+                try {
+                    if (fs.existsSync(pluginsConfigPath)) {
+                        config = JSON.parse(fs.readFileSync(pluginsConfigPath, 'utf-8'));
+                    }
+                } catch (error) {
+                    console.error('Error reading plugins config:', error);
+                    config = [];
+                }
 
                 const pluginIndex = config.findIndex((p: any) => p.name === pluginName);
                 if (pluginIndex === -1) {
-                    return res.status(404).json({ error: 'Plugin not found' });
+                    return res.status(404).json({ error: 'Plugin not found in config' });
                 }
 
                 config[pluginIndex].enabled = status === 'active';
-                fs.writeFileSync(pluginsConfigPath, JSON.stringify(config, null, 2));
+                config[pluginIndex].status = status;
 
-                // 重新加载插件
-                await libraryObj.pluginManager.loadPlugins();
+                // 写回配置文件
+                try {
+                    fs.writeFileSync(pluginsConfigPath, JSON.stringify(config, null, 2));
+                } catch (error) {
+                    console.error('Error writing plugins config:', error);
+                    return res.status(500).json({ error: 'Failed to update plugin config' });
+                }
+
+                // 精确处理插件加载/卸载
+                try {
+                    if (status === 'active') {
+                        // 启用插件：如果未加载则加载，如果已加载则跳过
+                        const pluginConfig = { name: pluginName, enabled: true, path: config[pluginIndex].path };
+                        await libraryObj.pluginManager.loadPlugin(pluginConfig, false);
+                    } else {
+                        // 禁用插件：卸载插件
+                        libraryObj.pluginManager.unloadPlugin(pluginName);
+                    }
+                } catch (error) {
+                    console.error('Error managing plugin:', error);
+                    // 不中断响应，仅记录错误
+                }
 
                 res.json({
-                    message: `Plugin ${status === 'active' ? 'activated' : 'deactivated'} successfully`
+                    success: true,
+                    message: `Plugin ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
+                    pluginId: pluginId,
+                    pluginName: pluginName,
+                    status: status
                 });
             } catch (error) {
                 console.error('Error toggling plugin status:', error);
