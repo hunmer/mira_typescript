@@ -1,49 +1,49 @@
 {
   "packageMappings": {
     "mira-app-core": {
-      "defaultOnline": "1.0.18",
+      "defaultOnline": "1.0.19",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-app-core/",
       "buildPath": "packages/mira-app-core",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-storage-sqlite": {
-      "defaultOnline": "1.0.13",
+      "defaultOnline": "1.0.14",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
       "buildPath": "packages/mira-storage-sqlite",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-app-server": {
-      "defaultOnline": "1.0.14",
+      "defaultOnline": "1.0.15",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-app-server/",
       "buildPath": "packages/mira-app-server",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-dashboard": {
-      "defaultOnline": "1.0.1",
+      "defaultOnline": "1.0.2",
       "defaultOffline": "file:D:/mira_typescript/packages/mira-dashboard/",
       "buildPath": "packages/mira-dashboard",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_thumb": {
-      "defaultOnline": "1.0.14",
+      "defaultOnline": "1.0.15",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_user": {
-      "defaultOnline": "1.0.5",
+      "defaultOnline": "1.0.6",
       "defaultOffline": "file:D:/mira_typescript/packages/mira_user/",
       "buildPath": "plugins/plugins/mira_user",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "upload_statistics": {
-      "defaultOnline": "1.0.5",
+      "defaultOnline": "1.0.6",
       "defaultOffline": "file:D:/mira_typescript/packages/upload_statistics/",
       "buildPath": "plugins/plugins/upload_statistics",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-scripts-core": {
-      "defaultOnline": "1.0.4",
+      "defaultOnline": "1.0.5",
       "defaultOffline": "file:D:/mira_typescript/mira-scripts-core/",
       "buildPath": "mira-scripts-core",
       "buildCommand": "npm install && npm run build && npm publish"

@@ -1,6 +1,6 @@
 {
   "name": "mira-app-server",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Mira Server - standalone server application using mira-app-core",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,7 +38,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "mira-app-core": "^1.0.17",
+    "mira-app-core": "^1.0.19",
     "multer": "^2.0.2",
     "socket.io": "^4.7.4",
     "sqlite3": "^5.1.7",

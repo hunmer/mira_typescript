@@ -3,7 +3,7 @@ import { message } from 'ant-design-vue'
 import { httpLogger, requestStats } from './http-logger'
 
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081',
+    baseURL: (window as any).API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081',
     timeout: 10000,
     // 不设置默认的 Content-Type，让每个请求自己决定
 })
