@@ -10,7 +10,7 @@
       "sourceMaps": true,
       "smartStep": true,
       "args": [
-        "${workspaceFolder}/switch-dependencies.js",
+        "${workspaceFolder}/tool.js",
         "online",
       ]
     },
@@ -23,7 +23,7 @@
       "sourceMaps": true,
       "smartStep": true,
       "args": [
-        "${workspaceFolder}/switch-dependencies.js",
+        "${workspaceFolder}/tool.js",
         "offline",
       ]
     },
@@ -36,7 +36,7 @@
       "smartStep": true,
       "cwd": "${workspaceFolder}",
       "args": [
-        "${workspaceFolder}/switch-dependencies.js",
+        "${workspaceFolder}/tool.js",
         "build",
       ]
     },
@@ -49,7 +49,7 @@
       "smartStep": true,
       "cwd": "${workspaceFolder}",
       "args": [
-        "${workspaceFolder}/switch-dependencies.js",
+        "${workspaceFolder}/tool.js",
         "publish",
       ]
     },

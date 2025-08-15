@@ -1,4 +1,4 @@
-import { ServerPluginManager, MiraWebsocketServer, ServerPlugin, addStaticResources } from 'mira-app-core';
+import { ServerPluginManager, MiraWebsocketServer, ServerPlugin, express } from 'mira-app-server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraHttpServer } from 'mira-app-server/dist/server';
 import path from "path";
@@ -22,7 +22,7 @@ class UserPlugin extends ServerPlugin {
 
         // 开放登录页面
         httpServer.app
-            .use('/user', addStaticResources(path.join(pluginManager.getPluginDir('mira_user'), 'web')) as any);
+            .use('/user', express.static(path.join(pluginManager.getPluginDir('mira_user'), 'web')) as any);
 
         const libraryId = dbService.getLibraryId();
         // 登录接口
@@ -83,7 +83,7 @@ class UserPlugin extends ServerPlugin {
         });
 
         // 绑定登录前事件
-        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('client::before_connect', this.onUserLogin.bind(this));
         }

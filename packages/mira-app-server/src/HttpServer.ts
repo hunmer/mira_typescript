@@ -3,10 +3,15 @@ import http from 'http';
 import express from 'express';
 import axios from "axios";
 import { AuthRouter } from "./routes/AuthRouter";
-import { LibraryRoutes, PluginRoutes, DatabaseRoutes, FileRoutes } from './routes';
+import { LibraryRoutes } from './routes/LibraryRoutes';
+
 import { AdminsRouter } from "./routes/AdminsRouter";
 import { MiraServer } from '.';
 import { HttpRouter } from './routes/HttpRouter';
+import { PluginRoutes } from './routes/PluginRoutes';
+import { DatabaseRoutes } from './routes/DatabaseRoutes';
+import { FileRoutes } from './routes/FileRoutes';
+import { DeviceRoutes } from './routes/DeviceRoutes';
 
 // HTTP请求日志中间件
 interface RequestLogData {
@@ -135,6 +140,7 @@ export class MiraHttpServer {
     pluginRoutes: PluginRoutes;
     databaseRoutes: DatabaseRoutes;
     fileRoutes: FileRoutes;
+    deviceRoutes: DeviceRoutes;
     adminsRouter: AdminsRouter;
     httpRouter: HttpRouter;
 
@@ -148,6 +154,7 @@ export class MiraHttpServer {
         this.pluginRoutes = new PluginRoutes(backend);
         this.databaseRoutes = new DatabaseRoutes(backend);
         this.fileRoutes = new FileRoutes(backend);
+        this.deviceRoutes = new DeviceRoutes(backend);
         this.httpRouter = new HttpRouter(backend);
 
         this.setupMiddleware();
@@ -216,6 +223,7 @@ export class MiraHttpServer {
         this.app.use('/api/plugins', this.pluginRoutes.getRouter());
         this.app.use('/api/database', this.databaseRoutes.getRouter());
         this.app.use('/api/files', this.fileRoutes.getRouter());
+        this.app.use('/api/devices', this.deviceRoutes.getRouter());
 
         // 健康检查端点
         this.app.get('/api/health', (req, res) => {

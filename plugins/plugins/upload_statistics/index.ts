@@ -1,4 +1,4 @@
-import { ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-core';
+import { ServerPluginManager, MiraWebsocketServer, ServerPlugin } from 'mira-app-server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraHttpServer } from 'mira-app-server/dist/server';
 class UploadStatistics extends ServerPlugin {
@@ -102,7 +102,7 @@ class UploadStatistics extends ServerPlugin {
 
         // 绑定文件创建事件
 
-        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onAfterUploaded.bind(this));
         }

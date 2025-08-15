@@ -47,6 +47,10 @@
           </template>
           数据库预览
         </a-menu-item>
+        
+        <a-menu-item key="/devices">
+          📱 设备管理
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
 

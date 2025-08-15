@@ -1,6 +1,11 @@
 import { MiraServer } from './MiraServer';
 import dotenv from 'dotenv';
 import path from 'path';
+import { ServerPluginManager } from './ServerPluginManager';
+import { ServerPlugin } from './ServerPlugin';
+import { MiraWebsocketServer } from './WebSocketServer';
+import { MiraHttpServer } from './server';
+import express from 'express';
 
 // 加载环境变量 - 先加载根目录的 .env，再加载本地的 .env
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
@@ -50,7 +55,7 @@ async function startServer() {
 }
 
 // 导出服务器实例和启动函数
-export { MiraServer, startServer };
+export { MiraServer, startServer, ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer, express };
 
 // 如果直接运行此文件，则启动服务器
 if (require.main === module) {

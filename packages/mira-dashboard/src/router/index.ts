@@ -45,6 +45,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Database',
                 component: () => import('@/views/DatabaseViewer.vue'),
                 meta: { title: 'SQLite数据库预览' }
+            },
+            {
+                path: '/devices',
+                name: 'Devices',
+                component: () => import('@/views/DeviceManager.vue'),
+                meta: { title: '设备管理' }
             }
         ]
     }

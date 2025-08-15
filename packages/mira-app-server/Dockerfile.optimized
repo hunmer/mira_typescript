@@ -20,7 +20,7 @@ COPY packages/mira-storage-sqlite/package*.json ./packages/mira-storage-sqlite/
 
 # 复制依赖切换脚本
 COPY dependency-*.json ./
-COPY switch-dependencies.js ./
+COPY tool.js ./
 
 # 复制源代码
 COPY packages/mira-app-core/src ./packages/mira-app-core/src

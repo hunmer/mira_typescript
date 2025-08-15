@@ -1,11 +1,11 @@
-import { MiraWebsocketServer, EventArgs, ServerPluginManager, ServerPlugin } from 'mira-app-core';
-import { MiraHttpServer } from 'mira-app-server/dist/server';
+import { ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer } from 'mira-app-server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
 import Queue from 'queue';
 import which from 'which';
+import { EventArgs } from 'mira-app-core';
 
 class ThumbPlugin extends ServerPlugin {
     server: MiraWebsocketServer;
@@ -46,7 +46,7 @@ class ThumbPlugin extends ServerPlugin {
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
 
         console.log('Thumbnail plugin initialized');
-        const obj = httpServer.backend.libraries.get(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onFileCreated.bind(this));
             obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));

@@ -23,7 +23,7 @@ const TARGET_FILES = config.targetFiles;
  */
 function showUsage() {
   console.log(`
-Usage: node switch-dependencies.js [mode] [packages...] [options]
+Usage: node tool.js [mode] [packages...] [options]
 
 Modes:
   online    - Switch to online versions (npm registry, reads current version from package.json)
@@ -42,18 +42,18 @@ Options:
   --version-bump=type - Version bump type: patch, minor, major (for build/publish mode, default: patch)
 
 Examples:
-  node switch-dependencies.js online
-  node switch-dependencies.js offline  
-  node switch-dependencies.js online mira-app-core --version=1.0.1
-  node switch-dependencies.js offline mira-app-core --path="file:../../packages/mira-app-core"
-  node switch-dependencies.js list
-  node switch-dependencies.js list mira-app-core
-  node switch-dependencies.js build mira-app-core
-  node switch-dependencies.js build --dry-run
-  node switch-dependencies.js publish mira-app-core mira-storage-sqlite
-  node switch-dependencies.js publish --dry-run
-  node switch-dependencies.js publish --version-bump=minor
-  node switch-dependencies.js publish mira-app-core --version-bump=major --dry-run
+  node tool.js online
+  node tool.js offline  
+  node tool.js online mira-app-core --version=1.0.1
+  node tool.js offline mira-app-core --path="file:../../packages/mira-app-core"
+  node tool.js list
+  node tool.js list mira-app-core
+  node tool.js build mira-app-core
+  node tool.js build --dry-run
+  node tool.js publish mira-app-core mira-storage-sqlite
+  node tool.js publish --dry-run
+  node tool.js publish --version-bump=minor
+  node tool.js publish mira-app-core --version-bump=major --dry-run
 
 Configuration:
 The script uses package mappings from dependency-switch-config.json
