@@ -36,8 +36,6 @@ program
         httpPort: parseInt(options.port),
         wsPort: parseInt(options.wsPort),
         dataPath: options.data,
-        enableHttp: options.http !== false,
-        enableWebSocket: options.websocket !== false
       });
 
       console.log('✅ Mira Server started via CLI');

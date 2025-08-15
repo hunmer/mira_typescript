@@ -3,7 +3,6 @@ import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { EventManager } from './event-manager';
 
 export interface PluginConfig {
     name: string;

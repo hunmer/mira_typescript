@@ -1,65 +1,56 @@
-import { MiraBackend } from "mira-app-core";
 import { MiraHttpServer } from "./HttpServer";
-import { WebSocketServer } from "./WebSocketServer";
+import { LibraryStorage } from "./LibraryStorage";
+import { MiraWebsocketServer } from "./server";
+import path from "path";
+
 
 export interface ServerConfig {
     httpPort?: number;
     wsPort?: number;
-    enableHttp?: boolean;
-    enableWebSocket?: boolean;
     dataPath?: string;
 }
 
 export class MiraServer {
-    private backend: MiraBackend;
-    private httpServer?: MiraHttpServer;
-    private wsServer?: WebSocketServer;
-    private config: ServerConfig;
+    dataPath: string;
+    httpServer?: MiraHttpServer;
+    webSocketServer?: MiraWebsocketServer;
+    config: ServerConfig;
+    libraries: LibraryStorage;
 
     constructor(config: ServerConfig = {}) {
         this.config = {
             httpPort: 8081,
             wsPort: 8081,
-            enableHttp: true,
-            enableWebSocket: true,
             ...config
         };
 
         console.log('🚀 Initializing Mira Server...');
         console.log('📋 Configuration:', this.config);
 
-        // 初始化后端 - 只传递MiraBackend认识的属性
-        this.backend = new MiraBackend({
-            dataPath: this.config.dataPath,
-            wsPort: this.config.wsPort,
-            autoLoad: true,
-            autoStart: true
-        });
+        this.dataPath = config.dataPath || process.env.DATA_PATH || path.join(process.cwd(), 'data');
+        console.log('📂 Data path resolved to:', this.dataPath);
+        this.libraries = new LibraryStorage(this);
+
+        console.log('📚 Auto-loading libraries...');
+        this.libraries.loadAll().then((loaded: number) => console.log(`✅ ${loaded} Libraries loaded`));
+
     }
 
     public async start(): Promise<void> {
         try {
-            console.log('🔄 Starting Mira Server components...');
-
             // 启动HTTP服务器
-            if (this.config.enableHttp) {
-                this.httpServer = new MiraHttpServer(this.backend, this.config.dataPath);
-                await this.httpServer.initialize();
-                await this.httpServer.start(this.config.httpPort!);
-            }
+            this.httpServer = new MiraHttpServer(this, this.config.dataPath);
+            await this.httpServer.initialize();
+            await this.httpServer.start(this.config.httpPort!);
 
             // 启动WebSocket服务器（复用HTTP服务器）
-            if (this.config.enableWebSocket && this.httpServer) {
-                this.wsServer = new WebSocketServer(
-                    this.httpServer.getHttpServer(),
-                    this.backend
-                );
-                console.log(`🔌 WebSocket Server initialized on port ${this.config.httpPort}`);
-            }
+            this.webSocketServer = new MiraWebsocketServer(
+                this
+            );
+            this.webSocketServer.start(this.config.wsPort!);
+            console.log(`🔌 WebSocket Server initialized on port ${this.config.wsPort}`);
 
             console.log('✅ Mira Server started successfully!');
-            this.printServerInfo();
-
         } catch (error) {
             console.error('❌ Failed to start Mira Server:', error);
             throw error;
@@ -76,34 +67,16 @@ export class MiraServer {
         console.log('✅ Mira Server stopped successfully');
     }
 
-    private printServerInfo(): void {
-        console.log('\n' + '='.repeat(60));
-        console.log('🎉 MIRA SERVER RUNNING');
-        console.log('='.repeat(60));
-
-        if (this.config.enableHttp) {
-            console.log(`📍 HTTP API: http://localhost:${this.config.httpPort}/api`);
-            console.log(`🏥 Health Check: http://localhost:${this.config.httpPort}/health`);
-        }
-
-        if (this.config.enableWebSocket) {
-            console.log(`🔌 WebSocket: ws://localhost:${this.config.httpPort}`);
-        }
-
-        console.log(`📂 Data Path: ${this.config.dataPath || 'default'}`);
-        console.log('='.repeat(60) + '\n');
+    public getHttpServer(): MiraHttpServer {
+        return this.httpServer!;
     }
 
-    public getBackend(): MiraBackend {
-        return this.backend;
+    public getDataPath() {
+        return this.dataPath;
     }
 
-    public getHttpServer(): MiraHttpServer | undefined {
-        return this.httpServer;
-    }
-
-    public getWebSocketServer(): WebSocketServer | undefined {
-        return this.wsServer;
+    public getWebSocketServer(): MiraWebsocketServer {
+        return this.webSocketServer!;
     }
 
     // 静态方法用于快速启动

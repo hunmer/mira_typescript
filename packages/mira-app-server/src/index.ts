@@ -24,8 +24,6 @@ async function startServer() {
       httpPort: parseInt(httpPort),
       wsPort: parseInt(wsPort),
       dataPath: dataPath,
-      enableHttp: process.env.ENABLE_HTTP !== 'false',
-      enableWebSocket: process.env.ENABLE_WEBSOCKET !== 'false'
     });
 
     console.log('✅ Mira Server started successfully');

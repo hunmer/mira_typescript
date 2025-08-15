@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { MiraBackend } from '../MiraBackend';
 import * as fs from 'fs';
 import * as path from 'path';
+import { MiraServer } from '..';
 
 export class LibraryRoutes {
     private router: Router;
-    private backend: MiraBackend;
+    private backend: MiraServer;
 
-    constructor(backend: MiraBackend) {
+    constructor(backend: MiraServer) {
         this.backend = backend;
         this.router = Router();
         this.setupRoutes();
@@ -33,7 +33,7 @@ export class LibraryRoutes {
 
                 for (const config of libraryConfigs) {
                     const id = config.id;
-                    const libraryObj = this.backend.libraries.get(id);
+                    const libraryObj = this.backend.libraries.getLibrary(id);
 
                     let stats = { totalFiles: 0, totalSize: 0 };
                     const status = this.backend.libraries.getLibraryStatus(id);
@@ -99,7 +99,7 @@ export class LibraryRoutes {
                 }
 
                 // 检查路径是否已存在
-                for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                for (const [id, libraryObj] of Object.entries(this.backend.libraries.getLibraries())) {
                     const existingPath = libraryObj.libraryService?.config?.path ||
                         libraryObj.libraryService?.config?.customFields?.path;
                     if (existingPath === libraryPath) {
@@ -209,7 +209,7 @@ export class LibraryRoutes {
                     pluginsDir
                 } = req.body;
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -223,7 +223,7 @@ export class LibraryRoutes {
                 // 如果路径变了，检查新路径是否与其他库冲突
                 const currentPath = currentConfig.path || currentConfig.customFields?.path;
                 if (libraryPath && libraryPath !== currentPath) {
-                    for (const [otherId, otherLibraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                    for (const [otherId, otherLibraryObj] of Object.entries(this.backend.libraries.getLibraries())) {
                         const otherConfig = this.backend.libraries.getLibraryConfig(otherId);
                         const otherPath = otherConfig?.path || otherConfig?.customFields?.path;
                         if (otherId !== id && otherPath === libraryPath) {
@@ -346,7 +346,7 @@ export class LibraryRoutes {
                     return res.status(400).json({ error: 'Invalid status. Must be active or inactive' });
                 }
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -403,7 +403,7 @@ export class LibraryRoutes {
         this.router.get('/:id/stats', async (req: Request, res: Response) => {
             try {
                 const { id } = req.params;
-                const libraryObj = this.backend.libraries.libraries[id];
+                const libraryObj = this.backend.libraries.getLibrary(id);
 
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
@@ -479,7 +479,7 @@ export class LibraryRoutes {
                     return res.status(400).json({ error: 'SQL query is required' });
                 }
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -513,7 +513,7 @@ export class LibraryRoutes {
             try {
                 const { id, table } = req.params;
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -551,7 +551,7 @@ export class LibraryRoutes {
                 const { id, table, recordId } = req.params;
                 const updateData = req.body;
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -596,7 +596,7 @@ export class LibraryRoutes {
             try {
                 const { id } = req.params;
 
-                const libraryObj = this.backend.libraries.get(id);
+                const libraryObj = this.backend.libraries.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -629,7 +629,7 @@ export class LibraryRoutes {
                 }
 
                 // 从内存中移除
-                delete this.backend.libraries.libraries[id];
+                this.backend.libraries.removeLibrary(id);
 
                 res.json({ message: 'Library deleted successfully' });
             } catch (error) {

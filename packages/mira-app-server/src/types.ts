@@ -1,3 +1,5 @@
+// Types migrated from mira-app-core for server-side use
+
 export type User = {
     id: number;
     username: string;
@@ -18,11 +20,6 @@ export type Session = {
     is_active: boolean;
 };
 
-// Core exports for mira_core package (SDK only)
-export { EventArgs, EventSubscription, EventManager } from './event-manager';
-export { saveLibraries, getLibraries } from './LibraryList';
-
-// Shared interfaces migrated from mira-app-server
 export interface WebSocketMessage {
     action: string;
     requestId: string;
@@ -33,7 +30,3 @@ export interface WebSocketMessage {
         data: Record<string, any>;
     };
 }
-
-
-// Re-export types and interfaces
-export type * from './event-manager';

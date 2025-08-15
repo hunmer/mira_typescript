@@ -228,7 +228,7 @@ const loadSystemInfo = async () => {
     systemInfo.value = {
       uptime: formatUptime(healthData.uptime || 0),
       version: healthData.version || '1.0.0',
-      nodeVersion: process.version || '18.0.0'
+      nodeVersion: healthData.nodeVersion || '18.0.0'
     }
   } catch (error) {
     console.error('加载系统信息失败:', error)
@@ -236,7 +236,7 @@ const loadSystemInfo = async () => {
     systemInfo.value = {
       uptime: '未知',
       version: '1.0.0',
-      nodeVersion: process.version || '18.0.0'
+      nodeVersion: '18.0.0'
     }
   }
 }

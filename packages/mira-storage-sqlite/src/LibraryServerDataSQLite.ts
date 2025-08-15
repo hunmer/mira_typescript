@@ -576,7 +576,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const folderName = await this.getFolderName(item.folder_id);
     const filePath = path.join(libraryPath, folderName, item.name);
-    return options?.isUrlFile ? this.getPublicURL(`api/file/${this.getLibraryId()}/${item.id}`) : filePath
+    return options?.isUrlFile ? this.getPublicURL(`api/files/file/${this.getLibraryId()}/${item.id}`) : filePath
   }
 
   async getItemThumbPath(
@@ -586,7 +586,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const libraryPath = await this.getLibraryPath();
     const fileName = item.hash ? `${item.hash}.png` : `${item.id}.png`;
     const thumbFile = path.join(libraryPath, 'thumbs', fileName);
-    return options?.isUrlFile ? this.getPublicURL(`api/thumb/${this.getLibraryId()}/${item.id}`) : thumbFile
+    return options?.isUrlFile ? this.getPublicURL(`api/files/thumb/${this.getLibraryId()}/${item.id}`) : thumbFile
   }
 
   private rowToMap(row: any): Record<string, any> {

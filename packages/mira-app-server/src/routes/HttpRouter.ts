@@ -1,16 +1,15 @@
 import express, { Router, Request, Response, Handler } from 'express';
 import { ILibraryServerData } from 'mira-storage-sqlite';
-import { MiraBackend } from './MiraBackend';
-import { LibraryRoutes, PluginRoutes, DatabaseRoutes, FileRoutes } from './routes';
+import { MiraServer } from '../server';
 
 
 export class HttpRouter {
   private router: Router;
   private registerdRounters: Map<string, Map<string, Handler>> = new Map<string, Map<string, Handler>>();
   private libraryServices: ILibraryServerData[] = [];
-  backend: MiraBackend;
+  backend: MiraServer;
 
-  constructor(bakend: MiraBackend) {
+  constructor(bakend: MiraServer) {
     this.backend = bakend;
     this.router = express.Router();
     this.setupRoutes();
@@ -122,17 +121,7 @@ export class HttpRouter {
   }
 
   private setupRoutes(): void {
-    // 使用分离的路由模块
-    const libraryRoutes = new LibraryRoutes(this.backend);
-    const pluginRoutes = new PluginRoutes(this.backend);
-    const databaseRoutes = new DatabaseRoutes(this.backend);
-    const fileRoutes = new FileRoutes(this.backend);
 
-    // 注册各个路由模块
-    this.router.use('/libraries', libraryRoutes.getRouter());
-    this.router.use('/plugins', pluginRoutes.getRouter());
-    this.router.use('/database', databaseRoutes.getRouter());
-    this.router.use('/', fileRoutes.getRouter()); // 文件路由直接挂载到根路径，因为它包含/thumb和/file等路径
   }
 
   getRouter(): Router {

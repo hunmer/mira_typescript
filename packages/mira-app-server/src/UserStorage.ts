@@ -1,29 +1,12 @@
+export type { User } from './types';
 import { Database } from 'sqlite3';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 
 // 用户接口定义
-export interface User {
-    id: number;
-    username: string;
-    password: string; // 哈希后的密码
-    role: string;
-    permissions: string[];
-    created_at: number;
-    updated_at: number;
-    is_active: boolean;
-    email?: string; // 添加可选的邮箱字段
-}
 
-// 会话接口定义
-export interface Session {
-    token: string;
-    user_id: number;
-    created_at: number;
-    expires_at: number;
-    is_active: boolean;
-}
+import type { User, Session } from './types';
 
 export class UserStorage {
     private db: Database | null = null;
@@ -85,13 +68,6 @@ export class UserStorage {
 
         await this.executeSql(createUsersTable);
         await this.executeSql(createSessionsTable);
-
-        // 为已存在的表添加 email 字段（如果不存在）
-        try {
-            await this.executeSql('ALTER TABLE users ADD COLUMN email TEXT');
-        } catch (error) {
-            // 如果字段已存在，忽略错误
-        }
 
         // 创建索引以提高查询性能
         await this.executeSql('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');

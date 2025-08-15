@@ -83,7 +83,7 @@
       "outFiles": [
         "${workspaceFolder}/packages/**/dist/**/*.js"
       ],
-      "preLaunchTask": "stop-mira-app-server-dev"
+      "preLaunchTask": "build-mira-app-server"
     },
     {
       "type": "chrome",

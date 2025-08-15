@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { MiraBackend } from '../MiraBackend';
+import { MiraServer } from '../server';
 
 export class DatabaseRoutes {
     private router: Router;
-    private backend: MiraBackend;
+    private backend: MiraServer;
 
-    constructor(backend: MiraBackend) {
+    constructor(backend: MiraServer) {
         this.backend = backend;
         this.router = Router();
         this.setupRoutes();

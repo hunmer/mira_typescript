@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { UserStorage, User } from './UserStorage';
+import { UserStorage, User } from '../UserStorage';
 
 class AuthService {
     private userStorage: UserStorage;
@@ -9,7 +9,7 @@ class AuthService {
     }
 
     async initialize(): Promise<void> {
-        await this.userStorage.initialize();
+        return this.userStorage.initialize();
     }
 
     // 验证用户凭据
@@ -74,7 +74,7 @@ export class AuthRouter {
     }
 
     async initialize(): Promise<void> {
-        await this.authService.initialize();
+        return this.authService.initialize();
     }
 
     private setupRoutes(): void {

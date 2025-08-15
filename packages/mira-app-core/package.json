@@ -22,19 +22,11 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/ws": "^8.18.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@types/multer": "^2.0.0",
     "axios": "^1.11.0",
-    "express": "^5.1.0",
-    "mira-storage-sqlite": "^1.0.14",
-    "multer": "^2.0.2",
-    "queue": "^7.0.0",
-    "ws": "^8.18.3",
-    "yauzl": "^3.2.0"
+    "queue": "^7.0.0"
   }
 }

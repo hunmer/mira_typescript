@@ -1,5 +1,5 @@
 // Export main interface
 export { ILibraryServerData } from './ILibraryServerData';
 
-// Export SQLite implementation
+// Export SQLite
 export { LibraryServerDataSQLite } from './LibraryServerDataSQLite';

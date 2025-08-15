@@ -1,14 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { MiraBackend } from '../MiraBackend';
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync, spawn } from 'child_process';
 
+import { MiraServer } from '..';
 export class PluginRoutes {
     private router: Router;
-    private backend: MiraBackend;
+    private backend: MiraServer;
 
-    constructor(backend: MiraBackend) {
+    constructor(backend: MiraServer) {
         this.backend = backend;
         this.router = Router();
         this.setupRoutes();
@@ -19,7 +19,7 @@ export class PluginRoutes {
         this.router.get('/', async (req: Request, res: Response) => {
             try {
                 const plugins = [];
-                for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                for (const [id, libraryObj] of Object.entries(this.backend.libraries.getLibraries)) {
                     if (libraryObj.pluginManager) {
                         // 获取该库的插件信息
                         const libraryPlugins = libraryObj.pluginManager.getPluginsList();
@@ -54,7 +54,7 @@ export class PluginRoutes {
         this.router.get('/by-library', async (req: Request, res: Response) => {
             try {
                 const librariesWithPlugins = [];
-                for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                for (const [id, libraryObj] of Object.entries(this.backend.libraries.getLibraries())) {
                     const libraryInfo: any = {
                         id: id,
                         name: libraryObj.libraryService?.config.name || id,
@@ -107,7 +107,7 @@ export class PluginRoutes {
                 }
 
                 // 如果指定了库ID，安装到对应库的插件目录
-                const library = this.backend.libraries.libraries[libraryId];
+                const library = this.backend.libraries.getLibrary(libraryId);
                 if (!library) {
                     return res.status(400).json({ error: `Library ${libraryId} not found` });
                 }
@@ -275,7 +275,7 @@ export class PluginRoutes {
 
                     try {
                         // 确定插件安装目录
-                        const library = this.backend.libraries.libraries[libraryId];
+                        const library = this.backend.libraries.getLibrary(libraryId);
                         if (!library) {
                             return res.status(400).json({ error: `Library ${libraryId} not found` });
                         }
@@ -363,7 +363,7 @@ export class PluginRoutes {
                             }
 
                             // 为指定库或所有库的插件管理器添加新插件
-                            const library = this.backend.libraries.libraries[libraryId];
+                            const library = this.backend.libraries.getLibrary(libraryId);
                             if (library && library.pluginManager) {
                                 await library.pluginManager.addPlugin({
                                     name: pluginName,
@@ -413,7 +413,7 @@ export class PluginRoutes {
                     return res.status(400).json({ error: 'Library ID, plugin name and status are required' });
                 }
 
-                const libraryObj = this.backend.libraries.get(libraryId);
+                const libraryObj = this.backend.libraries.getLibrary(libraryId);
 
                 if (!libraryObj || !libraryObj.pluginManager) {
                     return res.status(404).json({ error: 'Library or plugin manager not found' });
@@ -480,7 +480,7 @@ export class PluginRoutes {
             try {
                 const { id } = req.params;
                 const [libraryId, pluginName] = id.split('-', 2);
-                const libraryObj = this.backend.libraries.get(libraryId);
+                const libraryObj = this.backend.libraries.getLibrary(libraryId);
 
                 if (!libraryObj || !libraryObj.pluginManager) {
                     return res.status(404).json({ error: 'Library or plugin manager not found' });
@@ -508,7 +508,7 @@ export class PluginRoutes {
                 const config = req.body;
 
                 const [libraryId, pluginName] = id.split('-', 2);
-                const libraryObj = this.backend.libraries.get(libraryId);
+                const libraryObj = this.backend.libraries.getLibrary(libraryId);
 
                 if (!libraryObj || !libraryObj.pluginManager) {
                     return res.status(404).json({ error: 'Library or plugin manager not found' });
@@ -531,7 +531,7 @@ export class PluginRoutes {
             try {
                 const { id } = req.params;
                 const [libraryId, pluginName] = id.split('-', 2);
-                const libraryObj = this.backend.libraries.get(libraryId);
+                const libraryObj = this.backend.libraries.getLibrary(libraryId);
 
                 if (!libraryObj || !libraryObj.pluginManager) {
                     return res.status(404).json({ error: 'Library or plugin manager not found' });
@@ -575,7 +575,7 @@ export class PluginRoutes {
 
                 // 查找插件所在的库
                 let pluginDir: string | null = null;
-                for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                for (const [id, libraryObj] of Object.entries(this.backend.libraries.getLibraries)) {
                     if (libraryObj.pluginManager) {
                         const testPluginDir = libraryObj.pluginManager.getPluginDir(pluginName);
                         const iconPath = path.join(testPluginDir, filename);
