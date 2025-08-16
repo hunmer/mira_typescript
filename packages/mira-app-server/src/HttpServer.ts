@@ -3,6 +3,7 @@ import http from 'http';
 import express from 'express';
 import axios from "axios";
 import { AuthRouter } from "./routes/AuthRouter";
+import { UserRouter } from "./routes/UserRouter";
 import { LibraryRoutes } from './routes/LibraryRoutes';
 
 import { AdminsRouter } from "./routes/AdminsRouter";
@@ -133,6 +134,7 @@ export class MiraHttpServer {
     app: Express;
     httpServer: http.Server;
     authRouter: AuthRouter;
+    userRouter: UserRouter;
     backend: MiraServer;
 
     // Routers
@@ -149,6 +151,7 @@ export class MiraHttpServer {
         this.app = express();
         this.httpServer = http.createServer(this.app);
         this.authRouter = new AuthRouter(dataDir);
+        this.userRouter = new UserRouter(this.authRouter);
         this.adminsRouter = new AdminsRouter(this.authRouter);
         this.libraryRoutes = new LibraryRoutes(backend);
         this.pluginRoutes = new PluginRoutes(backend);
@@ -215,8 +218,11 @@ export class MiraHttpServer {
 
     private setupRoutes() {
         this.app.use('/', this.httpRouter.getRouter()); // 插件注册服务
-        this.app.use('/auth', this.authRouter.getRouter());
+        this.app.use('/api/auth', this.authRouter.getRouter());
         this.app.use('/api/admins', this.adminsRouter.getRouter());
+
+        // 注册符合vben标准的用户信息路由
+        this.app.use('/api/user', this.userRouter.getRouter());
 
         // 注册 RESTful 路由
         this.app.use('/api/libraries', this.libraryRoutes.getRouter());

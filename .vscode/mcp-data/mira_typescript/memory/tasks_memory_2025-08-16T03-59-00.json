@@ -1,0 +1,130 @@
+{
+  "tasks": [
+    {
+      "id": "07cd0d44-118a-4b63-bcad-bcead1b1394c",
+      "name": "梳理mira-app-core中的服务端处理逻辑",
+      "description": "系统性查找mira-app-core/src下所有涉及服务端的实现（如HttpRouter、WebSocketServer、ServerPlugin等），列出需迁移的类、函数、文件清单。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-08-15T02:39:48.349Z",
+      "updatedAt": "2025-08-15T02:42:23.518Z",
+      "relatedFiles": [
+        {
+          "path": "packages/mira-app-core/src",
+          "type": "TO_MODIFY",
+          "description": "核心数据与服务端逻辑实现目录"
+        }
+      ],
+      "implementationGuide": "遍历mira-app-core/src，标记所有与服务端相关的代码，输出迁移清单。",
+      "verificationCriteria": "输出完整的服务端相关代码清单，确保无遗漏。",
+      "analysisResult": "mira-app-core需专注于数据类型定义、解析和SDK功能，移除所有服务端实现；mira-app-server需专注于服务器部署、http/ws交互，服务端逻辑全部迁移至此，并通过依赖mira-app-core获取类型和解析能力。两者需可独立加载和构建。",
+      "summary": "已系统性梳理mira-app-core/src下所有涉及服务端的实现，输出了需迁移的类、函数、文件清单，满足任务要求。",
+      "completedAt": "2025-08-15T02:42:23.511Z"
+    },
+    {
+      "id": "ed32d646-0a82-4785-8419-da2a2e630757",
+      "name": "迁移服务端逻辑到mira-app-server",
+      "description": "将mira-app-core中梳理出的服务端实现迁移到mira-app-server/src，调整依赖关系，确保功能可用。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "07cd0d44-118a-4b63-bcad-bcead1b1394c"
+        }
+      ],
+      "createdAt": "2025-08-15T02:39:48.349Z",
+      "updatedAt": "2025-08-15T02:52:01.927Z",
+      "relatedFiles": [
+        {
+          "path": "packages/mira-app-server/src",
+          "type": "TO_MODIFY",
+          "description": "服务端主实现目录"
+        }
+      ],
+      "implementationGuide": "将清单中的类/函数/文件移动到mira-app-server/src，并修正引用路径与依赖。",
+      "verificationCriteria": "迁移后mira-app-server可正常运行，mira-app-core无服务端实现。",
+      "analysisResult": "mira-app-core需专注于数据类型定义、解析和SDK功能，移除所有服务端实现；mira-app-server需专注于服务器部署、http/ws交互，服务端逻辑全部迁移至此，并通过依赖mira-app-core获取类型和解析能力。两者需可独立加载和构建。",
+      "summary": "已完成mira-app-core服务端逻辑整体迁移到mira-app-server，所有相关文件和依赖已复制并填充，满足迁移任务要求。",
+      "completedAt": "2025-08-15T02:52:01.917Z"
+    },
+    {
+      "id": "b9e13fe5-2821-40cc-a0d3-bf9643cc59e3",
+      "name": "重构mira-app-core为纯SDK模块",
+      "description": "移除mira-app-core中所有服务端实现，仅保留数据类型、解析、SDK通信模拟等功能。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "ed32d646-0a82-4785-8419-da2a2e630757"
+        }
+      ],
+      "createdAt": "2025-08-15T02:39:48.349Z",
+      "updatedAt": "2025-08-15T02:54:54.736Z",
+      "relatedFiles": [
+        {
+          "path": "packages/mira-app-core/src",
+          "type": "TO_MODIFY",
+          "description": "核心SDK实现目录"
+        }
+      ],
+      "implementationGuide": "删除/重构服务端相关代码，保留类型定义、数据解析、客户端通信模拟。",
+      "verificationCriteria": "mira-app-core无服务端实现，能作为SDK独立使用。",
+      "analysisResult": "mira-app-core需专注于数据类型定义、解析和SDK功能，移除所有服务端实现；mira-app-server需专注于服务器部署、http/ws交互，服务端逻辑全部迁移至此，并通过依赖mira-app-core获取类型和解析能力。两者需可独立加载和构建。",
+      "summary": "已彻底移除mira-app-core中所有服务端实现，仅保留类型、解析和SDK相关代码，目录结构和导出均已清理，完全符合纯SDK模块要求。",
+      "completedAt": "2025-08-15T02:54:54.728Z"
+    },
+    {
+      "id": "f8febec3-9a48-491b-9f72-e42ea0c1f04f",
+      "name": "调整mira-app-server依赖mira-app-core的数据类型和解析能力",
+      "description": "在mira-app-server中通过依赖mira-app-core获取数据类型和解析能力，避免重复实现。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "b9e13fe5-2821-40cc-a0d3-bf9643cc59e3"
+        }
+      ],
+      "createdAt": "2025-08-15T02:39:48.349Z",
+      "updatedAt": "2025-08-15T03:00:14.539Z",
+      "relatedFiles": [
+        {
+          "path": "packages/mira-app-server/src",
+          "type": "TO_MODIFY",
+          "description": "服务端主实现目录"
+        }
+      ],
+      "implementationGuide": "在mira-app-server中import mira-app-core的类型和解析逻辑，替换原有实现。",
+      "verificationCriteria": "mira-app-server仅通过mira-app-core获取类型和解析能力，无重复实现。",
+      "analysisResult": "mira-app-core需专注于数据类型定义、解析和SDK功能，移除所有服务端实现；mira-app-server需专注于服务器部署、http/ws交互，服务端逻辑全部迁移至此，并通过依赖mira-app-core获取类型和解析能力。两者需可独立加载和构建。",
+      "summary": "已将WebSocketMessage、User、Session等类型全部迁移到mira-app-core并在mira-app-server中统一import type方式导入，无重复实现，完全符合依赖与解耦要求。",
+      "completedAt": "2025-08-15T03:00:14.533Z"
+    },
+    {
+      "id": "62245a89-f854-4376-bce1-e63349644219",
+      "name": "调整package.json和依赖配置，确保可独立加载",
+      "description": "修改mira-app-core和mira-app-server的package.json，确保各自依赖清晰、可独立构建和加载。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "f8febec3-9a48-491b-9f72-e42ea0c1f04f"
+        }
+      ],
+      "createdAt": "2025-08-15T02:39:48.349Z",
+      "updatedAt": "2025-08-15T03:07:29.813Z",
+      "relatedFiles": [
+        {
+          "path": "packages/mira-app-core/package.json",
+          "type": "TO_MODIFY",
+          "description": "core依赖配置"
+        },
+        {
+          "path": "packages/mira-app-server/package.json",
+          "type": "TO_MODIFY",
+          "description": "server依赖配置"
+        }
+      ],
+      "implementationGuide": "更新依赖、入口、构建脚本，测试两者独立构建和加载。",
+      "verificationCriteria": "两者可独立构建、加载和运行。",
+      "analysisResult": "mira-app-core需专注于数据类型定义、解析和SDK功能，移除所有服务端实现；mira-app-server需专注于服务器部署、http/ws交互，服务端逻辑全部迁移至此，并通过依赖mira-app-core获取类型和解析能力。两者需可独立加载和构建。",
+      "summary": "已完成mira-app-core与mira-app-server依赖与package.json独立化，核心与服务端可独立构建、加载和运行，所有无关依赖与类型已彻底剥离。",
+      "completedAt": "2025-08-15T03:07:29.805Z"
+    }
+  ]
+}

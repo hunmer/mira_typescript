@@ -78,6 +78,69 @@ export class AuthRouter {
     }
 
     private setupRoutes(): void {
+
+        // 获取权限码路由 - 符合vben框架标准
+        this.router.get('/codes', async (req: Request, res: Response) => {
+            try {
+                const token = req.headers.authorization?.replace('Bearer ', '');
+
+                if (!token) {
+                    return res.status(401).json({
+                        code: 401,
+                        message: '未提供认证令牌',
+                        data: []
+                    });
+                }
+
+                const authService = this.getAuthService();
+                const user = await authService.validateToken(token);
+
+                if (user) {
+                    // 根据用户角色返回权限码
+                    let accessCodes: string[] = [];
+
+                    if (user.role === 'administrator') {
+                        // 管理员拥有所有权限
+                        accessCodes = [
+                            'AC_100100', // 超级管理员权限
+                            'AC_100010', // 管理员权限
+                            'AC_100020', // 用户管理权限
+                            'AC_100030', // 系统设置权限
+                            'AC_200000', // 数据库访问权限
+                            'AC_300000', // 设备管理权限
+                            'AC_400000', // 文件管理权限
+                        ];
+                    } else if (user.role === 'user') {
+                        // 普通用户权限
+                        accessCodes = [
+                            'AC_100010', // 基础用户权限
+                            'AC_200001', // 数据库查看权限
+                            'AC_300001', // 设备查看权限
+                        ];
+                    }
+
+                    res.json({
+                        code: 0,
+                        message: '获取权限码成功',
+                        data: accessCodes
+                    });
+                } else {
+                    res.status(401).json({
+                        code: 401,
+                        message: '无效或过期的认证令牌',
+                        data: []
+                    });
+                }
+            } catch (error) {
+                console.error('Get access codes error:', error);
+                res.status(500).json({
+                    code: 500,
+                    message: '服务器内部错误',
+                    data: []
+                });
+            }
+        });
+
         // 登录路由
         this.router.post('/login', async (req: Request, res: Response) => {
             try {
@@ -87,9 +150,9 @@ export class AuthRouter {
 
                 if (!username || !password) {
                     return res.status(400).json({
-                        success: false,
+                        code: 400,
                         message: '用户名和密码不能为空',
-                        code: 'MISSING_CREDENTIALS'
+                        data: null
                     });
                 }
 
@@ -98,21 +161,21 @@ export class AuthRouter {
                 if (user) {
                     const token = await this.authService.generateToken(user.id);
 
+                    // 符合vben框架标准的返回格式
                     res.json({
-                        success: true,
+                        code: 0,  // 0表示成功
                         message: '登录成功',
                         data: {
-                            token,
-                            user: this.authService.getUserInfo(user)
+                            accessToken: token  // vben期望的token字段名
                         }
                     });
 
                     console.log(`✅ User ${username} logged in successfully`);
                 } else {
                     res.status(401).json({
-                        success: false,
+                        code: 401,
                         message: '用户名或密码错误',
-                        code: 'INVALID_CREDENTIALS'
+                        data: null
                     });
 
                     console.log(`❌ Failed login attempt for username: ${username}`);
@@ -120,9 +183,9 @@ export class AuthRouter {
             } catch (error) {
                 console.error('Login error:', error);
                 res.status(500).json({
-                    success: false,
+                    code: 500,
                     message: '服务器内部错误',
-                    code: 'INTERNAL_ERROR'
+                    data: null
                 });
             }
         });
@@ -143,44 +206,6 @@ export class AuthRouter {
                 });
             } catch (error) {
                 console.error('Logout error:', error);
-                res.status(500).json({
-                    success: false,
-                    message: '服务器内部错误'
-                });
-            }
-        });
-
-        // 获取用户信息路由
-        this.router.get('/profile', async (req: Request, res: Response) => {
-            try {
-                const token = req.headers.authorization?.replace('Bearer ', '');
-
-                if (!token) {
-                    return res.status(401).json({
-                        success: false,
-                        message: '未提供认证令牌',
-                        code: 'NO_TOKEN'
-                    });
-                }
-
-                const user = await this.authService.validateToken(token);
-
-                if (user) {
-                    res.json({
-                        success: true,
-                        data: {
-                            user: this.authService.getUserInfo(user)
-                        }
-                    });
-                } else {
-                    res.status(401).json({
-                        success: false,
-                        message: '无效或过期的认证令牌',
-                        code: 'INVALID_TOKEN'
-                    });
-                }
-            } catch (error) {
-                console.error('Profile error:', error);
                 res.status(500).json({
                     success: false,
                     message: '服务器内部错误'
