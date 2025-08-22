@@ -9,7 +9,7 @@
     "homepage": "",
     "author": {
         "name": "Mira Team",
-        "email": ""
+        "email": "liaoyanjie2000@gmail.com"
     },
     "repository": {
         "type": "git",
@@ -23,7 +23,7 @@
         "lint": "eslint nodes/**/*.ts package.json",
         "lintfix": "eslint nodes/**/*.ts package.json --fix",
         "test": "npm run clear && npm install && npm run build && npm prune --production && npm link",
-        "clear": "rimraf ./dist",
+        "clear": "rm -rf ./dist",
         "prepublishOnly": "npm run build && npm run lint -s"
     },
     "files": [
