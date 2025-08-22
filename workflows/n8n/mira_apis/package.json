@@ -42,6 +42,8 @@
             "dist/nodes/MiraGetCodesNode/MiraGetCodesNode.node.js",
             "dist/nodes/MiraAdminList/MiraAdminList.node.js",
             "dist/nodes/MiraAdminCreate/MiraAdminCreate.node.js",
+            "dist/nodes/MiraAdminUpdate/MiraAdminUpdate.node.js",
+            "dist/nodes/MiraAdminDelete/MiraAdminDelete.node.js",
             "dist/nodes/MiraUser/MiraUser.node.js",
             "dist/nodes/MiraLibrary/MiraLibrary.node.js",
             "dist/nodes/MiraPlugin/MiraPlugin.node.js",
