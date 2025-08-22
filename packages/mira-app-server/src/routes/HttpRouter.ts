@@ -52,6 +52,27 @@ export class HttpRouter {
         case 'get':
           this.router.get(path, combinedHandler);
           break;
+        case 'put':
+          this.router.put(path, combinedHandler);
+          break;
+        case 'delete':
+          this.router.delete(path, combinedHandler);
+          break;
+        case 'patch':
+          this.router.patch(path, combinedHandler);
+          break;
+        case 'head':
+          this.router.head(path, combinedHandler);
+          break;
+        case 'options':
+          this.router.options(path, combinedHandler);
+          break;
+        case 'trace':
+          this.router.trace(path, combinedHandler);
+          break;
+        case 'connect':
+          this.router.connect(path, combinedHandler);
+          break;
         default:
           throw new Error('不支持的方法');
       }

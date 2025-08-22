@@ -13,7 +13,7 @@ class ThumbPlugin extends ServerPlugin {
     pluginManager: ServerPluginManager;
     taskQueue: Queue;
 
-    constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
+    constructor({ pluginManager, server, dbService }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData }) {
         super('mira_thumb', pluginManager, dbService);
         // 检查 ffmpeg 是否已安装，并设置 ffmpegPath
         try {
@@ -46,7 +46,7 @@ class ThumbPlugin extends ServerPlugin {
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
 
         console.log('Thumbnail plugin initialized');
-        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries!.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onFileCreated.bind(this));
             obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));

@@ -84,6 +84,7 @@ import { EventEmitter } from 'events';
  */
 export class EventManager extends EventEmitter {
   private static _instance: EventManager;
+  private _subscriptions: Map<string, EventSubscription<EventArgs>> = new Map();
 
   /** 获取EventManager单例实例 */
   public static get instance(): EventManager {
@@ -103,46 +104,79 @@ export class EventManager extends EventEmitter {
    * 注册一个事件处理器
    * @param eventName 事件名称
    * @param handler 事件处理函数
-   * @returns 订阅句柄
+   * @param priority 优先级，数字越大优先级越高
+   * @returns 订阅ID
    */
   public subscribe<T extends EventArgs = EventArgs>(
     eventName: string,
     handler: (args: T) => void | boolean | Promise<boolean>,
     priority: number = 0
-  ): this {
+  ): string {
+    const subscription = new EventSubscription<EventArgs>(eventName, handler as any, priority);
+    this._subscriptions.set(subscription.id, subscription);
+    
     const wrappedHandler = (args: T) => {
-      return handler(args);
+      if (subscription.isActive) {
+        return handler(args);
+      }
     };
     wrappedHandler['priority'] = priority;
+    wrappedHandler['subscriptionId'] = subscription.id;
+    
     this.on(eventName, wrappedHandler);
-    return this;
+    return subscription.id;
   }
 
   /**
    * 注册一个一次性事件处理器
    * @param eventName 事件名称
    * @param handler 事件处理函数
-   * @returns 订阅句柄
+   * @returns 订阅ID
    */
   public subscribeOnce<T extends EventArgs = EventArgs>(
     eventName: string,
     handler: (args: T) => void
-  ): this {
-    this.once(eventName, handler);
-    return this;
+  ): string {
+    const subscription = new EventSubscription<EventArgs>(eventName, handler as any, 0);
+    this._subscriptions.set(subscription.id, subscription);
+    
+    const wrappedHandler = (args: T) => {
+      if (subscription.isActive) {
+        subscription.cancel();
+        this._subscriptions.delete(subscription.id);
+        return handler(args);
+      }
+    };
+    wrappedHandler['subscriptionId'] = subscription.id;
+    
+    this.once(eventName, wrappedHandler);
+    return subscription.id;
   }
 
   /**
    * 取消订阅
-   * @param eventName 事件名称
-   * @param handler 要取消的事件处理函数
+   * @param subscriptionId 订阅ID
    * @returns 是否成功取消订阅
    */
-  public unsubscribe<T extends EventArgs = EventArgs>(
-    eventName: string,
-    handler: (args: T) => void
-  ): void {
-     this.off(eventName, handler);
+  public unsubscribe(subscriptionId: string): boolean {
+    const subscription = this._subscriptions.get(subscriptionId);
+    if (!subscription) {
+      return false;
+    }
+    
+    subscription.cancel();
+    this._subscriptions.delete(subscriptionId);
+    
+    // 移除对应的EventEmitter监听器
+    const listeners = this.listeners(subscription.eventName);
+    for (const listener of listeners) {
+      if ((listener as any)['subscriptionId'] === subscriptionId) {
+        this.off(subscription.eventName, listener as (...args: any[]) => void);
+        break;
+      }
+    }
+    
+    return true;
   }
 
   /**
@@ -181,6 +215,7 @@ export class EventManager extends EventEmitter {
    * 清理所有订阅
    */
   public dispose(): void {
+    this._subscriptions.clear();
     this.removeAllListeners();
   }
 

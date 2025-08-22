@@ -17,10 +17,8 @@ program
   .command('start')
   .description('Start the Mira server')
   .option('-p, --port <number>', 'HTTP port number', '8081')
-  .option('-w, --ws-port <number>', 'WebSocket port number', '8081')
+  .option('-w, --ws-port <number>', 'WebSocket port number', '8018')
   .option('-d, --data <path>', 'Data directory path')
-  .option('--no-http', 'Disable HTTP server')
-  .option('--no-websocket', 'Disable WebSocket server')
   .option('--env <path>', 'Environment file path')
   .action(async (options) => {
     try {
@@ -31,6 +29,9 @@ program
 
       console.log('🚀 Starting Mira Server with CLI...');
       console.log('📋 Options:', options);
+      console.log('📂 Data path received:', options.data);
+      console.log('🔢 Port received:', options.port);
+      console.log('🔌 WebSocket port received:', options.wsPort);
 
       const server = await MiraServer.createAndStart({
         httpPort: parseInt(options.port),

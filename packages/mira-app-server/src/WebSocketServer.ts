@@ -13,12 +13,10 @@ export class MiraWebsocketServer {
     port: number | undefined;
     libraryClients: LibraryClient = {};
     wss?: WSServer;
-    libraries: LibraryStorage;
     backend: MiraServer;
 
     constructor(backend: MiraServer) {
         this.backend = backend;
-        this.libraries = this.backend.libraries;
     }
 
     async start(port: number): Promise<void> {
@@ -58,7 +56,7 @@ export class MiraWebsocketServer {
     }
 
     broadcastToClients(eventName: string, eventData: Record<string, any>): void {
-        const obj = this.libraries.getLibrary(eventData.libraryId);
+        const obj = this.backend.libraries!.getLibrary(eventData.libraryId);
         if (obj) {
             const eventManager = obj.eventManager;
             if (eventManager) {
@@ -94,7 +92,7 @@ export class MiraWebsocketServer {
 
     broadcastPluginEvent(eventName: string, data: Record<string, any>): Promise<boolean> {
         const libraryId = data?.libraryId ?? data?.message?.libraryId;
-        const obj = this.libraries.getLibrary(libraryId);
+        const obj = this.backend.libraries!.getLibrary(libraryId);
         if (obj) {
             const eventManager = obj.eventManager;
             if (eventManager) {
@@ -140,7 +138,7 @@ export class MiraWebsocketServer {
         const libraryId = row.libraryId;
         const data = payload.data || {};
         const recordType = payload.type;
-        const exists = this.libraries.libraryExists(libraryId);
+        const exists = this.backend.libraries!.libraryExists(libraryId);
         if (!exists) {
             this.sendToWebsocket(ws, {
                 status: 'error',
@@ -149,7 +147,7 @@ export class MiraWebsocketServer {
             return;
         }
 
-        const obj = this.libraries.getLibrary(libraryId);
+        const obj = this.backend.libraries!.getLibrary(libraryId);
         if (!obj) {
             this.sendToWebsocket(ws, {
                 status: 'error',
@@ -186,7 +184,7 @@ export class MiraWebsocketServer {
     }
 
     async stop(): Promise<void> {
-        this.libraries.clear();
+        this.backend.libraries!.clear();
         this.wss?.close();
         console.log('WebSocket server stopped');
     }

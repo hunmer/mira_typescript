@@ -22,7 +22,7 @@ export class LibraryHandler extends MessageHandler {
             let result;
             switch (action) {
                 case 'open':
-                    const obj = this.server.libraries.getLibrary(libraryId);
+                    const obj = this.server.backend.libraries!.getLibrary(libraryId);
                     // 初次握手,发送服务器所需字段信息
                     this.server.sendToWebsocket(this.ws, {
                         eventName: 'try_connect', data: {

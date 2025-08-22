@@ -6,7 +6,7 @@ class UploadStatistics extends ServerPlugin {
     private httpServer: MiraHttpServer;
     private dbService: ILibraryServerData;
 
-    constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
+    constructor({ pluginManager, server, dbService }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData }) {
         super('upload_statistics', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
@@ -102,7 +102,7 @@ class UploadStatistics extends ServerPlugin {
 
         // 绑定文件创建事件
 
-        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries!.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onAfterUploaded.bind(this));
         }

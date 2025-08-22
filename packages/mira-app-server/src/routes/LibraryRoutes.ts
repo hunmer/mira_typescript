@@ -33,16 +33,16 @@ export class LibraryRoutes {
 
                 for (const config of libraryConfigs) {
                     const id = config.id;
-                    const libraryObj = this.backend.libraries.getLibrary(id);
+                    const libraryObj = this.backend.libraries!.getLibrary(id);
 
                     let stats = { totalFiles: 0, totalSize: 0 };
-                    const status = this.backend.libraries.getLibraryStatus(id);
+                    const status = this.backend.libraries!.getLibraryStatus(id);
 
                     // 获取库的配置信息（优先从内存，然后从文件）
-                    const libraryConfig = this.backend.libraries.getLibraryConfig(id) || config;
+                    const libraryConfig = this.backend.libraries!.getLibraryConfig(id) || config;
 
                     // 如果库服务存在且活跃，获取统计信息
-                    if (libraryObj?.libraryService && this.backend.libraries.isLibraryActive(id)) {
+                    if (libraryObj?.libraryService && this.backend.libraries!.isLibraryActive(id)) {
                         try {
                             stats = await libraryObj.libraryService.getStats();
                         } catch (error) {
@@ -99,7 +99,7 @@ export class LibraryRoutes {
                 }
 
                 // 检查路径是否已存在
-                for (const [id, libraryObj] of Object.entries(this.backend.libraries.getLibraries())) {
+                for (const [id, libraryObj] of Object.entries(this.backend.libraries!.getLibraries())) {
                     const existingPath = libraryObj.libraryService?.config?.path ||
                         libraryObj.libraryService?.config?.customFields?.path;
                     if (existingPath === libraryPath) {
@@ -160,7 +160,7 @@ export class LibraryRoutes {
 
                 // 加载新库
                 try {
-                    await this.backend.libraries.load(libraryConfig);
+                    await this.backend.libraries!.load(libraryConfig);
                 } catch (loadError) {
                     console.warn('Failed to load new library immediately:', loadError);
                 }
@@ -209,13 +209,13 @@ export class LibraryRoutes {
                     pluginsDir
                 } = req.body;
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 获取当前配置（可能来自活跃的服务或保存的配置）
-                const currentConfig = this.backend.libraries.getLibraryConfig(id);
+                const currentConfig = this.backend.libraries!.getLibraryConfig(id);
                 if (!currentConfig) {
                     return res.status(404).json({ error: 'Library configuration not found' });
                 }
@@ -223,8 +223,8 @@ export class LibraryRoutes {
                 // 如果路径变了，检查新路径是否与其他库冲突
                 const currentPath = currentConfig.path || currentConfig.customFields?.path;
                 if (libraryPath && libraryPath !== currentPath) {
-                    for (const [otherId, otherLibraryObj] of Object.entries(this.backend.libraries.getLibraries())) {
-                        const otherConfig = this.backend.libraries.getLibraryConfig(otherId);
+                    for (const [otherId, otherLibraryObj] of Object.entries(this.backend.libraries!.getLibraries())) {
+                        const otherConfig = this.backend.libraries!.getLibraryConfig(otherId);
                         const otherPath = otherConfig?.path || otherConfig?.customFields?.path;
                         if (otherId !== id && otherPath === libraryPath) {
                             return res.status(400).json({ error: 'Library with this path already exists' });
@@ -316,7 +316,7 @@ export class LibraryRoutes {
                     name: updatedConfig.name,
                     path: updatedConfig.path || updatedConfig.customFields?.path,
                     type: updatedConfig.type,
-                    status: this.backend.libraries.getLibraryStatus(id),
+                    status: this.backend.libraries!.getLibraryStatus(id),
                     fileCount: stats.totalFiles,
                     size: stats.totalSize,
                     description: updatedConfig.description || '',
@@ -346,13 +346,13 @@ export class LibraryRoutes {
                     return res.status(400).json({ error: 'Invalid status. Must be active or inactive' });
                 }
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 获取当前状态
-                const currentStatus = this.backend.libraries.getLibraryStatus(id);
+                const currentStatus = this.backend.libraries!.getLibraryStatus(id);
                 if (currentStatus === status) {
                     return res.json({ message: `Library is already ${status}` });
                 }
@@ -360,9 +360,9 @@ export class LibraryRoutes {
                 // 执行启用/禁用操作
                 let success = false;
                 if (status === 'active') {
-                    success = await this.backend.libraries.enableLibrary(id);
+                    success = await this.backend.libraries!.enableLibrary(id);
                 } else {
-                    success = await this.backend.libraries.disableLibrary(id);
+                    success = await this.backend.libraries!.disableLibrary(id);
                 }
 
                 if (!success) {
@@ -403,14 +403,14 @@ export class LibraryRoutes {
         this.router.get('/:id/stats', async (req: Request, res: Response) => {
             try {
                 const { id } = req.params;
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
 
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 检查库是否处于活动状态
-                if (!this.backend.libraries.isLibraryActive(id)) {
+                if (!this.backend.libraries!.isLibraryActive(id)) {
                     return res.status(400).json({
                         error: 'Library is inactive',
                         message: 'Cannot get statistics for inactive library. Please enable the library first.'
@@ -479,13 +479,13 @@ export class LibraryRoutes {
                     return res.status(400).json({ error: 'SQL query is required' });
                 }
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 检查库是否处于活动状态
-                if (!this.backend.libraries.isLibraryActive(id)) {
+                if (!this.backend.libraries!.isLibraryActive(id)) {
                     return res.status(400).json({
                         error: 'Library is inactive',
                         message: 'Cannot execute SQL query on inactive library. Please enable the library first.'
@@ -513,13 +513,13 @@ export class LibraryRoutes {
             try {
                 const { id, table } = req.params;
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 检查库是否处于活动状态
-                if (!this.backend.libraries.isLibraryActive(id)) {
+                if (!this.backend.libraries!.isLibraryActive(id)) {
                     return res.status(400).json({
                         error: 'Library is inactive',
                         message: 'Cannot get table schema from inactive library. Please enable the library first.'
@@ -551,13 +551,13 @@ export class LibraryRoutes {
                 const { id, table, recordId } = req.params;
                 const updateData = req.body;
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
 
                 // 检查库是否处于活动状态
-                if (!this.backend.libraries.isLibraryActive(id)) {
+                if (!this.backend.libraries!.isLibraryActive(id)) {
                     return res.status(400).json({
                         error: 'Library is inactive',
                         message: 'Cannot update records in inactive library. Please enable the library first.'
@@ -596,7 +596,7 @@ export class LibraryRoutes {
             try {
                 const { id } = req.params;
 
-                const libraryObj = this.backend.libraries.getLibrary(id);
+                const libraryObj = this.backend.libraries!.getLibrary(id);
                 if (!libraryObj) {
                     return res.status(404).json({ error: 'Library not found' });
                 }
@@ -629,7 +629,7 @@ export class LibraryRoutes {
                 }
 
                 // 从内存中移除
-                this.backend.libraries.removeLibrary(id);
+                this.backend.libraries!.removeLibrary(id);
 
                 res.json({ message: 'Library deleted successfully' });
             } catch (error) {

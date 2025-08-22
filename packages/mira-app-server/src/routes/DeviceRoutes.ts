@@ -91,7 +91,7 @@ export class DeviceRoutes {
             }
 
             // 检查素材库是否存在
-            if (!this.backend.libraries.libraryExists(libraryId)) {
+            if (!this.backend.libraries!.libraryExists(libraryId)) {
                 res.status(404).json({
                     success: false,
                     error: 'Library not found',

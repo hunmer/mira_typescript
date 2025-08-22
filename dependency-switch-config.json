@@ -26,20 +26,32 @@
     },
     "mira_thumb": {
       "defaultOnline": "1.0.15",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira_thumb/",
+      "defaultOffline": "file:D:/mira_typescript/plugins/plugins/mira_thumb/",
       "buildPath": "plugins/plugins/mira_thumb",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira_user": {
       "defaultOnline": "1.0.6",
-      "defaultOffline": "file:D:/mira_typescript/packages/mira_user/",
+      "defaultOffline": "file:D:/mira_typescript/plugins/plugins/mira_user/",
       "buildPath": "plugins/plugins/mira_user",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "upload_statistics": {
       "defaultOnline": "1.0.6",
-      "defaultOffline": "file:D:/mira_typescript/packages/upload_statistics/",
+      "defaultOffline": "file:D:/mira_typescript/plugins/plugins/upload_statistics/",
       "buildPath": "plugins/plugins/upload_statistics",
+      "buildCommand": "npm install && npm run build && npm publish"
+    },
+    "mira_n8n": {
+      "defaultOnline": "1.0.0",
+      "defaultOffline": "file:D:/mira_typescript/plugins/plugins/mira_n8n/",
+      "buildPath": "plugins/plugins/mira_n8n",
+      "buildCommand": "npm install && npm run build && npm publish"
+    },
+    "n8n-nodes-mira-ws-trigger": {
+      "defaultOnline": "0.0.6",
+      "defaultOffline": "file:D:/mira_typescript/packages/n8n-nodes-mira-ws-trigger/",
+      "buildPath": "packages/n8n-nodes-mira-ws-trigger",
       "buildCommand": "npm install && npm run build && npm publish"
     },
     "mira-scripts-core": {

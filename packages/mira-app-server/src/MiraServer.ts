@@ -15,12 +15,12 @@ export class MiraServer {
     httpServer?: MiraHttpServer;
     webSocketServer?: MiraWebsocketServer;
     config: ServerConfig;
-    libraries: LibraryStorage;
+    libraries?: LibraryStorage;
 
     constructor(config: ServerConfig = {}) {
         this.config = {
             httpPort: 8081,
-            wsPort: 8081,
+            wsPort: 8018,
             ...config
         };
 
@@ -29,11 +29,6 @@ export class MiraServer {
 
         this.dataPath = config.dataPath || process.env.DATA_PATH || path.join(process.cwd(), 'data');
         console.log('📂 Data path resolved to:', this.dataPath);
-        this.libraries = new LibraryStorage(this);
-
-        console.log('📚 Auto-loading libraries...');
-        this.libraries.loadAll().then((loaded: number) => console.log(`✅ ${loaded} Libraries loaded`));
-
     }
 
     public async start(): Promise<void> {
@@ -47,8 +42,12 @@ export class MiraServer {
             this.webSocketServer = new MiraWebsocketServer(
                 this
             );
-            this.webSocketServer.start(this.config.wsPort!);
+            await this.webSocketServer.start(this.config.wsPort!);
             console.log(`🔌 WebSocket Server initialized on port ${this.config.wsPort}`);
+
+            console.log('📚 Auto-loading libraries...');
+            this.libraries = new LibraryStorage(this);
+            this.libraries.loadAll().then((loaded: number) => console.log(`✅ ${loaded} Libraries loaded`));
 
             console.log('✅ Mira Server started successfully!');
         } catch (error) {

@@ -4,9 +4,14 @@
     "enabled": false,
     "path": "mira_demo"
   },
+   {
+    "name": "mira_n8n",
+    "enabled": true,
+    "path": "mira_n8n"
+  },
   {
     "name": "mira_thumb",
-    "enabled": true,
+    "enabled": false,
     "path": "mira_thumb"
   },
   {

@@ -44,7 +44,7 @@ export class FileRoutes {
             const clientId = req.body.clientId || null;
             const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
             const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
-            const obj = this.backend.libraries.getLibrary(libraryId);
+            const obj = this.backend.libraries!.getLibrary(libraryId);
             if (!obj) return res.status(404).send('Library not found');
 
             // 解析上传的文件
@@ -140,7 +140,7 @@ export class FileRoutes {
 
     private async parseLibraryItem(req: Request, res: Response): Promise<{ library: any, item: any } | void> {
         const { libraryId, id } = req.params;
-        const obj = this.backend.libraries.getLibrary(libraryId);
+        const obj = this.backend.libraries!.getLibrary(libraryId);
         if (!obj) {
             res.status(404).send('Library not found');
             return;

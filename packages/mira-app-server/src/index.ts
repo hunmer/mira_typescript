@@ -1,4 +1,5 @@
 import { MiraServer } from './MiraServer';
+import ws from 'ws';
 import dotenv from 'dotenv';
 import path from 'path';
 import { ServerPluginManager } from './ServerPluginManager';
@@ -55,7 +56,7 @@ async function startServer() {
 }
 
 // 导出服务器实例和启动函数
-export { MiraServer, startServer, ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer, express };
+export { MiraServer, startServer, ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer, express, ws };
 
 // 如果直接运行此文件，则启动服务器
 if (require.main === module) {

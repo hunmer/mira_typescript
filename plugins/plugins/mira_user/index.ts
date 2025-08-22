@@ -8,7 +8,7 @@ class UserPlugin extends ServerPlugin {
     private dbService: ILibraryServerData;
     private logined_clients: string[] = [];
 
-    constructor({ pluginManager, server, dbService, httpServer }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData, httpServer: MiraHttpServer }) {
+    constructor({ pluginManager, server, dbService }: { pluginManager: ServerPluginManager, server: MiraWebsocketServer, dbService: ILibraryServerData }) {
         super('mira_user', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
@@ -83,7 +83,7 @@ class UserPlugin extends ServerPlugin {
         });
 
         // 绑定登录前事件
-        const obj = httpServer.backend.libraries.getLibrary(dbService.getLibraryId());
+        const obj = httpServer.backend.libraries!.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('client::before_connect', this.onUserLogin.bind(this));
         }

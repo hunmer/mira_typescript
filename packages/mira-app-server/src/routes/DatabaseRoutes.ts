@@ -17,7 +17,7 @@ export class DatabaseRoutes {
             try {
                 // 这里需要根据实际的数据库实现来获取表信息
                 // 暂时返回一个基本的表列表，后续可以扩展
-                const libraryCount = Object.keys(this.backend.libraries.libraries).length;
+                const libraryCount = Object.keys(this.backend.libraries!.libraries).length;
                 const tables = [
                     { name: 'users', schema: '', rowCount: 0 },
                     { name: 'libraries', schema: '', rowCount: libraryCount },
@@ -39,7 +39,7 @@ export class DatabaseRoutes {
                 let data: any[] = [];
 
                 if (tableName === 'libraries') {
-                    for (const [id, libraryObj] of Object.entries(this.backend.libraries.libraries)) {
+                    for (const [id, libraryObj] of Object.entries(this.backend.libraries!.libraries)) {
                         if (libraryObj.libraryService) {
                             const stats = await libraryObj.libraryService.getStats();
                             data.push({
