@@ -22,6 +22,8 @@
         "format": "prettier nodes --write",
         "lint": "eslint nodes/**/*.ts package.json",
         "lintfix": "eslint nodes/**/*.ts package.json --fix",
+        "test": "npm run clear && npm install && npm run build && npm prune --production && npm link",
+        "clear": "rimraf ./dist",
         "prepublishOnly": "npm run build && npm run lint -s"
     },
     "files": [
@@ -30,12 +32,17 @@
     "n8n": {
         "n8nNodesApiVersion": 1,
         "credentials": [
-            "dist/credentials/MiraApi.credentials.js"
+            "dist/credentials/MiraApi.credentials.js",
+            "dist/credentials/MiraLoginCredential.credentials.js"
         ],
         "nodes": [
-            "dist/nodes/MiraAuth/MiraAuth.node.js",
+            "dist/nodes/MiraLoginNode/MiraLoginNode.node.js",
+            "dist/nodes/MiraLogoutNode/MiraLogoutNode.node.js",
+            "dist/nodes/MiraVerifyTokenNode/MiraVerifyTokenNode.node.js",
+            "dist/nodes/MiraGetCodesNode/MiraGetCodesNode.node.js",
+            "dist/nodes/MiraAdminList/MiraAdminList.node.js",
+            "dist/nodes/MiraAdminCreate/MiraAdminCreate.node.js",
             "dist/nodes/MiraUser/MiraUser.node.js",
-            "dist/nodes/MiraAdmin/MiraAdmin.node.js",
             "dist/nodes/MiraLibrary/MiraLibrary.node.js",
             "dist/nodes/MiraPlugin/MiraPlugin.node.js",
             "dist/nodes/MiraFile/MiraFile.node.js",
@@ -45,10 +52,10 @@
         ]
     },
     "devDependencies": {
-        "@types/node": "^18.16.16",
-        "@types/uuid": "^9.0.0",
         "@types/lodash": "^4.14.0",
+        "@types/node": "^18.19.123",
         "@types/semver": "^7.5.0",
+        "@types/uuid": "^9.0.0",
         "@typescript-eslint/eslint-plugin": "^6.0.0",
         "@typescript-eslint/parser": "^6.0.0",
         "eslint": "^8.42.0",

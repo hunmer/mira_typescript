@@ -24,7 +24,7 @@ export class MiraSystem implements INodeType {
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'miraApi',
+                name: 'MiraApiCredential',
                 required: false,
             },
         ],
@@ -95,7 +95,7 @@ export class MiraSystem implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({

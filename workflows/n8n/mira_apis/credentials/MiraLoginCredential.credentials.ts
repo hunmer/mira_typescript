@@ -1,13 +1,11 @@
 import {
-    IAuthenticateGeneric,
-    ICredentialTestRequest,
     ICredentialType,
     INodeProperties,
 } from 'n8n-workflow';
 
-export class MiraApi implements ICredentialType {
-    name = 'miraApi';
-    displayName = 'Mira API';
+export class MiraLoginCredential implements ICredentialType {
+    name = 'MiraLoginCredential';
+    displayName = 'Mira Login';
     documentationUrl = 'https://mira.example.com/docs';
     properties: INodeProperties[] = [
         {
@@ -38,21 +36,4 @@ export class MiraApi implements ICredentialType {
             required: true,
         },
     ];
-
-    authenticate: IAuthenticateGeneric = {
-        type: 'generic',
-        properties: {
-            headers: {
-                Authorization: '=Bearer {{$credentials.accessToken}}',
-            },
-        },
-    };
-
-    test: ICredentialTestRequest = {
-        request: {
-            baseURL: '={{$credentials.serverUrl}}',
-            url: '/api/auth/verify',
-            method: 'GET',
-        },
-    };
 }

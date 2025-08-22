@@ -23,7 +23,7 @@ export class MiraDatabase implements INodeType {
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'miraApi',
+                name: 'MiraApiCredential',
                 required: true,
             },
         ],
@@ -113,7 +113,7 @@ export class MiraDatabase implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -131,7 +131,7 @@ export class MiraDatabase implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -149,7 +149,7 @@ export class MiraDatabase implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({

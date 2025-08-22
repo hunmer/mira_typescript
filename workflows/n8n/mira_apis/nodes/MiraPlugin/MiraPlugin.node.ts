@@ -23,7 +23,7 @@ export class MiraPlugin implements INodeType {
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'miraApi',
+                name: 'MiraApiCredential',
                 required: true,
             },
         ],
@@ -144,7 +144,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -162,7 +162,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -180,7 +180,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -198,7 +198,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -219,7 +219,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -237,7 +237,7 @@ export class MiraPlugin implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({

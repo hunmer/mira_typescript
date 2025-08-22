@@ -23,7 +23,7 @@ export class MiraFile implements INodeType {
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'miraApi',
+                name: 'MiraApiCredential',
                 required: true,
             },
         ],
@@ -225,7 +225,7 @@ export class MiraFile implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
@@ -245,7 +245,7 @@ export class MiraFile implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
 
@@ -273,7 +273,7 @@ export class MiraFile implements INodeType {
 
                         const response = await this.helpers.httpRequestWithAuthentication.call(
                             this,
-                            'miraApi',
+                            'MiraApiCredential',
                             options,
                         );
                         returnData.push({
