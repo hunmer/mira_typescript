@@ -3,149 +3,43 @@ import {
     INodeExecutionData,
     INodeType,
     INodeTypeDescription,
-    NodeOperationError,
     NodeConnectionType,
-    IHttpRequestMethods,
 } from 'n8n-workflow';
+import { miraTokenProperties, miraTokenCredentials, miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraVerifyToken implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Mira Verify Token',
         name: 'miraVerifyToken',
-        icon: 'file:mira.svg',
+        ...miraCommonNodeConfig,
         group: ['mira-auth'],
-        version: 1,
         description: 'Verify access token with Mira App Server',
         defaults: {
             name: 'Mira Verify Token',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: false,
-                displayOptions: {
-                    show: {
-                        tokenSource: ['credentials'],
-                    },
-                },
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
-            {
-                displayName: 'Token Source',
-                name: 'tokenSource',
-                type: 'options',
-                options: [
-                    {
-                        name: 'From Credentials',
-                        value: 'credentials',
-                        description: 'Use token from Mira API credentials',
-                    },
-                    {
-                        name: 'From Input',
-                        value: 'input',
-                        description: 'Use token from input data (e.g., from login operation)',
-                    },
-                ],
-                default: 'input',
-                description: 'Choose where to get the access token from',
-            },
-            {
-                displayName: 'Server URL',
-                name: 'serverUrl',
-                type: 'string',
-                displayOptions: {
-                    show: {
-                        tokenSource: ['input'],
-                    },
-                },
-                default: 'http://localhost:8081',
-                description: 'The URL of the Mira App Server',
-            },
-            {
-                displayName: 'Access Token',
-                name: 'accessToken',
-                type: 'string',
-                typeOptions: {
-                    password: true,
-                },
-                displayOptions: {
-                    show: {
-                        tokenSource: ['input'],
-                    },
-                },
-                default: '',
-                description: 'Access token for authentication. Can use expressions like {{ $json.accessToken }}',
-                placeholder: '{{ $json.accessToken }}',
-            },
+            ...miraTokenProperties.map(prop =>
+                prop.name === 'tokenSource'
+                    ? { ...prop, default: 'input' }  // Override default to 'input'
+                    : prop
+            ),
         ],
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        const items = this.getInputData();
-        const returnData: INodeExecutionData[] = [];
-
-        for (let i = 0; i < items.length; i++) {
-            try {
-                const tokenSource = this.getNodeParameter('tokenSource', i) as string;
-                let serverUrl: string;
-                let token: string;
-
-                if (tokenSource === 'credentials') {
-                    // Get server URL and token from credentials
-                    const credentials = await this.getCredentials('MiraApiCredential');
-                    serverUrl = credentials.serverUrl as string;
-
-                    const options = {
-                        method: 'GET' as IHttpRequestMethods,
-                        url: `${serverUrl}/api/auth/verify`,
-                    };
-
-                    const response = await this.helpers.httpRequestWithAuthentication.call(
-                        this,
-                        'MiraApiCredential',
-                        options,
-                    );
-                    returnData.push({
-                        json: response,
-                        pairedItem: { item: i },
-                    });
-                } else {
-                    // Get token from input parameter
-                    token = this.getNodeParameter('accessToken', i) as string;
-                    serverUrl = this.getNodeParameter('serverUrl', i) as string;
-
-                    const options = {
-                        method: 'GET' as IHttpRequestMethods,
-                        url: `${serverUrl}/api/auth/verify`,
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    };
-
-                    const response = await this.helpers.httpRequest(options);
-                    returnData.push({
-                        json: response,
-                        pairedItem: { item: i },
-                    });
-                }
-            } catch (error) {
-                if (this.continueOnFail()) {
-                    returnData.push({
-                        json: { error: error.message },
-                        pairedItem: { item: i },
-                    });
-                    continue;
-                }
-                throw new NodeOperationError(this.getNode(), error as Error, {
-                    itemIndex: i,
-                });
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                return {
+                    method: 'GET',
+                    endpoint: '/api/auth/verify',
+                };
             }
-        }
-
-        return [returnData];
+        );
     }
 }

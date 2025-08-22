@@ -6,29 +6,35 @@ import {
     NodeConnectionType,
 } from 'n8n-workflow';
 import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
-import { processMiraItems } from '../../shared/mira-http-helper';
-import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
-export class MiraLogin implements INodeType {
+export class MiraDeviceGetByLibrary implements INodeType {
     description: INodeTypeDescription = {
-        displayName: 'Mira Login',
-        name: 'miraLogin',
+        displayName: 'Mira Device Get By Library',
+        name: 'miraDeviceGetByLibrary',
         ...miraCommonNodeConfig,
-        group: ['mira-auth'],
-        description: 'Login to Mira App Server to get access token',
+        group: ['device'],
+        description: 'Get devices for specific library from Mira App Server',
         defaults: {
-            name: 'Mira Login',
+            name: 'Mira Device Get By Library',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'MiraLoginCredential',
+                name: 'MiraApiCredential',
                 required: true,
             },
         ],
         properties: [
-            // No additional properties needed - all info comes from credentials
+            {
+                displayName: 'Library ID',
+                name: 'libraryId',
+                type: 'string',
+                required: true,
+                default: '',
+                description: 'ID of the library to get devices for',
+                placeholder: 'library-123',
+            },
         ],
     };
 
@@ -38,25 +44,24 @@ export class MiraLogin implements INodeType {
 
         for (let i = 0; i < items.length; i++) {
             try {
-                // Use credentials only - this is different from other nodes as it doesn't require token auth
-                const credentials = await this.getCredentials('MiraLoginCredential');
-                const serverUrl = credentials.serverUrl as string;
-                const username = credentials.username as string;
-                const password = credentials.password as string;
+                const libraryId = this.getNodeParameter('libraryId', i) as string;
+
+                // Validate required parameter
+                if (!libraryId || libraryId.trim() === '') {
+                    throw new Error('Library ID is required and cannot be empty');
+                }
 
                 const options = {
-                    method: 'POST' as const,
-                    url: `${serverUrl}/api/auth/login`,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username,
-                        password,
-                    }),
+                    method: 'GET' as const,
+                    url: `/api/devices/library/${libraryId.trim()}`,
                 };
 
-                const response = await this.helpers.httpRequest(options);
+                const response = await this.helpers.httpRequestWithAuthentication.call(
+                    this,
+                    'MiraApiCredential',
+                    options,
+                );
+
                 returnData.push({
                     json: response,
                     pairedItem: { item: i },

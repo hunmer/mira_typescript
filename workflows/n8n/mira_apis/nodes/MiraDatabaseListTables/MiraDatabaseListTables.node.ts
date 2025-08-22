@@ -6,29 +6,27 @@ import {
     NodeConnectionType,
 } from 'n8n-workflow';
 import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
-import { processMiraItems } from '../../shared/mira-http-helper';
-import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
-export class MiraLogin implements INodeType {
+export class MiraDatabaseListTables implements INodeType {
     description: INodeTypeDescription = {
-        displayName: 'Mira Login',
-        name: 'miraLogin',
+        displayName: 'Mira Database List Tables',
+        name: 'miraDatabaseListTables',
         ...miraCommonNodeConfig,
-        group: ['mira-auth'],
-        description: 'Login to Mira App Server to get access token',
+        group: ['database'],
+        description: 'Get all database tables from Mira App Server',
         defaults: {
-            name: 'Mira Login',
+            name: 'Mira Database List Tables',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
         credentials: [
             {
-                name: 'MiraLoginCredential',
+                name: 'MiraApiCredential',
                 required: true,
             },
         ],
         properties: [
-            // No additional properties needed - all info comes from credentials
+            // No additional properties needed - this is a simple list operation
         ],
     };
 
@@ -38,25 +36,17 @@ export class MiraLogin implements INodeType {
 
         for (let i = 0; i < items.length; i++) {
             try {
-                // Use credentials only - this is different from other nodes as it doesn't require token auth
-                const credentials = await this.getCredentials('MiraLoginCredential');
-                const serverUrl = credentials.serverUrl as string;
-                const username = credentials.username as string;
-                const password = credentials.password as string;
-
                 const options = {
-                    method: 'POST' as const,
-                    url: `${serverUrl}/api/auth/login`,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username,
-                        password,
-                    }),
+                    method: 'GET' as const,
+                    url: '/api/database/tables',
                 };
 
-                const response = await this.helpers.httpRequest(options);
+                const response = await this.helpers.httpRequestWithAuthentication.call(
+                    this,
+                    'MiraApiCredential',
+                    options,
+                );
+
                 returnData.push({
                     json: response,
                     pairedItem: { item: i },
