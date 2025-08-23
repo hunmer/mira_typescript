@@ -137,7 +137,7 @@
       "args": [
         "start",
         "-d",
-        "D:\\mira_typescript\\plugins"
+        "/Users/Zhuanz/mira_typescript/plugins"
       ],
       "runtimeArgs": [
         "-r",

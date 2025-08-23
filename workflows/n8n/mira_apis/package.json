@@ -22,7 +22,7 @@
         "format": "prettier nodes --write",
         "lint": "eslint nodes/**/*.ts package.json",
         "lintfix": "eslint nodes/**/*.ts package.json --fix",
-        "test": "npm run clear && npm install && npm run build && npm prune --production && npm link",
+        "test": "npm run clear && npm install && npm run build && npm prune --production && npm link && N8N_LOG_OUTPUT=console N8N_LOG_LEVEL=debug npx n8n",
         "clear": "rm -rf ./dist",
         "prepublishOnly": "npm run build && npm run lint -s"
     },
@@ -53,7 +53,11 @@
             "dist/nodes/MiraSystem/MiraSystem.node.js"
         ]
     },
+    "dependencies": {
+        "form-data": "^4.0.0"
+    },
     "devDependencies": {
+        "@types/form-data": "^2.2.1",
         "@types/lodash": "^4.14.0",
         "@types/node": "^18.19.123",
         "@types/semver": "^7.5.0",
@@ -62,6 +66,7 @@
         "@typescript-eslint/parser": "^6.0.0",
         "eslint": "^8.42.0",
         "eslint-plugin-n8n-nodes-base": "^1.11.0",
+        "form-data": "^4.0.0",
         "gulp": "^4.0.2",
         "n8n-core": "^1.14.1",
         "n8n-workflow": "^1.82.0",

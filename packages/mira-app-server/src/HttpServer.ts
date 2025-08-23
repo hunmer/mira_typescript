@@ -208,9 +208,9 @@ export class MiraHttpServer {
             }
         });
 
-        // JSON 解析中间件
-        this.app.use(express.json({ limit: '10mb' }));
-        this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+        // JSON 解析中间件 - 增加文件上传限制
+        this.app.use(express.json({ limit: '2048mb' }));
+        this.app.use(express.urlencoded({ extended: true }));
 
         // 静态文件中间件
         this.app.use('/static', express.static('public'));

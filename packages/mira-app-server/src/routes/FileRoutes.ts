@@ -33,7 +33,10 @@ export class FileRoutes {
                     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
                     cb(null, uniqueSuffix + path.extname(originalName));
                 }
-            })
+            }),
+            limits: {
+                fileSize: 2048 * 1024 * 1024, // 2GB per file
+            }
         });
     }
 

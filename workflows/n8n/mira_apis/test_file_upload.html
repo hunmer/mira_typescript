@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mira 文件上传测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="file"] {
+            padding: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Mira 文件上传测试</h1>
+        <p>使用此表单测试您的 n8n Webhook 文件上传工作流</p>
+
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="webhookUrl">Webhook URL:</label>
+                <input type="text" id="webhookUrl" placeholder="http://localhost:5678/webhook/upload-file" required>
+                <small style="color: #666;">从您的 n8n Webhook 节点复制 URL</small>
+            </div>
+
+            <div class="form-group">
+                <label for="file">选择文件:</label>
+                <input type="file" id="file" required>
+            </div>
+
+            <div class="form-group">
+                <label for="libraryId">素材库 ID:</label>
+                <input type="text" id="libraryId" placeholder="输入素材库 ID" required>
+            </div>
+
+            <div class="form-group">
+                <label for="folderId">文件夹 (可选):</label>
+                <input type="text" id="folderId" placeholder="文件夹名称">
+            </div>
+
+            <div class="form-group">
+                <label for="tags">标签 (可选):</label>
+                <input type="text" id="tags" placeholder="标签1, 标签2, 标签3">
+            </div>
+
+            <button type="submit" id="submitBtn">上传文件</button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const result = document.getElementById('result');
+
+            // 禁用提交按钮
+            submitBtn.disabled = true;
+            submitBtn.textContent = '上传中...';
+
+            // 隐藏之前的结果
+            result.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                const fileInput = document.getElementById('file');
+                const webhookUrl = document.getElementById('webhookUrl').value;
+                const libraryId = document.getElementById('libraryId').value;
+                const folderId = document.getElementById('folderId').value;
+                const tags = document.getElementById('tags').value;
+
+                // 添加文件
+                formData.append('file', fileInput.files[0]);
+
+                // 添加其他参数
+                formData.append('libraryId', libraryId);
+                if (folderId) formData.append('folderId', folderId);
+                if (tags) formData.append('tags', tags);
+
+                // 发送请求到 webhook
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const responseData = await response.text();
+                let jsonData;
+
+                try {
+                    jsonData = JSON.parse(responseData);
+                } catch (e) {
+                    jsonData = { rawResponse: responseData };
+                }
+
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>上传成功！</h3>
+                        <p><strong>文件:</strong> ${fileInput.files[0].name}</p>
+                        <p><strong>素材库 ID:</strong> ${libraryId}</p>
+                        <p><strong>响应:</strong></p>
+                        <pre>${JSON.stringify(jsonData, null, 2)}</pre>
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `
+                        <h3>上传失败</h3>
+                        <p><strong>状态码:</strong> ${response.status}</p>
+                        <p><strong>错误信息:</strong></p>
+                        <pre>${JSON.stringify(jsonData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>请求失败</h3>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                    <p>请检查 Webhook URL 是否正确，以及 n8n 工作流是否已激活。</p>
+                `;
+            } finally {
+                // 恢复提交按钮
+                submitBtn.disabled = false;
+                submitBtn.textContent = '上传文件';
+                result.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

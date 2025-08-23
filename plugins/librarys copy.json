@@ -2,17 +2,17 @@
   {
     "id": "1755239013113",
     "name": "test",
-    "path": "/Users/Zhuanz/test_library",
+    "path": "D:/test33422",
     "type": "local",
     "description": "",
     "icon": "default",
     "customFields": {
-      "path": "/Users/Zhuanz/test_library",
+      "path": "D:/test33422",
       "enableHash": false
     },
     "createdAt": "2025-08-15T06:23:33.113Z",
     "updatedAt": "2025-08-15T06:23:33.113Z",
     "status": "active",
-    "pluginsDir": "/Users/Zhuanz/mira_typescript/plugins"
+    "pluginsDir": "D:/mira_typescript/plugins"
   }
 ]

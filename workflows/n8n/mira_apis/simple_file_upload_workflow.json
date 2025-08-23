@@ -1,0 +1,112 @@
+{
+    "name": "简化文件上传工作流",
+    "nodes": [
+        {
+            "parameters": {
+                "formTitle": "上传文件测试",
+                "formFields": {
+                    "values": [
+                        {
+                            "fieldLabel": "file",
+                            "fieldType": "file",
+                            "multipleFiles": false,
+                            "requiredField": true
+                        },
+                        {
+                            "fieldLabel": "素材库id",
+                            "fieldType": "text",
+                            "requiredField": true,
+                            "placeholder": "请输入素材库ID"
+                        },
+                        {
+                            "fieldLabel": "文件夹",
+                            "fieldType": "text",
+                            "placeholder": "文件夹名称（可选）"
+                        },
+                        {
+                            "fieldLabel": "标签",
+                            "fieldType": "text",
+                            "placeholder": "用逗号分隔多个标签"
+                        }
+                    ]
+                },
+                "options": {
+                    "ignoreBots": true
+                }
+            },
+            "type": "n8n-nodes-base.formTrigger",
+            "typeVersion": 2.2,
+            "position": [
+                -300,
+                200
+            ],
+            "id": "form-trigger",
+            "name": "文件上传表单",
+            "webhookId": "file-upload-form"
+        },
+        {
+            "parameters": {},
+            "type": "CUSTOM.miraLogin",
+            "typeVersion": 1,
+            "position": [
+                -100,
+                200
+            ],
+            "id": "mira-login",
+            "name": "Mira 登录",
+            "credentials": {
+                "MiraLoginCredential": {
+                    "id": "3qYsPbasrLPXZgvZ",
+                    "name": "Mira Login account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "tokenSource": "input",
+                "accessToken": "={{ $json.data.accessToken }}",
+                "serverUrl": "http://localhost:8081",
+                "libraryId": "={{ $json['素材库id'] }}",
+                "binaryPropertyName": "data",
+                "tags": "={{ $json['标签'] || '' }}",
+                "folderId": "={{ $json['文件夹'] || '' }}"
+            },
+            "type": "CUSTOM.miraFileUpload",
+            "typeVersion": 1,
+            "position": [
+                100,
+                200
+            ],
+            "id": "mira-upload",
+            "name": "上传到 Mira"
+        }
+    ],
+    "connections": {
+        "文件上传表单": {
+            "main": [
+                [
+                    {
+                        "node": "Mira 登录",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Mira 登录": {
+            "main": [
+                [
+                    {
+                        "node": "上传到 Mira",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true
+    }
+}

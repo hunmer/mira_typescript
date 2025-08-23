@@ -15,8 +15,8 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/",
-    "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/"
+    "mira-app-server": "file://Users/Zhuanz/mira_typescript/packages/mira-app-server/",
+    "mira-app-core": "file://Users/Zhuanz/mira_typescript/packages/mira-app-core/"
   },
   "keywords": [],
   "author": "hunmer",
