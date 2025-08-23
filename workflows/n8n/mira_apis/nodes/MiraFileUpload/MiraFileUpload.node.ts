@@ -231,6 +231,7 @@ export class MiraFileUpload implements INodeType {
                 }
 
                 // Enhance response with upload metadata
+
                 const enhancedResponse = {
                     ...response,
                     operation: hasFileId ? 'file_update' : 'file_upload',
@@ -246,6 +247,7 @@ export class MiraFileUpload implements INodeType {
                 returnData.push({
                     json: enhancedResponse,
                     pairedItem: { item: i },
+                    binary: items[i].binary,
                 });
             } catch (error) {
                 if (this.continueOnFail()) {

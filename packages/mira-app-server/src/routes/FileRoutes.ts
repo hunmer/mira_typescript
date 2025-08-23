@@ -320,6 +320,111 @@ export class FileRoutes {
                 console.log(`File download: ${filePath}, size: ${stats.size}, contentType: ${contentType}`);
             }
         });
+
+        // 删除文件
+        this.router.delete('/:libraryId/:id', async (req: Request, res: Response) => {
+            try {
+                const { libraryId, id } = req.params;
+                const obj = this.backend.libraries!.getLibrary(libraryId);
+
+                if (!obj) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Library not found',
+                        libraryId
+                    });
+                }
+
+                // 获取文件信息
+                const item = await obj.libraryService.getFile(parseInt(id));
+                if (!item) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'File not found',
+                        libraryId,
+                        fileId: id
+                    });
+                }
+
+                // 获取文件路径
+                const filePath = await obj.libraryService.getItemFilePath(item);
+
+                // 删除数据库记录
+                const deleteSuccess = await obj.libraryService.deleteFile(parseInt(id));
+
+                if (!deleteSuccess) {
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Failed to delete file from database',
+                        libraryId,
+                        fileId: id
+                    });
+                }
+
+                // 删除物理文件
+                if (filePath && fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                        console.log(`Physical file deleted: ${filePath}`);
+                    } catch (fileError) {
+                        console.error(`Error deleting physical file ${filePath}:`, fileError);
+                        // 文件删除失败但数据库记录已删除，记录警告但不返回错误
+                    }
+                }
+
+                // 删除缩略图
+                try {
+                    const thumbPath = await obj.libraryService.getItemThumbPath(item, { isNetworkImage: false });
+                    if (thumbPath && fs.existsSync(thumbPath)) {
+                        fs.unlinkSync(thumbPath);
+                        console.log(`Thumbnail deleted: ${thumbPath}`);
+                    }
+                } catch (thumbError) {
+                    console.error(`Error deleting thumbnail:`, thumbError);
+                    // 缩略图删除失败不影响整体操作
+                }
+
+                const response = {
+                    success: true,
+                    message: 'File deleted successfully',
+                    deletedFile: {
+                        id: parseInt(id),
+                        name: item.name,
+                        libraryId: libraryId,
+                        deletedAt: new Date().toISOString()
+                    }
+                };
+
+                // 发送WebSocket事件
+                if (this.backend.webSocketServer) {
+                    this.backend.webSocketServer.broadcastPluginEvent('file::deleted', {
+                        message: {
+                            type: 'file',
+                            action: 'delete'
+                        },
+                        result: response.deletedFile,
+                        libraryId,
+                        fileId: parseInt(id)
+                    });
+
+                    this.backend.webSocketServer.broadcastLibraryEvent(libraryId, 'file::deleted', {
+                        ...response.deletedFile,
+                        libraryId,
+                        fileId: parseInt(id)
+                    });
+                }
+
+                res.json(response);
+
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Internal server error while deleting file',
+                    details: error instanceof Error ? error.message : String(error)
+                });
+            }
+        });
     }
 
     private async parseLibraryItem(req: Request, res: Response): Promise<{ library: any, item: any } | void> {

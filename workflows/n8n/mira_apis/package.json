@@ -22,7 +22,7 @@
         "format": "prettier nodes --write",
         "lint": "eslint nodes/**/*.ts package.json",
         "lintfix": "eslint nodes/**/*.ts package.json --fix",
-        "test": "npm run clear && npm install && npm run build && npm prune --production && npm link && N8N_LOG_OUTPUT=console N8N_LOG_LEVEL=debug npx n8n",
+        "test": "npm run clear && npm install && npm run build && npm prune --production && npm link && N8N_LOG_OUTPUT=console N8N_LOG_LEVEL=debug N8N_PAYLOAD_SIZE_MAX=64 N8N_FORMDATA_FILE_SIZE_MAX=500 npx n8n",
         "clear": "rm -rf ./dist",
         "prepublishOnly": "npm run build && npm run lint -s"
     },
