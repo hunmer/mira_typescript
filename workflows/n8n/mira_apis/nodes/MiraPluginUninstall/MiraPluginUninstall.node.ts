@@ -8,24 +8,33 @@ import {
     INodeProperties,
 } from 'n8n-workflow';
 
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
 import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraPluginUninstall implements INodeType {
     description: INodeTypeDescription = {
-        ...miraCommonNodeConfig,
         displayName: 'Mira Plugin Uninstall',
         name: 'miraPluginUninstall',
+        ...miraCommonNodeConfig,
+        group: ['mira-plugin'],
         description: 'Uninstall a plugin from Mira App Server',
         defaults: {
             name: 'Mira Plugin Uninstall',
         },
+        inputs: [NodeConnectionType.Main],
+        outputs: [NodeConnectionType.Main],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: '⚠️ Warning: This action will permanently uninstall the plugin and remove all its data!',
                 name: 'uninstallWarning',
                 type: 'notice',
                 default: '',
+                typeOptions: {
+                    theme: 'warning',
+                },
             },
             {
                 displayName: 'Plugin ID',
@@ -39,33 +48,32 @@ export class MiraPluginUninstall implements INodeType {
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        return processMiraItems.call(this, async (i: number) => {
-            const pluginId = this.getNodeParameter('pluginId', i) as string;
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                const pluginId = this.getNodeParameter('pluginId', itemIndex) as string;
 
-            if (!pluginId) {
-                throw new NodeOperationError(this.getNode(), 'Plugin ID is required', {
-                    itemIndex: i,
-                });
+                if (!pluginId) {
+                    throw new NodeOperationError(this.getNode(), 'Plugin ID is required', {
+                        itemIndex,
+                    });
+                }
+
+                return {
+                    method: 'DELETE',
+                    endpoint: `/api/plugins/${pluginId}`,
+                };
+            },
+            (response: any, itemIndex: number) => {
+                const pluginId = this.getNodeParameter('pluginId', itemIndex) as string;
+                return {
+                    uninstalled: true,
+                    pluginId,
+                    response,
+                    timestamp: new Date().toISOString(),
+                    operation: 'uninstall',
+                };
             }
-
-            const options = {
-                method: 'DELETE' as const,
-                url: `/api/plugins/${pluginId}`,
-            };
-
-            const response = await this.helpers.httpRequestWithAuthentication.call(
-                this,
-                'MiraApiCredential',
-                options,
-            );
-
-            return {
-                uninstalled: true,
-                pluginId,
-                response,
-                timestamp: new Date().toISOString(),
-                operation: 'uninstall',
-            };
-        });
+        );
     }
 }

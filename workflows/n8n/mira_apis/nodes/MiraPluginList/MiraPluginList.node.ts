@@ -7,40 +7,45 @@ import {
     NodeConnectionType,
 } from 'n8n-workflow';
 
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
 import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraPluginList implements INodeType {
     description: INodeTypeDescription = {
-        ...miraCommonNodeConfig,
         displayName: 'Mira Plugin List',
         name: 'miraPluginList',
+        ...miraCommonNodeConfig,
+        group: ['mira-plugin'],
         description: 'Get all plugins from Mira App Server',
         defaults: {
             name: 'Mira Plugin List',
         },
-        properties: [],
+        inputs: [NodeConnectionType.Main],
+        outputs: [NodeConnectionType.Main],
+        credentials: miraTokenCredentials,
+        properties: [
+            ...miraTokenProperties,
+        ],
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        return processMiraItems.call(this, async (i: number) => {
-            const options = {
-                method: 'GET' as const,
-                url: '/api/plugins',
-            };
-
-            const response = await this.helpers.httpRequestWithAuthentication.call(
-                this,
-                'MiraApiCredential',
-                options,
-            );
-
-            return {
-                plugins: response,
-                count: Array.isArray(response) ? response.length : 0,
-                timestamp: new Date().toISOString(),
-                operation: 'list',
-            };
-        });
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                return {
+                    method: 'GET',
+                    endpoint: '/api/plugins',
+                };
+            },
+            (response: any) => {
+                return {
+                    plugins: response,
+                    count: Array.isArray(response) ? response.length : 0,
+                    timestamp: new Date().toISOString(),
+                    operation: 'list',
+                };
+            }
+        );
     }
 }

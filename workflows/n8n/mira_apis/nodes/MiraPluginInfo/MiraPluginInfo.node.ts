@@ -8,19 +8,25 @@ import {
     INodeProperties,
 } from 'n8n-workflow';
 
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
 import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraPluginInfo implements INodeType {
     description: INodeTypeDescription = {
-        ...miraCommonNodeConfig,
         displayName: 'Mira Plugin Info',
         name: 'miraPluginInfo',
+        ...miraCommonNodeConfig,
+        group: ['mira-plugin'],
         description: 'Get plugin information from Mira App Server',
         defaults: {
             name: 'Mira Plugin Info',
         },
+        inputs: [NodeConnectionType.Main],
+        outputs: [NodeConnectionType.Main],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: 'Plugin ID',
                 name: 'pluginId',
@@ -33,32 +39,31 @@ export class MiraPluginInfo implements INodeType {
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        return processMiraItems.call(this, async (i: number) => {
-            const pluginId = this.getNodeParameter('pluginId', i) as string;
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                const pluginId = this.getNodeParameter('pluginId', itemIndex) as string;
 
-            if (!pluginId) {
-                throw new NodeOperationError(this.getNode(), 'Plugin ID is required', {
-                    itemIndex: i,
-                });
+                if (!pluginId) {
+                    throw new NodeOperationError(this.getNode(), 'Plugin ID is required', {
+                        itemIndex,
+                    });
+                }
+
+                return {
+                    method: 'GET',
+                    endpoint: `/api/plugins/${pluginId}`,
+                };
+            },
+            (response: any, itemIndex: number) => {
+                const pluginId = this.getNodeParameter('pluginId', itemIndex) as string;
+                return {
+                    pluginId,
+                    pluginInfo: response,
+                    timestamp: new Date().toISOString(),
+                    operation: 'getInfo',
+                };
             }
-
-            const options = {
-                method: 'GET' as const,
-                url: `/api/plugins/${pluginId}`,
-            };
-
-            const response = await this.helpers.httpRequestWithAuthentication.call(
-                this,
-                'MiraApiCredential',
-                options,
-            );
-
-            return {
-                pluginId,
-                pluginInfo: response,
-                timestamp: new Date().toISOString(),
-                operation: 'getInfo',
-            };
-        });
+        );
     }
 }

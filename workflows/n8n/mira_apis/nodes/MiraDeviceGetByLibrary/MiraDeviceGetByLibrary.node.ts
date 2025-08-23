@@ -4,28 +4,27 @@ import {
     INodeType,
     INodeTypeDescription,
     NodeConnectionType,
+    NodeOperationError,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
+import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraDeviceGetByLibrary implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Mira Device Get By Library',
         name: 'miraDeviceGetByLibrary',
         ...miraCommonNodeConfig,
-        group: ['device'],
+        group: ['mira-device'],
         description: 'Get devices for specific library from Mira App Server',
         defaults: {
             name: 'Mira Device Get By Library',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: true,
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: 'Library ID',
                 name: 'libraryId',
@@ -39,45 +38,32 @@ export class MiraDeviceGetByLibrary implements INodeType {
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        const items = this.getInputData();
-        const returnData: INodeExecutionData[] = [];
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
 
-        for (let i = 0; i < items.length; i++) {
-            try {
-                const libraryId = this.getNodeParameter('libraryId', i) as string;
-
-                // Validate required parameter
                 if (!libraryId || libraryId.trim() === '') {
-                    throw new Error('Library ID is required and cannot be empty');
-                }
-
-                const options = {
-                    method: 'GET' as const,
-                    url: `/api/devices/library/${libraryId.trim()}`,
-                };
-
-                const response = await this.helpers.httpRequestWithAuthentication.call(
-                    this,
-                    'MiraApiCredential',
-                    options,
-                );
-
-                returnData.push({
-                    json: response,
-                    pairedItem: { item: i },
-                });
-            } catch (error) {
-                if (this.continueOnFail()) {
-                    returnData.push({
-                        json: { error: (error as Error).message },
-                        pairedItem: { item: i },
+                    throw new NodeOperationError(this.getNode(), 'Library ID is required and cannot be empty', {
+                        itemIndex,
                     });
-                    continue;
                 }
-                throw error;
-            }
-        }
 
-        return [returnData];
+                return {
+                    method: 'GET',
+                    endpoint: `/api/devices/library/${libraryId.trim()}`,
+                };
+            },
+            (response: any, itemIndex: number) => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
+                return {
+                    libraryId: libraryId.trim(),
+                    devices: response,
+                    count: Array.isArray(response) ? response.length : 0,
+                    timestamp: new Date().toISOString(),
+                    operation: 'getByLibrary',
+                };
+            }
+        );
     }
 }

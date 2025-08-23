@@ -6,8 +6,6 @@ import {
     NodeConnectionType,
 } from 'n8n-workflow';
 import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
-import { processMiraItems } from '../../shared/mira-http-helper';
-import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraLogin implements INodeType {
     description: INodeTypeDescription = {

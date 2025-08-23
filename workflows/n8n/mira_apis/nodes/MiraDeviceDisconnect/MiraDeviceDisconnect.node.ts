@@ -5,27 +5,26 @@ import {
     INodeTypeDescription,
     NodeConnectionType,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
+import { processMiraItems, validateRequiredParameter } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraDeviceDisconnect implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Mira Device Disconnect',
         name: 'miraDeviceDisconnect',
-        ...miraCommonNodeConfig,
+        icon: 'fa:unlink',
         group: ['device'],
+        version: 1,
         description: 'Disconnect a device from Mira App Server',
         defaults: {
             name: 'Mira Device Disconnect',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: true,
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: 'Library ID',
                 name: 'libraryId',
@@ -48,59 +47,37 @@ export class MiraDeviceDisconnect implements INodeType {
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        const items = this.getInputData();
-        const returnData: INodeExecutionData[] = [];
-
-        for (let i = 0; i < items.length; i++) {
-            try {
-                const libraryId = this.getNodeParameter('libraryId', i) as string;
-                const clientId = this.getNodeParameter('clientId', i) as string;
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
+                const clientId = this.getNodeParameter('clientId', itemIndex) as string;
 
                 // Validate required parameters
-                if (!libraryId || libraryId.trim() === '') {
-                    throw new Error('Library ID is required and cannot be empty');
-                }
-                if (!clientId || clientId.trim() === '') {
-                    throw new Error('Client ID is required and cannot be empty');
-                }
+                validateRequiredParameter(this, 'Library ID', libraryId, itemIndex);
+                validateRequiredParameter(this, 'Client ID', clientId, itemIndex);
 
-                const options = {
-                    method: 'POST' as const,
-                    url: '/api/devices/disconnect',
+                return {
+                    method: 'POST',
+                    endpoint: '/api/devices/disconnect',
                     body: {
                         clientId: clientId.trim(),
                         libraryId: libraryId.trim(),
                     },
                 };
+            },
+            (response: any, itemIndex: number) => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
+                const clientId = this.getNodeParameter('clientId', itemIndex) as string;
 
-                const response = await this.helpers.httpRequestWithAuthentication.call(
-                    this,
-                    'MiraApiCredential',
-                    options,
-                );
-
-                returnData.push({
-                    json: {
-                        ...response,
-                        disconnectedClientId: clientId.trim(),
-                        libraryId: libraryId.trim(),
-                        operation: 'disconnect',
-                        timestamp: new Date().toISOString(),
-                    },
-                    pairedItem: { item: i },
-                });
-            } catch (error) {
-                if (this.continueOnFail()) {
-                    returnData.push({
-                        json: { error: (error as Error).message },
-                        pairedItem: { item: i },
-                    });
-                    continue;
-                }
-                throw error;
+                return {
+                    ...response,
+                    disconnectedClientId: clientId.trim(),
+                    libraryId: libraryId.trim(),
+                    operation: 'disconnect',
+                    timestamp: new Date().toISOString(),
+                };
             }
-        }
-
-        return [returnData];
+        );
     }
 }

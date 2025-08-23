@@ -5,27 +5,26 @@ import {
     INodeTypeDescription,
     NodeConnectionType,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
+import { processMiraItems, validateRequiredParameter } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraDeviceSendMessage implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Mira Device Send Message',
         name: 'miraDeviceSendMessage',
-        ...miraCommonNodeConfig,
+        icon: 'fa:paper-plane',
         group: ['device'],
+        version: 1,
         description: 'Send message to a device via Mira App Server',
         defaults: {
             name: 'Mira Device Send Message',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: true,
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: 'Library ID',
                 name: 'libraryId',
@@ -50,72 +49,70 @@ export class MiraDeviceSendMessage implements INodeType {
                 type: 'json',
                 required: true,
                 default: '{}',
-                description: 'Message object to send to the device',
+                description: 'Message object or JSON string to send to the device',
                 placeholder: '{"type": "notification", "content": "Hello Device!"}',
             },
         ],
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        const items = this.getInputData();
-        const returnData: INodeExecutionData[] = [];
-
-        for (let i = 0; i < items.length; i++) {
-            try {
-                const libraryId = this.getNodeParameter('libraryId', i) as string;
-                const clientId = this.getNodeParameter('clientId', i) as string;
-                const message = this.getNodeParameter('message', i) as object;
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
+                const clientId = this.getNodeParameter('clientId', itemIndex) as string;
+                const messageParam = this.getNodeParameter('message', itemIndex) as string | object;
 
                 // Validate required parameters
-                if (!libraryId || libraryId.trim() === '') {
-                    throw new Error('Library ID is required and cannot be empty');
-                }
-                if (!clientId || clientId.trim() === '') {
-                    throw new Error('Client ID is required and cannot be empty');
-                }
-                if (!message || typeof message !== 'object') {
-                    throw new Error('Message is required and must be a valid JSON object');
+                validateRequiredParameter(this, 'Library ID', libraryId, itemIndex);
+                validateRequiredParameter(this, 'Client ID', clientId, itemIndex);
+
+                // Handle message parameter - can be string or object
+                let message: object;
+                if (typeof messageParam === 'string') {
+                    try {
+                        message = JSON.parse(messageParam);
+                    } catch (error) {
+                        throw new Error(`Message must be valid JSON. Parse error: ${(error as Error).message}`);
+                    }
+                } else if (typeof messageParam === 'object' && messageParam !== null) {
+                    message = messageParam;
+                } else {
+                    throw new Error('Message is required and must be a valid JSON object or JSON string');
                 }
 
-                const options = {
-                    method: 'POST' as const,
-                    url: '/api/devices/send-message',
+                return {
+                    method: 'POST',
+                    endpoint: '/api/devices/send-message',
                     body: {
                         clientId: clientId.trim(),
                         libraryId: libraryId.trim(),
                         message,
                     },
                 };
+            },
+            (response: any, itemIndex: number) => {
+                const libraryId = this.getNodeParameter('libraryId', itemIndex) as string;
+                const clientId = this.getNodeParameter('clientId', itemIndex) as string;
+                const messageParam = this.getNodeParameter('message', itemIndex) as string | object;
 
-                const response = await this.helpers.httpRequestWithAuthentication.call(
-                    this,
-                    'MiraApiCredential',
-                    options,
-                );
-
-                returnData.push({
-                    json: {
-                        ...response,
-                        sentToClientId: clientId.trim(),
-                        libraryId: libraryId.trim(),
-                        messageSize: JSON.stringify(message).length,
-                        operation: 'send_message',
-                        timestamp: new Date().toISOString(),
-                    },
-                    pairedItem: { item: i },
-                });
-            } catch (error) {
-                if (this.continueOnFail()) {
-                    returnData.push({
-                        json: { error: (error as Error).message },
-                        pairedItem: { item: i },
-                    });
-                    continue;
+                // Parse message for size calculation
+                let parsedMessage: object;
+                if (typeof messageParam === 'string') {
+                    parsedMessage = JSON.parse(messageParam);
+                } else {
+                    parsedMessage = messageParam as object;
                 }
-                throw error;
-            }
-        }
 
-        return [returnData];
+                return {
+                    ...response,
+                    sentToClientId: clientId.trim(),
+                    libraryId: libraryId.trim(),
+                    messageSize: JSON.stringify(parsedMessage).length,
+                    operation: 'send_message',
+                    timestamp: new Date().toISOString(),
+                };
+            }
+        );
     }
 }

@@ -5,64 +5,45 @@ import {
     INodeTypeDescription,
     NodeConnectionType,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
+import { processMiraItems } from '../../shared/mira-http-helper';
+import { MiraHttpOptions } from '../../shared/mira-auth-helper';
 
 export class MiraDeviceListAll implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Mira Device List All',
         name: 'miraDeviceListAll',
         ...miraCommonNodeConfig,
-        group: ['device'],
+        group: ['mira-device'],
         description: 'Get all device connections from Mira App Server',
         defaults: {
             name: 'Mira Device List All',
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: true,
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
-            // No additional properties needed - this is a simple list operation
+            ...miraTokenProperties,
         ],
     };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-        const items = this.getInputData();
-        const returnData: INodeExecutionData[] = [];
-
-        for (let i = 0; i < items.length; i++) {
-            try {
-                const options = {
-                    method: 'GET' as const,
-                    url: '/api/devices',
+        return await processMiraItems(
+            this,
+            async (itemIndex: number): Promise<MiraHttpOptions> => {
+                return {
+                    method: 'GET',
+                    endpoint: '/api/devices',
                 };
-
-                const response = await this.helpers.httpRequestWithAuthentication.call(
-                    this,
-                    'MiraApiCredential',
-                    options,
-                );
-
-                returnData.push({
-                    json: response,
-                    pairedItem: { item: i },
-                });
-            } catch (error) {
-                if (this.continueOnFail()) {
-                    returnData.push({
-                        json: { error: (error as Error).message },
-                        pairedItem: { item: i },
-                    });
-                    continue;
-                }
-                throw error;
+            },
+            (response: any) => {
+                return {
+                    devices: response,
+                    count: Array.isArray(response) ? response.length : 0,
+                    timestamp: new Date().toISOString(),
+                    operation: 'listAll',
+                };
             }
-        }
-
-        return [returnData];
+        );
     }
 }
