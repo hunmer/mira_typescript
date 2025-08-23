@@ -22,8 +22,6 @@ export interface MiraHttpOptions {
     endpoint: string;
     body?: any;
     headers?: Record<string, string>;
-    returnFullResponse?: boolean;
-    encoding?: 'utf8' | 'binary' | null;
 }
 
 /**
@@ -41,7 +39,7 @@ export async function getMiraAuthConfig(
             serverUrl: credentials.serverUrl as string,
             useCredentials: true,
         };
-    } else {
+    } else if (tokenSource === 'input') {
         const token = executeFunctions.getNodeParameter('accessToken', itemIndex) as string;
         const serverUrl = executeFunctions.getNodeParameter('serverUrl', itemIndex) as string;
 
@@ -58,6 +56,12 @@ export async function getMiraAuthConfig(
             useCredentials: false,
             token,
         };
+    } else {
+        throw new NodeOperationError(
+            executeFunctions.getNode(),
+            `Invalid token source: ${tokenSource}`,
+            { itemIndex }
+        );
     }
 }
 
@@ -69,25 +73,16 @@ export async function makeMiraRequest(
     itemIndex: number,
     options: MiraHttpOptions
 ): Promise<any> {
-    executeFunctions.logger.debug('Preparing Mira API request');
     const authConfig = await getMiraAuthConfig(executeFunctions, itemIndex);
     const url = `${authConfig.serverUrl}${options.endpoint}`;
-    executeFunctions.logger.debug(`Making ${options.method} request to ${url}`);
-
     if (authConfig.useCredentials) {
         // Use credential-based authentication
-        const requestOptions: any = {
+        const requestOptions = {
             method: options.method,
             url,
             body: options.body,
             headers: options.headers,
-            returnFullResponse: options.returnFullResponse || false,
         };
-
-        // For binary responses (file downloads), set encoding to null
-        if (options.encoding !== undefined) {
-            requestOptions.encoding = options.encoding;
-        }
 
         return await executeFunctions.helpers.httpRequestWithAuthentication.call(
             executeFunctions,
@@ -108,13 +103,7 @@ export async function makeMiraRequest(
             url,
             headers,
             body: options.body,
-            returnFullResponse: options.returnFullResponse || false,
-        } as any;
-
-        // For binary responses (file downloads), set encoding to null
-        if (options.encoding !== undefined) {
-            (requestOptions as any).encoding = options.encoding;
-        }
+        };
 
         return await executeFunctions.helpers.httpRequest(requestOptions);
     }

@@ -15,9 +15,9 @@ export const miraTokenProperties: INodeProperties[] = [
                 description: 'Use token from Mira API credentials',
             },
             {
-                name: 'From Input',
+                name: 'From Input Data',
                 value: 'input',
-                description: 'Use token from input data (e.g., from login operation)',
+                description: 'Use token from input data or enter custom token directly',
             },
         ],
         default: 'credentials',
@@ -34,6 +34,7 @@ export const miraTokenProperties: INodeProperties[] = [
         },
         default: 'http://localhost:8081',
         description: 'The URL of the Mira App Server',
+        required: true,
     },
     {
         displayName: 'Access Token',
@@ -48,8 +49,9 @@ export const miraTokenProperties: INodeProperties[] = [
             },
         },
         default: '',
-        description: 'Access token for authentication. Can use expressions like {{ $json.accessToken }}',
-        placeholder: '{{ $json.accessToken }}',
+        description: 'Access token from input data or enter directly. Can use expressions like {{ $json.accessToken }}',
+        placeholder: '{{ $json.accessToken }} or direct token',
+        required: true,
     },
 ];
 

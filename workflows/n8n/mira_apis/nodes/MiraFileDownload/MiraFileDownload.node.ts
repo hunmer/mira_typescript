@@ -6,8 +6,7 @@ import {
     NodeConnectionType,
     NodeOperationError,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
-import { makeMiraRequest } from '../../shared/mira-auth-helper';
+import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
 
 export class MiraFileDownload implements INodeType {
     description: INodeTypeDescription = {
@@ -21,9 +20,13 @@ export class MiraFileDownload implements INodeType {
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: miraTokenCredentials,
+        credentials: [
+            {
+                name: 'MiraApiCredential',
+                required: true,
+            },
+        ],
         properties: [
-            ...miraTokenProperties,
             {
                 displayName: 'Library ID',
                 name: 'libraryId',
@@ -42,6 +45,15 @@ export class MiraFileDownload implements INodeType {
                 description: 'File ID to download (numeric ID from the database)',
                 placeholder: '123',
             },
+            {
+                displayName: 'File Name',
+                name: 'fileName',
+                type: 'string',
+                required: false,
+                default: '',
+                description: 'Custom file name for the downloaded file. If empty, uses the server file name',
+                placeholder: 'my-file.pdf',
+            },
         ],
     };
 
@@ -51,28 +63,9 @@ export class MiraFileDownload implements INodeType {
 
         for (let i = 0; i < items.length; i++) {
             try {
-                // Get raw parameters first to debug
-                let libraryIdRaw: any;
-                let fileIdRaw: any;
-
-                try {
-                    libraryIdRaw = this.getNodeParameter('libraryId', i);
-                    fileIdRaw = this.getNodeParameter('fileId', i);
-                } catch (paramError) {
-                    throw new NodeOperationError(
-                        this.getNode(),
-                        `Failed to resolve parameters: ${(paramError as Error).message}`,
-                        { itemIndex: i }
-                    );
-                }
-
-                this.logger.info(`Raw parameters - libraryId: ${JSON.stringify(libraryIdRaw)}, fileId: ${JSON.stringify(fileIdRaw)}`);
-
-                // Convert to strings safely
-                const libraryId = libraryIdRaw != null ? String(libraryIdRaw).trim() : '';
-                const fileId = fileIdRaw != null ? String(fileIdRaw).trim() : '';
-
-                this.logger.info(`Downloading file ${fileId} from library ${libraryId}`);
+                const libraryId = String(this.getNodeParameter('libraryId', i)).trim();
+                const fileId = String(this.getNodeParameter('fileId', i)).trim();
+                const customFileName = String(this.getNodeParameter('fileName', i, '')).trim();
 
                 // Validate required parameters
                 if (!libraryId || libraryId === '') {
@@ -91,94 +84,45 @@ export class MiraFileDownload implements INodeType {
                     );
                 }
 
-                // First, make a HEAD request to get headers (content-type)
-                const headResponse = await makeMiraRequest(this, i, {
-                    method: 'HEAD',
-                    endpoint: `/api/files/file/${libraryId}/${fileId}`,
-                    returnFullResponse: true,
-                });
+                // Get credentials and build URL
+                const credentials = await this.getCredentials('MiraApiCredential');
+                const url = `${credentials.serverUrl}/api/files/file/${libraryId}/${fileId}`;
 
-                // Get content-type from headers
-                const contentType = headResponse.headers['content-type'] || '';
-                this.logger.info(`Content-Type from HEAD request: ${contentType}`);
-
-                // Function to get file extension from content-type
-                const getFileExtensionFromContentType = (contentType: string): string => {
-                    const mimeToExt: Record<string, string> = {
-                        'image/jpeg': '.jpg',
-                        'image/jpg': '.jpg',
-                        'image/png': '.png',
-                        'image/gif': '.gif',
-                        'image/webp': '.webp',
-                        'image/bmp': '.bmp',
-                        'image/svg+xml': '.svg',
-                        'image/tiff': '.tiff',
-                        'text/plain': '.txt',
-                        'text/html': '.html',
-                        'text/css': '.css',
-                        'text/javascript': '.js',
-                        'application/javascript': '.js',
-                        'application/json': '.json',
-                        'application/xml': '.xml',
-                        'text/xml': '.xml',
-                        'application/pdf': '.pdf',
-                        'application/msword': '.doc',
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-                        'application/vnd.ms-excel': '.xls',
-                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-                        'application/vnd.ms-powerpoint': '.ppt',
-                        'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-                        'application/zip': '.zip',
-                        'application/x-rar-compressed': '.rar',
-                        'application/x-7z-compressed': '.7z',
-                        'audio/mpeg': '.mp3',
-                        'audio/wav': '.wav',
-                        'audio/ogg': '.ogg',
-                        'video/mp4': '.mp4',
-                        'video/avi': '.avi',
-                        'video/quicktime': '.mov',
-                        'video/x-msvideo': '.avi',
-                        'application/octet-stream': '.bin',
-                    };
-
-                    // Extract the main content type (before semicolon)
-                    const mainContentType = contentType.split(';')[0].trim().toLowerCase();
-                    return mimeToExt[mainContentType] || '';
+                // Prepare headers for authentication
+                const headers: Record<string, string> = {
+                    'Authorization': `Bearer ${credentials.accessToken}`,
+                    'Accept': '*/*', // Accept any file type
                 };
 
-                // Generate filename with proper extension
-                const fileExtension = getFileExtensionFromContentType(contentType);
-                const fileName = `file_${fileId}${fileExtension}`;
-
-                // Now make the actual download request with proper binary handling
-                const binaryResponse = await makeMiraRequest(this, i, {
+                // Make the request with arraybuffer encoding for binary data
+                const response = await this.helpers.httpRequest({
+                    url: url,
                     method: 'GET',
-                    endpoint: `/api/files/file/${libraryId}/${fileId}`,
-                    encoding: null, // This ensures binary data is returned as Buffer
-                    returnFullResponse: false, // Don't need full response this time
+                    encoding: 'arraybuffer', // 关键设置：获取二进制数据
+                    headers: headers,
+                    returnFullResponse: true, // 需要获取响应头
                 });
 
-                this.logger.info(`Binary response type: ${typeof binaryResponse}, length: ${binaryResponse?.length || 'unknown'}`);
-
-                // Handle the binary response
-                let binaryData;
-                if (binaryResponse && typeof binaryResponse === 'object' && binaryResponse.length !== undefined) {
-                    // Response is likely a Buffer or buffer-like object
-                    binaryData = await this.helpers.prepareBinaryData(
-                        binaryResponse,
-                        fileName,
-                    );
-                } else if (typeof binaryResponse === 'string') {
-                    // Fallback: convert string to buffer (treating as latin1/binary)
-                    this.logger.warn(`Response is string, converting to buffer. Length: ${binaryResponse.length}`);
-                    const buffer = globalThis.Buffer.from(binaryResponse, 'latin1'); // Use latin1 to preserve bytes
-                    binaryData = await this.helpers.prepareBinaryData(
-                        buffer,
-                        fileName,
-                    );
-                } else {
-                    throw new Error(`Unexpected response type: ${typeof binaryResponse}`);
+                // 确定最终文件名：优先使用用户输入，否则使用服务器文件名
+                let finalFileName = customFileName;
+                if (!finalFileName) {
+                    // 从响应头获取文件名
+                    finalFileName = `file_${fileId}`;
+                    if (response.headers && response.headers['x-file-name']) {
+                        finalFileName = decodeURIComponent(response.headers['x-file-name'] as string);
+                    } else if (response.headers && response.headers['content-disposition']) {
+                        const contentDisposition = response.headers['content-disposition'] as string;
+                        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (fileNameMatch && fileNameMatch[1]) {
+                            finalFileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+                        }
+                    }
                 }
+
+                const binaryData = await this.helpers.prepareBinaryData(
+                    response.body as any,
+                    finalFileName,
+                );
 
                 returnData.push({
                     json: {
@@ -197,22 +141,16 @@ export class MiraFileDownload implements INodeType {
                     pairedItem: { item: i },
                 });
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                this.logger.error(`Error in MiraFileDownload: ${errorMessage}`);
-
                 if (this.continueOnFail()) {
                     returnData.push({
-                        json: { error: errorMessage },
+                        json: { error: (error as Error).message },
                         pairedItem: { item: i },
                     });
                     continue;
                 }
-
-                throw new NodeOperationError(
-                    this.getNode(),
-                    `File download failed: ${errorMessage}`,
-                    { itemIndex: i }
-                );
+                throw new NodeOperationError(this.getNode(), error as Error, {
+                    itemIndex: i,
+                });
             }
         }
 

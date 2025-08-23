@@ -43,15 +43,93 @@ export class FileRoutes {
     private setupRoutes(): void {
         // 上传文件到资源库
         this.router.post('/upload', this.upload.array('files'), async (req: Request, res: Response) => {
-            const { libraryId, sourcePath } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
+            const { libraryId, sourcePath, fileId } = req.body; // sourcePath是用户的本地文件位置，用来验证是否上传成功
             const clientId = req.body.clientId || null;
             const fields = req.body.fields ? JSON.parse(req.body.fields) : null;
             const payload = req.body.payload ? JSON.parse(req.body.payload) : null;
             const obj = this.backend.libraries!.getLibrary(libraryId);
             if (!obj) return res.status(404).send('Library not found');
 
+            // 检查是否为更新操作
+            const isUpdateOperation = fileId && fileId.trim();
+            let existingFile = null;
+
+            if (isUpdateOperation) {
+                try {
+                    existingFile = await obj.libraryService.getFile(parseInt(fileId));
+                    if (!existingFile) {
+                        return res.status(404).send('File to update not found');
+                    }
+                } catch (error) {
+                    return res.status(400).send('Invalid file ID for update operation');
+                }
+            }
+
             // 解析上传的文件
             const files = req.files as Express.Multer.File[];
+
+            // 如果是更新操作且没有文件，则只更新元数据
+            if (isUpdateOperation && (!files || !files.length)) {
+                try {
+                    const { tags, folder_id } = payload.data || {};
+                    const updateData: Record<string, any> = {
+                        tags: JSON.stringify(tags || []),
+                        folder_id: folder_id || existingFile.folder_id,
+                        imported_at: Date.now(),
+                    };
+
+                    const updateSuccess = await obj.libraryService.updateFile(parseInt(fileId), updateData);
+
+                    let result = null;
+                    if (updateSuccess) {
+                        result = await obj.libraryService.getFile(parseInt(fileId));
+                    }
+
+                    const response = {
+                        results: [{
+                            success: updateSuccess,
+                            file: null,
+                            result,
+                            operation: 'metadata_update'
+                        }]
+                    };
+
+                    // 发送WebSocket事件
+                    if (this.backend.webSocketServer && updateSuccess) {
+                        this.backend.webSocketServer.broadcastPluginEvent('file::updated', {
+                            message: {
+                                type: 'file',
+                                action: 'metadata_update',
+                                fields,
+                                payload
+                            },
+                            result,
+                            libraryId,
+                            fileId: parseInt(fileId)
+                        });
+
+                        if (clientId) {
+                            const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
+                            ws && this.backend.webSocketServer?.sendToWebsocket(ws, {
+                                eventName: 'file::updated',
+                                data: { fileId: parseInt(fileId) }
+                            });
+                            this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::updated', {
+                                ...result,
+                                libraryId,
+                                fileId: parseInt(fileId)
+                            });
+                        }
+                    }
+
+                    return res.send(response);
+                } catch (error) {
+                    console.error('Error updating file metadata:', error);
+                    return res.status(500).send('Internal server error while updating file metadata.');
+                }
+            }
+
+            // 如果不是更新操作，或者是更新操作但有文件，则需要文件
             if (!files || !files.length) return res.status(400).send('No files uploaded.');
 
             try {
@@ -61,34 +139,119 @@ export class FileRoutes {
                         // 生成唯一文件名并保存文件
                         const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
                         const { tags, folder_id } = payload.data || {}
-                        const fileData = {
-                            name: req.body.name || originalName,
-                            tags: JSON.stringify(tags || []),
-                            folder_id: folder_id || null,
-                        };
 
-                        const result = await obj.libraryService.createFileFromPath(file.path, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
-                        results.push({
-                            success: true,
-                            file: file.path,
-                            result
-                        });
+                        let result;
 
-                        // 发布公告
-                        // 发送WebSocket事件（如果可用）
-                        if (this.backend.webSocketServer) {
-                            this.backend.webSocketServer.broadcastPluginEvent('file::created', {
-                                message: {
-                                    type: 'file',
-                                    action: 'create',
-                                    fields, payload
-                                }, result, libraryId
+                        if (isUpdateOperation) {
+                            // 更新操作：更新文件内容和元数据
+                            const updateData: Record<string, any> = {
+                                name: req.body.name || originalName,
+                                tags: JSON.stringify(tags || []),
+                                folder_id: folder_id || existingFile.folder_id,
+                                size: file.size,
+                                imported_at: Date.now(),
+                            };
+
+                            // 处理物理文件替换
+                            try {
+                                const existingFilePath = await obj.libraryService.getItemFilePath(existingFile);
+                                if (existingFilePath && require('fs').existsSync(existingFilePath)) {
+                                    // 删除旧文件
+                                    require('fs').unlinkSync(existingFilePath);
+                                }
+
+                                // 计算新文件的目标路径
+                                const targetDir = await obj.libraryService.getItemPath({ ...existingFile, ...updateData });
+                                const targetPath = require('path').join(targetDir, updateData.name);
+
+                                // 确保目标目录存在
+                                if (!require('fs').existsSync(targetDir)) {
+                                    require('fs').mkdirSync(targetDir, { recursive: true });
+                                }
+
+                                // 移动新文件到正确位置
+                                require('fs').renameSync(file.path, targetPath);
+
+                                // 更新数据库中的path字段
+                                updateData.path = targetPath;
+                            } catch (fileError) {
+                                console.error('File handling error during update:', fileError);
+                                throw new Error('Failed to update file content');
+                            }
+
+                            // 更新文件记录
+                            const updateSuccess = await obj.libraryService.updateFile(parseInt(fileId), updateData);
+
+                            if (updateSuccess) {
+                                // 获取更新后的文件信息
+                                result = await obj.libraryService.getFile(parseInt(fileId));
+                            }
+
+                            results.push({
+                                success: updateSuccess,
+                                file: file.path,
+                                result,
+                                operation: 'update'
                             });
 
-                            if (clientId) {
-                                const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
-                                ws && this.backend.webSocketServer?.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
-                                this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
+                            // 发送WebSocket事件
+                            if (this.backend.webSocketServer && updateSuccess) {
+                                this.backend.webSocketServer.broadcastPluginEvent('file::updated', {
+                                    message: {
+                                        type: 'file',
+                                        action: 'update',
+                                        fields,
+                                        payload
+                                    },
+                                    result,
+                                    libraryId,
+                                    fileId: parseInt(fileId)
+                                });
+
+                                if (clientId) {
+                                    const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
+                                    ws && this.backend.webSocketServer?.sendToWebsocket(ws, {
+                                        eventName: 'file::updated',
+                                        data: { path: sourcePath, fileId: parseInt(fileId) }
+                                    });
+                                    this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::updated', {
+                                        ...result,
+                                        libraryId,
+                                        fileId: parseInt(fileId)
+                                    });
+                                }
+                            }
+                        } else {
+                            // 创建操作（原有逻辑）
+                            const fileData = {
+                                name: req.body.name || originalName,
+                                tags: JSON.stringify(tags || []),
+                                folder_id: folder_id || null,
+                            };
+
+                            result = await obj.libraryService.createFileFromPath(file.path, fileData, { importType: 'move' }); // 使用move上传完成后自动删除临时文件
+                            results.push({
+                                success: true,
+                                file: file.path,
+                                result,
+                                operation: 'create'
+                            });
+
+                            // 发送WebSocket事件
+                            if (this.backend.webSocketServer) {
+                                this.backend.webSocketServer.broadcastPluginEvent('file::created', {
+                                    message: {
+                                        type: 'file',
+                                        action: 'create',
+                                        fields, payload
+                                    }, result, libraryId
+                                });
+
+                                if (clientId) {
+                                    const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
+                                    ws && this.backend.webSocketServer?.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
+                                    this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
+                                }
                             }
                         }
                     } catch (error) {
@@ -135,8 +298,26 @@ export class FileRoutes {
 
                 const fileExt = path.extname(filePath).toLowerCase();
                 const contentType = this.getContentType(fileExt);
+
+                // 获取文件大小
+                const stats = fs.statSync(filePath);
+
+                // 设置响应头
                 res.setHeader('Content-Type', contentType);
-                fs.createReadStream(filePath).pipe(res);
+                res.setHeader('Content-Length', stats.size);
+                res.setHeader('Cache-Control', 'public, max-age=3600');
+
+                // 添加文件名到响应头
+                const fileName = ret.item.name || path.basename(filePath);
+                res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+                res.setHeader('X-File-Name', encodeURIComponent(fileName));
+
+                // 确保以二进制方式传输
+                const stream = fs.createReadStream(filePath);
+                stream.pipe(res);
+
+                // 记录传输信息
+                console.log(`File download: ${filePath}, size: ${stats.size}, contentType: ${contentType}`);
             }
         });
     }

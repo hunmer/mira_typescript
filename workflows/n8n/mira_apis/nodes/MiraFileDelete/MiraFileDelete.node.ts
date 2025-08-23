@@ -6,7 +6,8 @@ import {
     NodeConnectionType,
     NodeOperationError,
 } from 'n8n-workflow';
-import { miraCommonNodeConfig } from '../../shared/mira-common-properties';
+import { miraCommonNodeConfig, miraTokenProperties, miraTokenCredentials } from '../../shared/mira-common-properties';
+import { getMiraAuthConfig } from '../../shared/mira-auth-helper';
 
 export class MiraFileDelete implements INodeType {
     description: INodeTypeDescription = {
@@ -20,13 +21,9 @@ export class MiraFileDelete implements INodeType {
         },
         inputs: [NodeConnectionType.Main],
         outputs: [NodeConnectionType.Main],
-        credentials: [
-            {
-                name: 'MiraApiCredential',
-                required: true,
-            },
-        ],
+        credentials: miraTokenCredentials,
         properties: [
+            ...miraTokenProperties,
             {
                 displayName: 'Library ID',
                 name: 'libraryId',
@@ -42,8 +39,8 @@ export class MiraFileDelete implements INodeType {
                 type: 'string',
                 required: true,
                 default: '',
-                description: 'File ID to delete',
-                placeholder: 'file_abc123',
+                description: 'File ID to delete (numeric ID from the database)',
+                placeholder: '123',
             },
             {
                 displayName: '⚠️ Warning: This will permanently delete the file',
@@ -83,16 +80,18 @@ export class MiraFileDelete implements INodeType {
                     );
                 }
 
+                // Get authentication configuration
+                const authConfig = await getMiraAuthConfig(this, i);
+
                 const options = {
                     method: 'DELETE' as const,
-                    url: `/api/files/${libraryId.trim()}/${fileId.trim()}`,
+                    url: `${authConfig.serverUrl}/api/files/${libraryId.trim()}/${fileId.trim()}`,
+                    headers: {
+                        'Authorization': `Bearer ${authConfig.token}`,
+                    },
                 };
 
-                const response = await this.helpers.httpRequestWithAuthentication.call(
-                    this,
-                    'MiraApiCredential',
-                    options,
-                );
+                const response = await this.helpers.httpRequest(options);
 
                 // Enhance response with delete metadata
                 const enhancedResponse = {
