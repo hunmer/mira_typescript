@@ -141,6 +141,96 @@ export class AuthRouter {
             }
         });
 
+        // 注册路由
+        this.router.post('/register', async (req: Request, res: Response) => {
+            try {
+                const { username, password, email } = req.body;
+
+                console.log('📝 Register attempt:', { username, email, passwordLength: password?.length });
+
+                // 验证输入
+                if (!username || !password) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: '用户名和密码不能为空',
+                        data: null
+                    });
+                }
+
+                if (username.length < 3) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: '用户名长度至少3个字符',
+                        data: null
+                    });
+                }
+
+                if (password.length < 6) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: '密码长度至少6个字符',
+                        data: null
+                    });
+                }
+
+                // 检查用户名是否已存在
+                const userStorage = this.authService.getUserStorage();
+                const existingUser = await userStorage.findUserByUsername(username);
+
+                if (existingUser) {
+                    return res.status(409).json({
+                        code: 409,
+                        message: '用户名已存在',
+                        data: null
+                    });
+                }
+
+                // 创建新用户
+                const hashedPassword = userStorage.hashPassword(password);
+                const now = Date.now();
+
+                const newUser = {
+                    username,
+                    password: hashedPassword,
+                    email: email || null,
+                    role: 'user' as const,
+                    permissions: ['basic'],
+                    created_at: now,
+                    updated_at: now,
+                    is_active: true
+                };
+
+                const userId = await userStorage.createUser(newUser);
+
+                // 生成令牌
+                const token = await this.authService.generateToken(userId);
+
+                // 符合vben框架标准的返回格式
+                res.status(201).json({
+                    code: 0,
+                    message: '注册成功',
+                    data: {
+                        accessToken: token,
+                        user: {
+                            id: userId,
+                            username,
+                            email,
+                            role: 'user'
+                        }
+                    }
+                });
+
+                console.log(`✅ User ${username} registered successfully with ID: ${userId}`);
+            } catch (error) {
+                console.error('Register error:', error);
+                res.status(500).json({
+                    code: 500,
+                    message: '服务器内部错误',
+                    data: null
+                });
+            }
+        });
+
         // 登录路由
         this.router.post('/login', async (req: Request, res: Response) => {
             try {

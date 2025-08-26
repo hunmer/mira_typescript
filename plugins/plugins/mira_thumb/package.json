@@ -16,9 +16,9 @@
   "description": "",
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",
-    "mira-app-core": "file://Users/Zhuanz/mira_typescript/packages/mira-app-core/",
-    "mira-app-server": "file://Users/Zhuanz/mira_typescript/packages/mira-app-server/",
-    "mira-storage-sqlite": "file://Users/Zhuanz/mira_typescript/packages/mira-storage-sqlite/",
+    "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/",
+    "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/",
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
     "queue": "^7.0.0"
   },
   "devDependencies": {

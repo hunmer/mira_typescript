@@ -129,7 +129,7 @@
       "postDebugTask": "start-mira-dashboard-dev"
     },
     {
-      "name": "Debug Plugins Test",
+      "name": "Debug Plugins Test(macos)",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/packages/mira-app-server/src/cli.ts",
@@ -138,6 +138,41 @@
         "start",
         "-d",
         "/Users/Zhuanz/mira_typescript/plugins"
+      ],
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/mira-app-server/tsconfig.json",
+        "NODE_OPTIONS": "--enable-source-maps"
+      },
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/**/dist/**/*.js"
+      ]
+    },
+    {
+      "name": "Debug Plugins Test(windows)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/mira-app-server/src/cli.ts",
+      "cwd": "${workspaceFolder}/packages/mira-app-server",
+      "args": [
+        "start",
+        "-d",
+        "D:/mira_typescript/plugins"
       ],
       "runtimeArgs": [
         "-r",

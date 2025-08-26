@@ -225,13 +225,13 @@
         "panel": "shared"
       }
     },
-     {
-      "label": "build-mira-n8n-apis",
+    {
+      "label": "build-mira-n8n-apis(mac)",
       "type": "shell",
       "command": "npm",
       "args": [
         "run",
-        "test"
+        "mac-test"
       ],
       "options": {
         "cwd": "${workspaceFolder}/workflows/n8n/mira_apis"
@@ -244,5 +244,26 @@
         "panel": "shared"
       }
     },
+    {
+      "label": "build-mira-n8n-apis(windows)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "./win_test.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/workflows/n8n/mira_apis"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    }
   ]
 }
