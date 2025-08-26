@@ -1,5 +1,4 @@
 import { WebSocketServer as WSServer, WebSocket } from 'ws';
-import { LibraryStorage } from './LibraryStorage';
 import { EventArgs } from 'mira-app-core';
 import { WebSocketRouter } from './routes/WebSocketRouter';
 import { MiraServer } from '.';
