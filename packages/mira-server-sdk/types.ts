@@ -37,6 +37,20 @@ export interface LoginResponse {
     accessToken: string;
 }
 
+export interface RegisterRequest {
+    username: string;
+    password: string;
+}
+
+export interface RegisterResponse {
+    success: boolean;
+    message: string;
+    data?: {
+        id: number;
+        username: string;
+    };
+}
+
 export interface UserInfo {
     id: number;
     username: string;

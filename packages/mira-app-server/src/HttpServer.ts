@@ -252,15 +252,6 @@ export class MiraHttpServer {
             });
         });
 
-        // 404 处理
-        this.app.use('*', (req, res) => {
-            res.status(404).json({
-                error: 'Not Found',
-                message: `Cannot ${req.method} ${req.originalUrl}`,
-                timestamp: new Date().toISOString()
-            });
-        });
-
         // 错误处理中间件
         this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
             console.error('HTTP Server Error:', err);

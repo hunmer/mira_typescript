@@ -17,9 +17,8 @@
   },
   {
     "name": "mira_user",
-    "enabled": false,
-    "path": "mira_user",
-    "status": "inactive"
+    "enabled": true,
+    "path": "mira_user"
   },
   {
     "name": "upload_statistics",

@@ -1,6 +1,7 @@
 
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
+import { MiraClient } from 'mira-server-sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,7 +13,7 @@ export interface PluginConfig {
 
 export class ServerPluginManager {
     pluginsDir: string;
-    private server: MiraWebsocketServer;
+    public server: MiraWebsocketServer;
     private dbService: ILibraryServerData;
     private pluginsConfigPath: string;
     private loadedPlugins: Map<string, any> = new Map();
@@ -45,7 +46,7 @@ export class ServerPluginManager {
         const config: PluginConfig[] = JSON.parse(
             fs.readFileSync(this.pluginsConfigPath, 'utf-8')
         );
-
+        console.log({ config })
         for (const pluginConfig of config) {
             if (pluginConfig.enabled) {
                 await this.loadPlugin(pluginConfig, reload);
@@ -70,11 +71,16 @@ export class ServerPluginManager {
 
             const pluginModule = require(pluginPath);
 
+
+            // 创建 MiraClient 实例（可根据实际需要传递服务器地址）
+            const miraClient = new MiraClient(process.env.MIRA_SERVER_URL || 'http://localhost:8081');
+
             if (typeof pluginModule.init === 'function') {
                 await pluginModule.init({
                     pluginManager: this,
                     server: this.server,
-                    dbService: this.dbService
+                    dbService: this.dbService,
+                    miraClient
                 });
             }
 

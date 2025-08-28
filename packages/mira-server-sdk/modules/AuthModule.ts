@@ -2,6 +2,8 @@ import { HttpClient } from '../client/HttpClient';
 import {
     LoginRequest,
     LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
     UserInfo,
     VerifyResponse,
     BaseResponse,
@@ -29,6 +31,18 @@ export class AuthModule {
             this.httpClient.setToken(response.accessToken);
         }
 
+        return response;
+    }
+
+    /**
+     * 用户注册
+     * @param username 用户名
+     * @param password 密码
+     * @returns Promise<RegisterResponse>
+     */
+    async register(username: string, password: string): Promise<RegisterResponse> {
+        const request: RegisterRequest = { username, password };
+        const response = await this.httpClient.post<RegisterResponse>('/api/auth/register', request);
         return response;
     }
 

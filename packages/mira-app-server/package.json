@@ -49,6 +49,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/",
+    "mira-server-sdk": "file:D:/mira_typescript/packages/mira-server-sdk/",
     "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
     "multer": "^2.0.2",
     "socket.io": "^4.7.4",

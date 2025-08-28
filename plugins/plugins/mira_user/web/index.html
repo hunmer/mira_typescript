@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,21 +16,25 @@
             align-items: center;
             height: 100vh;
         }
+
         .container {
             background-color: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             width: 350px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         input {
             width: 100%;
             padding: 8px;
@@ -37,6 +42,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -47,13 +53,16 @@
             width: 100%;
             font-size: 16px;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         .tabs {
             display: flex;
             margin-bottom: 20px;
         }
+
         .tab {
             flex: 1;
             text-align: center;
@@ -61,25 +70,29 @@
             cursor: pointer;
             border-bottom: 2px solid transparent;
         }
+
         .tab.active {
             border-bottom: 2px solid #4CAF50;
             font-weight: bold;
         }
+
         .form-container {
             display: none;
         }
+
         .form-container.active {
             display: block;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="tabs">
             <div class="tab active" onclick="switchTab('login')">登录</div>
             <div class="tab" onclick="switchTab('register')">注册</div>
         </div>
-        
+
         <div id="login-form" class="form-container active">
             <div class="form-group">
                 <label for="login-username">用户名</label>
@@ -91,7 +104,7 @@
             </div>
             <button onclick="login()">登录</button>
         </div>
-        
+
         <div id="register-form" class="form-container">
             <div class="form-group">
                 <label for="register-username">用户名</label>
@@ -115,7 +128,6 @@
             const params = new URLSearchParams(window.location.search);
             return {
                 libraryId: params.get('libraryId'),
-                requestId: params.get('requestId'),
                 clientId: params.get('clientId')
             };
         }
@@ -127,7 +139,7 @@
             document.querySelectorAll('.form-container').forEach(form => {
                 form.classList.remove('active');
             });
-            
+
             if (tabName === 'login') {
                 document.querySelector('.tab:nth-child(1)').classList.add('active');
                 document.getElementById('login-form').classList.add('active');
@@ -140,23 +152,22 @@
         async function login() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
-            
+
             try {
-            const { libraryId, requestId, clientId } = getUrlParams();
-            const response = await fetch('/api/user/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    username, 
-                    password,
-                    libraryId,
-                    requestId, 
-                    clientId 
-                })
-            });
-                
+                const { libraryId, clientId } = getUrlParams();
+                const response = await fetch('/user/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        libraryId,
+                        clientId
+                    })
+                });
+
                 const result = await response.json();
                 if (response.ok) {
                     alert('登录成功');
@@ -173,28 +184,27 @@
             const username = document.getElementById('register-username').value;
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
-            
+
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致');
                 return;
             }
-            
+
             try {
-            const { libraryId, requestId, clientId } = getUrlParams();
-            const response = await fetch('/api/user/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    username, 
-                    password,
-                    libraryId,
-                    requestId, 
-                    clientId 
-                })
-            });
-                
+                const { libraryId, clientId } = getUrlParams();
+                const response = await fetch('/user/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        libraryId,
+                        clientId
+                    })
+                });
+
                 const result = await response.json();
                 if (response.ok) {
                     alert('注册成功');
@@ -208,4 +218,5 @@
         }
     </script>
 </body>
+
 </html>
