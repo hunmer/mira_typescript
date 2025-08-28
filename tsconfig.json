@@ -19,9 +19,6 @@
             "path": "./packages/mira-app-server"
         },
         {
-            "path": "./packages/mira-dashboard"
-        },
-        {
             "path": "./packages/mira-storage-sqlite"
         }
     ]

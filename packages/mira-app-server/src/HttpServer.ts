@@ -231,16 +231,91 @@ export class MiraHttpServer {
         this.app.use('/api/files', this.fileRoutes.getRouter());
         this.app.use('/api/devices', this.deviceRoutes.getRouter());
 
+        // 获取所有素材库的插件路由定义
+        this.app.get('/api/plugin-routes', (req, res) => {
+            try {
+                const allRoutes: any[] = [];
+                const libraries = this.backend.libraries?.getLibraries() || {};
+
+                for (const [libraryId, libraryData] of Object.entries(libraries)) {
+                    if (libraryData.pluginManager) {
+                        const routes = libraryData.pluginManager.getAllPluginRoutes();
+                        // 为每个路由添加素材库信息
+                        const routesWithLibrary = routes.map(route => ({
+                            ...route,
+                            libraryId,
+                            libraryName: libraryData.libraryService?.config?.name || libraryId,
+                            // 保留原始路径，同时提供带素材库ID的完整路径
+                            originalPath: route.path,
+                            path: `/mira/library/${libraryId}${route.path}`
+                        }));
+                        allRoutes.push(...routesWithLibrary);
+                    }
+                }
+
+                res.json({
+                    code: 0,
+                    data: allRoutes,
+                    total: allRoutes.length,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Error getting all plugin routes:', error);
+                res.status(500).json({
+                    code: 500,
+                    error: 'Failed to get plugin routes',
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        // 插件路由API - 获取指定素材库的路由定义
+        this.app.get('/api/plugin-routes/:libraryId', (req, res) => {
+            try {
+                const { libraryId } = req.params;
+                if (libraryId != null) {
+                    const obj = this.backend.libraries?.getLibrary(libraryId as string);
+                    if (obj == null) {
+                        return res.status(404).json({
+                            code: 404,
+                            error: 'Library not found',
+                            message: `No library found with id: ${libraryId}`,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                    const routes = obj.pluginManager.getAllPluginRoutes();
+                    res.json({
+                        code: 0,
+                        data: routes,
+                        total: routes.length,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error getting plugin routes:', error);
+                res.status(500).json({
+                    code: 500,
+                    error: 'Failed to get plugin routes',
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
         // 健康检查端点
         this.app.get('/api/health', (req, res) => {
             res.json({
-                success: true,
-                status: 'ok',
-                timestamp: new Date().toISOString(),
-                uptime: process.uptime(),
-                version: process.env.npm_package_version || '1.0.0',
-                nodeVersion: process.version,
-                environment: process.env.NODE_ENV || 'development'
+                code: 0,
+                data: {
+                    status: 'ok',
+                    timestamp: new Date().toISOString(),
+                    uptime: process.uptime(),
+                    version: process.env.npm_package_version || '1.0.0',
+                    nodeVersion: process.version,
+                    environment: process.env.NODE_ENV || 'development'
+                }
             });
         });
         this.app.get('/health', (req, res) => {

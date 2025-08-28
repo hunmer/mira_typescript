@@ -1,6 +1,7 @@
 import { MiraHttpServer } from "./HttpServer";
 import { LibraryStorage } from "./LibraryStorage";
 import { MiraWebsocketServer } from "./server";
+import { ServerPluginManager } from "./ServerPluginManager";
 import path from "path";
 
 
@@ -14,6 +15,7 @@ export class MiraServer {
     dataPath: string;
     httpServer?: MiraHttpServer;
     webSocketServer?: MiraWebsocketServer;
+    pluginManager?: ServerPluginManager;
     config: ServerConfig;
     libraries?: LibraryStorage;
 

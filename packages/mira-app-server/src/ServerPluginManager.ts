@@ -1,7 +1,7 @@
-
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import { MiraClient } from 'mira-server-sdk';
+import { PluginRouteDefinition } from './ServerPlugin';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -76,16 +76,17 @@ export class ServerPluginManager {
             const miraClient = new MiraClient(process.env.MIRA_SERVER_URL || 'http://localhost:8081');
 
             if (typeof pluginModule.init === 'function') {
-                await pluginModule.init({
+                const obj = await pluginModule.init({
                     pluginManager: this,
                     server: this.server,
                     dbService: this.dbService,
                     miraClient
                 });
+                this.loadedPlugins.set(pluginConfig.name, obj);
+                console.log(`${reload ? 'Reloaded' : 'Loaded'} plugin: ${pluginConfig.name}`);
+            } else {
+                console.warn(`Plugin ${pluginConfig.name} does not have an init function, skipping...`);
             }
-
-            this.loadedPlugins.set(pluginConfig.name, pluginModule);
-            console.log(`${reload ? 'Reloaded' : 'Loaded'} plugin: ${pluginConfig.name}`);
         } catch (err) {
             console.error(`Failed to load plugin ${pluginConfig.name}:`, err);
             // 如果加载失败，从已加载插件中移除
@@ -219,5 +220,58 @@ export class ServerPluginManager {
         if (config.enabled) {
             await this.loadPlugin(config, true); // 使用 reload=true 确保新插件被加载
         }
+    }
+
+    /**
+     * 获取所有已加载插件的路由定义
+     */
+    getAllPluginRoutes(): PluginRouteDefinition[] {
+        const allRoutes: PluginRouteDefinition[] = [];
+
+        for (const [pluginName, plugin] of this.loadedPlugins) {
+            try {
+                // 检查插件是否有 getRoutes 方法
+                if (plugin && typeof plugin.getRoutes === 'function') {
+                    const routes = plugin.getRoutes();
+                    if (Array.isArray(routes)) {
+                        // 为每个路由添加插件名称标识，但不修改路径
+                        const routesWithPluginInfo = routes.map(route => ({
+                            ...route,
+                            pluginName, // 添加插件名称，方便追踪
+                        }));
+                        allRoutes.push(...routesWithPluginInfo);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error getting routes from plugin ${pluginName}:`, error);
+            }
+        }
+
+        return allRoutes;
+    }
+
+    /**
+     * 获取指定插件的路由定义
+     */
+    getPluginRoutes(pluginName: string): PluginRouteDefinition[] {
+        const plugin = this.loadedPlugins.get(pluginName);
+        if (plugin && typeof plugin.getRoutes === 'function') {
+            try {
+                const routes = plugin.getRoutes();
+                return Array.isArray(routes) ? routes : [];
+            } catch (error) {
+                console.error(`Error getting routes from plugin ${pluginName}:`, error);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    /**
+     * 手动注册插件实例（用于测试或特殊用途）
+     */
+    registerPluginInstance(pluginName: string, pluginInstance: any): void {
+        this.loadedPlugins.set(pluginName, pluginInstance);
+        console.log(`✅ Manually registered plugin: ${pluginName}`);
     }
 }

@@ -86,7 +86,7 @@ export class LibraryStorage {
     }
 
     getLibrary(libraryId: string): Record<string, any> | undefined {
-        return this.libraries[libraryId];;
+        return this.libraries[libraryId];
     }
 
     libraryExists(libraryId: string): boolean {
