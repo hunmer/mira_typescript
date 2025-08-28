@@ -10,6 +10,8 @@ class UploadStatistics extends ServerPlugin {
         super('upload_statistics', pluginManager, dbService);
         this.server = server;
         this.dbService = dbService;
+        const backend = pluginManager.server.backend;
+        const httpServer = backend.getHttpServer();
         this.httpServer = httpServer;
         this.loadConfig({
             timerEnabled: false,
@@ -88,6 +90,7 @@ class UploadStatistics extends ServerPlugin {
 
             try {
                 const { result } = await this.dbService.getFiles({ filters });
+                console.log({ result })
                 res.status(200).json(result.map(file => ({
                     id: file.id,
                     name: file.name,

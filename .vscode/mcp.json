@@ -10,8 +10,8 @@
                 "LOG_LEVEL": "error",
                 "DISABLE_CONSOLE_OUTPUT": "true",
                 "N8N_API_URL": "http://localhost:5678",
-                "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYjEyYTMyYi1lMzU1LTQyM2QtYTA4MS0zNGFkYjNiZjIyNTIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU1ODc4MjgwfQ.OLEpFoMAa_q4iP-3XlexyEvUfhdLul7Hd8oHaWgYI50"
-             }
+                "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjOGY2ZDRiOC03OTkyLTRlNWItODU2YS1jZWFjYzU1YTI3MDUiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU2MzYyNzk0fQ.hN2GptmuWWT6WnLXRSSHS5YDr3msMwSvVa0V6mSZWKs"
+            }
         },
         "sequential-thinking": {
             "command": "npx",

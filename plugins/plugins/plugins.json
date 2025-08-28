@@ -22,7 +22,7 @@
   },
   {
     "name": "upload_statistics",
-    "enabled": false,
-    "path": "node_modules/upload_statistics"
+    "enabled": true,
+    "path": "upload_statistics"
   }
 ]

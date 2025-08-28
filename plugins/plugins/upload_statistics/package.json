@@ -16,7 +16,12 @@
   },
   "dependencies": {
     "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/",
+    "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
     "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
   },
   "keywords": [],
   "author": "hunmer",

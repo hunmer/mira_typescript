@@ -187,8 +187,21 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     }
 
     if (filters.dateRange) {
+      // 如果 dateRange.end 是今天，则扩展到当天 23:59:59
+      let startTime = filters.dateRange.start.getTime();
+      let endTime = filters.dateRange.end.getTime();
+      const today = new Date();
+      const isToday =
+        filters.dateRange.end.getFullYear() === today.getFullYear() &&
+        filters.dateRange.end.getMonth() === today.getMonth() &&
+        filters.dateRange.end.getDate() === today.getDate();
+      if (isToday) {
+        // 设置到今天 23:59:59.999
+        const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+        endTime = endOfToday.getTime();
+      }
       whereClauses.push('created_at BETWEEN ? AND ?');
-      params.push(filters.dateRange.start.getTime(), filters.dateRange.end.getTime());
+      params.push(startTime, endTime);
     }
 
     if (filters.minSize !== undefined) {
@@ -716,13 +729,21 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
 
   async processingFiles(files: Record<string, any>[], isUrlFile: boolean = true) {
     return Promise.all(files.map(async (file) => {
-      return {
-        ...file, ...{
-          thumb: await this.getItemThumbPath(file, { isUrlFile }),
-          path: await this.getItemFilePath(file, { isUrlFile }),
+      let customFields = file.custom_fields;
+      if (typeof customFields === 'string') {
+        try {
+          customFields = JSON.parse(customFields);
+        } catch {
+          // 保持原样
         }
+      }
+      return {
+        ...file,
+        custom_fields: customFields,
+        thumb: await this.getItemThumbPath(file, { isUrlFile }),
+        path: await this.getItemFilePath(file, { isUrlFile }),
       };
-    }))
+    }));
   }
 
   async queryFolder(query: Record<string, any>): Promise<Record<string, any>[]> {

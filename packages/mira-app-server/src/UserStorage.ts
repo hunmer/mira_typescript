@@ -86,14 +86,14 @@ export class UserStorage {
             return;
         }
 
-        // 创建默认管理员用户
+        // 创建默认超级管理员用户
         const hashedPassword = this.hashPassword(adminPassword);
         const now = Date.now();
 
         const admin: Omit<User, 'id'> = {
             username: adminUsername,
             password: hashedPassword,
-            role: 'administrator',
+            role: 'super',
             permissions: ['*'],
             created_at: now,
             updated_at: now,

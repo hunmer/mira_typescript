@@ -41,19 +41,17 @@ class UserPlugin extends ServerPlugin {
                 }
                 // 使用 SDK 登录
                 const loginResult = await this.miraClient.auth().login(username, password);
-                if (!loginResult || !loginResult.accessToken) {
-                    res.status(401).json({ success: false, message: '账号或密码错误' });
-                    return;
+                if (loginResult && loginResult.accessToken) {
+                    this.onLogined({ ws: this.server.getWsClientById(libraryId, clientId), libraryId, username, password })
+                    res.status(200).json({
+                        success: true,
+                        message: '登录成功',
+                        data: { username }
+                    });
                 }
-                this.onLogined({ ws: this.server.getWsClientById(libraryId, clientId), libraryId, username, password })
-                res.status(200).json({
-                    success: true,
-                    message: '登录成功',
-                    data: { username }
-                });
             } catch (error) {
                 console.error('登录错误:', error);
-                res.status(500).json({ success: false, message: '服务器内部错误' });
+                res.status(500).json({ success: false, message: (error as any).message || '服务器内部错误' });
             }
         });
 
