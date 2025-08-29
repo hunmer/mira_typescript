@@ -1,6 +1,8 @@
 import express, { Router, Request, Response, Handler } from 'express';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraServer } from '../server';
+import * as fs from 'fs';
+import * as path from 'path';
 
 
 export class HttpRouter {
@@ -142,7 +144,88 @@ export class HttpRouter {
   }
 
   private setupRoutes(): void {
+    // 插件文件获取接口
+    this.router.get('/plugins/:libraryId/:pluginName/*', (req: Request, res: Response) => {
+      try {
+        const { libraryId, pluginName } = req.params;
+        const filePath = req.params[0]; // 获取 * 匹配的部分
 
+        // 从库存储中获取库数据
+        const libraries = this.backend.libraries?.getLibraries();
+        if (!libraries || !libraries[libraryId]) {
+          return res.status(404).json({ error: 'Library not found' });
+        }
+
+        const libraryData = libraries[libraryId];
+
+        // 获取库的插件管理器
+        const pluginManager = libraryData.pluginManager;
+        if (!pluginManager) {
+          return res.status(500).json({ error: 'Plugin manager not available for this library' });
+        }
+
+        const pluginDir = pluginManager.getPluginDir(pluginName);
+        const fullFilePath = path.join(pluginDir, filePath);
+
+        // 安全检查：确保文件路径在插件目录内
+        const resolvedPath = path.resolve(fullFilePath);
+        const resolvedPluginDir = path.resolve(pluginDir);
+
+        if (!resolvedPath.startsWith(resolvedPluginDir)) {
+          return res.status(403).json({ error: 'Access denied: path outside plugin directory' });
+        }
+
+        // 检查文件是否存在
+        if (!fs.existsSync(resolvedPath)) {
+          return res.status(404).json({ error: 'File not found' });
+        }
+
+        // 检查是否是文件（不是目录）
+        const stats = fs.statSync(resolvedPath);
+        if (!stats.isFile()) {
+          return res.status(400).json({ error: 'Path is not a file' });
+        }
+
+        // 根据文件扩展名设置 Content-Type
+        const ext = path.extname(resolvedPath).toLowerCase();
+        let contentType = 'text/plain';
+
+        switch (ext) {
+          case '.js':
+            contentType = 'application/javascript; charset=utf-8';
+            break;
+          case '.vue':
+            contentType = 'text/javascript; charset=utf-8';
+            break;
+          case '.css':
+            contentType = 'text/css; charset=utf-8';
+            break;
+          case '.html':
+            contentType = 'text/html; charset=utf-8';
+            break;
+          case '.json':
+            contentType = 'application/json; charset=utf-8';
+            break;
+          case '.ts':
+            contentType = 'text/typescript; charset=utf-8';
+            break;
+        }        // 设置 CORS 头部支持跨域访问
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+        // 读取并返回文件内容
+        const fileContent = fs.readFileSync(resolvedPath, 'utf-8');
+        res.setHeader('Content-Type', contentType);
+        res.send(fileContent);
+
+        console.log(`Plugin file served: ${libraryId}/${pluginName}/${filePath}`);
+
+      } catch (error) {
+        console.error('Error serving plugin file:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
   }
 
   getRouter(): Router {

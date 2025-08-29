@@ -19,7 +19,8 @@
     "mira-app-core": "file:D:/mira_typescript/packages/mira-app-core/",
     "mira-app-server": "file:D:/mira_typescript/packages/mira-app-server/",
     "mira-storage-sqlite": "file:D:/mira_typescript/packages/mira-storage-sqlite/",
-    "queue": "^7.0.0"
+    "queue": "^7.0.0",
+    "which": "^5.0.0"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.27",

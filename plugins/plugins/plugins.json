@@ -12,7 +12,7 @@
   },
   {
     "name": "mira_thumb",
-    "enabled": false,
+    "enabled": true,
     "path": "mira_thumb"
   },
   {

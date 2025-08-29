@@ -155,6 +155,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     select?: string;
     filters?: Record<string, any>;
     isUrlFile?: boolean;
+    countFile?: boolean;
   }): Promise<{
     result: Record<string, any>[];
     limit: number;
@@ -174,6 +175,11 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     if (filters.recycled !== undefined) {
       whereClauses.push('recycled = ?');
       params.push(filters.recycled ? 1 : 0);
+    }
+
+    if (filters.thumb !== undefined) {
+      whereClauses.push('thumb = ?');
+      params.push(filters.thumb ? 1 : 0);
     }
 
     if (filters.star !== undefined) {
@@ -281,8 +287,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       this.getSql(countQuery, params),
     ]);
 
+    let result = rows.map(row => this.rowToMap(row));
+    if (!options?.countFile) {
+      result = await this.processingFiles(result, options?.isUrlFile);
+    }
+
     return {
-      result: await this.processingFiles(rows.map(row => this.rowToMap(row)), options?.isUrlFile),
+      result,
       limit,
       offset,
       total: countRows[0].total,
@@ -586,10 +597,13 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
   async getItemFilePath(item: Record<string, any>, options?: { isUrlFile: boolean }): Promise<string> {
+    if (options?.isUrlFile) {
+      return this.getPublicURL(`api/files/file/${this.getLibraryId()}/${item.id}`);
+    }
     const libraryPath = await this.getLibraryPath();
     const folderName = await this.getFolderName(item.folder_id);
     const filePath = path.join(libraryPath, folderName, item.name);
-    return options?.isUrlFile ? this.getPublicURL(`api/files/file/${this.getLibraryId()}/${item.id}`) : filePath
+    return filePath;
   }
 
   async getItemThumbPath(

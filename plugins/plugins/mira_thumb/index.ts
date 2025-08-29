@@ -1,4 +1,4 @@
-import { ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer } from 'mira-app-server';
+import { ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer, PluginRouteDefinition } from 'mira-app-server';
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
@@ -41,20 +41,23 @@ class ThumbPlugin extends ServerPlugin {
         this.server = server;
         this.dbService = dbService;
         this.pluginManager = pluginManager;
+        const backend = pluginManager.server.backend;
+        const httpServer = backend.getHttpServer();
 
-        // Initialize queue with concurrency of 5
         this.taskQueue = new Queue({ concurrency: 5, autostart: true });
 
-        console.log('Thumbnail plugin initialized');
+        // 注册前端路由
+        this.initializeRoutes();
+
         const obj = httpServer.backend.libraries!.getLibrary(dbService.getLibraryId());
         if (obj) {
             obj.eventManager.on('file::created', this.onFileCreated.bind(this));
             obj.eventManager.on('file::deleted', this.onFileDeleted.bind(this));
-            // 
         }
+
         // 缩略图操作
         httpServer.httpRouter.registerRounter(dbService.getLibraryId(), '/thumb/:action', 'get', async (req, res) => {
-            const action = req.params.action;
+            const { action } = req.params ?? {};
             if (action === 'scan') {
                 this.processPendingThumbnails();
                 return res.status(200).json({
@@ -89,11 +92,12 @@ class ThumbPlugin extends ServerPlugin {
                     message: '已取消缩略图生成任务'
                 });
             } else if (action === 'stats') {
-                // 获取缩略图统计信息
+                // 获取缩略图统计信息 - 只获取必要字段，避免路径计算
                 const allFiles = await this.dbService.getFiles({
-                    select: 'id,path,thumb',
+                    select: 'id,thumb',
                     filters: { limit: 9999999 },
-                    isUrlFile: false
+                    isUrlFile: false,
+                    countFile: true,
                 });
 
                 const totalFiles = allFiles.result.length;
@@ -112,6 +116,8 @@ class ThumbPlugin extends ServerPlugin {
             }
             return res.status(400).json({ success: false, message: '无效的操作' });
         });
+        console.log('Thumbnail plugin initialized');
+
     }
 
     private async onFileCreated(event: EventArgs): Promise<void> {
@@ -132,8 +138,14 @@ class ThumbPlugin extends ServerPlugin {
                         break;
                 }
 
-                result.thumb = thumbPath;
-                await this.dbService.updateFile(result.id, { thumb: 1 });
+                // 检查缩略图是否真的生成成功
+                if (fs.existsSync(thumbPath)) {
+                    result.thumb = thumbPath;
+                    console.log('✅ Thumbnail generated successfully:', thumbPath);
+                    await this.dbService.updateFile(result.id, { thumb: 1 });
+                } else {
+                    console.warn('⚠️ Thumbnail generation failed, file not found:', thumbPath);
+                }
                 this.server.broadcastLibraryEvent(this.dbService.getLibraryId(), 'thumbnail::generated', result);
             } catch (err) {
                 console.error('Failed to generate thumbnail:', err);
@@ -164,16 +176,24 @@ class ThumbPlugin extends ServerPlugin {
             fs.mkdirSync(thumbDir, { recursive: true });
         }
 
-        return new Promise<void>((resolve, reject) => {
+        console.log('🖼️ Starting image thumbnail generation:', srcPath, '->', destPath);
+
+        return new Promise<void>((resolve) => {
             ffmpeg(srcPath)
                 .outputOptions([
                     '-vf', 'scale=200:-1:force_original_aspect_ratio=decrease',
                     '-frames:v', '1'
                 ])
                 .output(destPath)
-                .on('end', () => resolve())
+                .on('start', (commandLine) => {
+                    console.log('📸 FFmpeg command:', commandLine);
+                })
+                .on('end', () => {
+                    console.log('✅ Image thumbnail generation completed:', destPath);
+                    resolve();
+                })
                 .on('error', (err: Error) => {
-                    console.error('Image thumbnail generation error:', srcPath, err.message);
+                    console.error('❌ Image thumbnail generation error:', srcPath, err.message);
                     resolve(); // 即使出错也继续处理
                 })
                 .run();
@@ -181,7 +201,9 @@ class ThumbPlugin extends ServerPlugin {
     }
 
     private async generateVideoThumbnail(srcPath: string, destPath: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        console.log('🎬 Starting video thumbnail generation:', srcPath, '->', destPath);
+
+        return new Promise<void>((resolve) => {
             ffmpeg(srcPath)
                 .screenshots({
                     timestamps: ['00:00:01'] as [string],
@@ -189,10 +211,15 @@ class ThumbPlugin extends ServerPlugin {
                     folder: path.dirname(destPath),
                     size: '200x?'
                 })
-                .on('end', () => resolve())
+                .on('start', (commandLine) => {
+                    console.log('🎥 FFmpeg command:', commandLine);
+                })
+                .on('end', () => {
+                    console.log('✅ Video thumbnail generation completed:', destPath);
+                    resolve();
+                })
                 .on('error', (err: Error) => {
-                    console.error('Video thumbnail generation error: ', srcPath);
-                    // reject(err);
+                    console.error('❌ Video thumbnail generation error:', srcPath, err.message);
                     resolve();
                 });
         });
@@ -209,13 +236,21 @@ class ThumbPlugin extends ServerPlugin {
     }
 
     private async getPendingThumbFiles(): Promise<any[]> {
-        const files = (await this.dbService.getFiles({ select: 'id,path,hash,folder_id,name', filters: { thumb: 1, limit: 9999999 }, isUrlFile: false })).result;
+        const files = (await this.dbService.getFiles({ select: 'id,hash,folder_id,name', filters: { thumb: 0, limit: 9999999 }, isUrlFile: false })).result;
         const pendingFiles: any[] = [];
         console.log('results ', files.length);
         for (const file of files) {
-            const thumbPath = await this.dbService.getItemThumbPath(file, { isUrlFile: false });
-            if (!fs.existsSync(thumbPath)) {
-                pendingFiles.push(file);
+            try {
+                const thumbPath = await this.dbService.getItemThumbPath(file, { isUrlFile: false });
+                if (!fs.existsSync(thumbPath)) {
+                    pendingFiles.push(file);
+                } else {
+                    // 如果数据库状态错误，修正它
+                    await this.dbService.updateFile(file.id, { thumb: 1 });
+                }
+            } catch (error) {
+                console.error('Error processing file:', file.id, error);
+                continue;
             }
         }
         return pendingFiles;
@@ -231,8 +266,10 @@ class ThumbPlugin extends ServerPlugin {
         pendingFiles.forEach((file, i) => {
             this.taskQueue.push(async () => {
                 try {
-                    const filePath = file.path;
+                    // 获取文件完整路径
+                    const filePath = await this.dbService.getItemFilePath(file, { isUrlFile: false });
                     const fileType = this.getFileType(filePath);
+                    console.log({ filePath, fileType });
                     if (!fileType) return;
 
                     const thumbPath = await this.dbService.getItemThumbPath(file);
@@ -245,8 +282,16 @@ class ThumbPlugin extends ServerPlugin {
                             break;
                     }
 
-                    processed++;
-                    console.log('Thumbnail processed:', thumbPath, `(${processed}/${max})`);
+                    // 检查缩略图是否真的生成成功
+                    if (fs.existsSync(thumbPath)) {
+                        processed++;
+                        console.log(`✅ Batch thumbnail processed: ${thumbPath} (${processed}/${max})`);
+                        // 更新数据库状态
+                        await this.dbService.updateFile(file.id, { thumb: 1 });
+                    } else {
+                        processed++;
+                        console.warn(`⚠️ Batch thumbnail generation failed: ${thumbPath} (${processed}/${max})`);
+                    }
 
                 } catch (err) {
                     console.error('Failed to process thumbnail:', err);
@@ -254,6 +299,28 @@ class ThumbPlugin extends ServerPlugin {
                 }
             });
         });
+    }
+
+    /**
+     * 初始化前端路由
+     */
+    private initializeRoutes() {
+        // 缩略图管理主页面
+        const thumbnailRoute: PluginRouteDefinition = {
+            name: 'ThumbnailManager',
+            group: "媒体管理",
+            path: '/media/thumbnails',
+            component: 'components/ThumbnailManager.js',
+            meta: {
+                roles: ['super', 'admin', 'user'], // 所有用户都可以查看
+                icon: 'lucide:image',
+                title: '缩略图管理',
+                order: 1
+            }
+        };
+
+        this.registerRoutes([thumbnailRoute]);
+        console.log(`✅ Thumbnail Plugin routes registered: ${this.getRoutes().length} routes`);
     }
 }
 

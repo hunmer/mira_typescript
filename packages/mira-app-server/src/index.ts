@@ -57,6 +57,7 @@ async function startServer() {
 
 // 导出服务器实例和启动函数
 export { MiraServer, startServer, ServerPluginManager, ServerPlugin, MiraWebsocketServer, MiraHttpServer, express, ws };
+export type { PluginRouteDefinition } from './ServerPlugin';
 
 // 如果直接运行此文件，则启动服务器
 if (require.main === module) {

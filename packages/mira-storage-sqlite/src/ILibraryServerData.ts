@@ -11,6 +11,7 @@ export interface ILibraryServerData {
     select?: string;
     filters?: Record<string, any>;
     isUrlFile?: boolean;
+    countFile?: boolean;
   }): Promise<{
     result: Record<string, any>[];
     limit: number;

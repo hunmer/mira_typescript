@@ -1,0 +1,300 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "url": "https://yande.re/post.json?limit=10",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "responseFormat": "json"
+                        }
+                    },
+                    "timeout": 30000
+                }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                -176,
+                -16
+            ],
+            "id": "aa4b2e91-7afa-4e1a-a38b-afd4410c0399",
+            "name": "Fetch Yandere Posts"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Process Yandere.re API response and prepare for Mira upload\nconst posts = $input.all();\nconst processedItems = [];\n\nfor (let i = 0; i < Math.min(posts.length, 10); i++) {\n  const post = posts[i].json;\n  \n  // Extract relevant data from each post\n  const item = {\n    // Original image data\n    imageUrl: post.jpeg_url || post.file_url,\n    sampleUrl: post.sample_url,\n    previewUrl: post.preview_url,\n    \n    // Image metadata\n    id: post.id,\n    tags: post.tags,\n    rating: post.rating,\n    score: post.score,\n    author: post.author,\n    source: post.source,\n    \n    // Image dimensions\n    width: post.width,\n    height: post.height,\n    fileSize: post.file_size,\n    \n    // Dates\n    createdAt: post.created_at,\n    \n    // Generate filename\n    filename: `yandere_${post.id}.${post.file_url ? post.file_url.split('.').pop() : 'jpg'}`,\n    \n    // Prepare for Mira upload\n    miraData: {\n      title: `Yandere Post ${post.id}`,\n      description: `Tags: ${post.tags}\\nRating: ${post.rating}\\nScore: ${post.score}\\nAuthor: ${post.author}`,\n      category: 'yandere_import',\n      tags: post.tags.split(' ').filter(tag => tag.length > 0)\n    }\n  };\n  \n  processedItems.push(item);\n}\n\nreturn processedItems.map(item => ({ json: item }));"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                48,
+                -16
+            ],
+            "id": "fb6bd4a3-66a0-4599-ae7a-0419448ebabc",
+            "name": "Process Yandere Data",
+            "alwaysOutputData": false
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.sampleUrl }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file",
+                            "outputPropertyName": "files"
+                        }
+                    },
+                    "proxy": "http://127.0.0.1:7890",
+                    "timeout": 9990000
+                }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                272,
+                -16
+            ],
+            "id": "35f39066-d4aa-4b96-930b-3ca8a3cace5a",
+            "name": "Download Image"
+        },
+        {
+            "parameters": {
+                "tokenSource": "credentials",
+                "libraryId": "1755239013113",
+                "binaryPropertyName": "files",
+                "tags": "={{ $json.miraData.tags.join(',') }}",
+                "folderId": "={{ $json.author }}"
+            },
+            "type": "CUSTOM.miraFileUpload",
+            "typeVersion": 1,
+            "position": [
+                496,
+                -16
+            ],
+            "id": "f9ec408c-8e09-4f3a-ab18-2480f8fb50fc",
+            "name": "Mira File Upload",
+            "credentials": {
+                "MiraApiCredential": {
+                    "id": "KDwwwHaZ3J2ELR8g",
+                    "name": "Mira account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 1
+                    },
+                    "conditions": [
+                        {
+                            "id": "upload-success-check",
+                            "leftValue": "={{ $json.results[0].success }}",
+                            "rightValue": true,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                720,
+                -16
+            ],
+            "id": "12e6a7fa-3995-4964-b364-99d80b238886",
+            "name": "Check Upload Success"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Log successful uploads\nconst uploadResult = $input.all();\n\nreturn uploadResult.map(item => {\n  const data = item.json;\n  return { \n  json: {\n    status: 'completed',\n    uploadedFile: data.path,\n    miraFileId: data.id,\n    message: `Successfully uploaded ${data.name} to Mira`\n  }\n};\n  \n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                944,
+                -112
+            ],
+            "id": "bd2739d5-44c2-468a-8c3a-cf4f2fbd05d3",
+            "name": "Log Success"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Log failed uploads\nconst uploadResult = $input.all()[0].json;\n\nconsole.error('Failed to upload:', {\n  filename: uploadResult.filename || 'unknown',\n  error: uploadResult.error || 'unknown error',\n  originalYandereId: uploadResult.metadata?.originalId,\n  status: 'failed'\n});\n\nreturn [{ \n  json: {\n    status: 'failed',\n    filename: uploadResult.filename || 'unknown',\n    error: uploadResult.error || 'Upload failed',\n    message: `Failed to upload to Mira: ${uploadResult.error || 'Unknown error'}`\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                944,
+                80
+            ],
+            "id": "429c68db-74da-4f0a-aa13-12b261323a4d",
+            "name": "Log Error"
+        },
+        {
+            "parameters": {
+                "mode": "combine",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3,
+            "position": [
+                1168,
+                -16
+            ],
+            "id": "9b863952-79f2-44d4-a4f2-3f34fb3bf2b7",
+            "name": "Merge Results"
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                -624,
+                -16
+            ],
+            "id": "2fbc0886-6232-4c7b-b985-7de6eb35a0ac",
+            "name": "When clicking ‘Execute workflow’"
+        },
+        {
+            "parameters": {},
+            "type": "CUSTOM.miraLogin",
+            "typeVersion": 1,
+            "position": [
+                -400,
+                -16
+            ],
+            "id": "e7479f39-99a5-43a0-8fd1-180f6f1acd3b",
+            "name": "Mira Login",
+            "credentials": {
+                "MiraLoginCredential": {
+                    "id": "ky4n8nbWQeOt34Gu",
+                    "name": "Mira Login account 2"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Fetch Yandere Posts": {
+            "main": [
+                [
+                    {
+                        "node": "Process Yandere Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Yandere Data": {
+            "main": [
+                [
+                    {
+                        "node": "Download Image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download Image": {
+            "main": [
+                [
+                    {
+                        "node": "Mira File Upload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Mira File Upload": {
+            "main": [
+                [
+                    {
+                        "node": "Check Upload Success",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check Upload Success": {
+            "main": [
+                [
+                    {
+                        "node": "Log Success",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Log Error",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log Success": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log Error": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Results",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "When clicking ‘Execute workflow’": {
+            "main": [
+                [
+                    {
+                        "node": "Mira Login",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Mira Login": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Yandere Posts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "fc7383d05e70dfb2e5bc24a56107b9dcb53bde5758f7387e737ce362de870369"
+    }
+}

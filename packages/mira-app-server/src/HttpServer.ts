@@ -55,10 +55,10 @@ function createHttpLoggerMiddleware() {
 
         // 输出请求信息
         console.log('\n' + '='.repeat(80));
-        console.log(`📥 HTTP REQUEST [${timestamp}]`);
+        // console.log(`📥 HTTP REQUEST [${timestamp}]`);
         console.log(`🔗 ${requestData.method.toUpperCase()} ${requestData.url}`);
-        console.log(`🌐 IP: ${requestData.ip}`);
-        console.log(`🔍 User-Agent: ${requestData.userAgent}`);
+        // console.log(`🌐 IP: ${requestData.ip}`);
+        // console.log(`🔍 User-Agent: ${requestData.userAgent}`);
 
         if (Object.keys(requestData.query).length > 0) {
             console.log(`❓ Query Parameters:`, JSON.stringify(requestData.query, null, 2));
