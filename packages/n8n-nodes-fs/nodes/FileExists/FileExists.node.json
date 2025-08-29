@@ -1,0 +1,36 @@
+{
+    "displayName": "File Exists",
+    "name": "fileExists",
+    "icon": "file:fileexists.svg",
+    "group": [
+        "input"
+    ],
+    "version": 1,
+    "description": "Check if a file or directory exists",
+    "defaults": {
+        "name": "File Exists"
+    },
+    "inputs": [
+        "main"
+    ],
+    "outputs": [
+        "main"
+    ],
+    "codex": {
+        "categories": [
+            "File System"
+        ],
+        "subcategories": {
+            "File System": [
+                "Check File"
+            ]
+        },
+        "resources": {
+            "primaryDocumentation": [
+                {
+                    "url": "https://nodejs.org/api/fs.html"
+                }
+            ]
+        }
+    }
+}

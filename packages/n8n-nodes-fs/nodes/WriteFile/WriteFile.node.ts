@@ -25,7 +25,7 @@ export class WriteFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Write File',
         name: 'writeFile',
-        icon: 'file:writefile.svg',
+        icon: 'fa:edit',
         group: ['output'],
         version: 1,
         description: 'Write content to a file',

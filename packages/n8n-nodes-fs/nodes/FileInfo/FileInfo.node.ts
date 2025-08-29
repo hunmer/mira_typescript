@@ -17,7 +17,7 @@ export class FileInfo implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'File Info',
         name: 'fileInfo',
-        icon: 'file:fileinfo.svg',
+        icon: 'fa:info-circle',
         group: ['input'],
         version: 1,
         description: 'Get detailed information about a file or directory',

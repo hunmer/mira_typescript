@@ -1,0 +1,256 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                128,
+                -48
+            ],
+            "id": "1acc87aa-07ba-48a3-aeb3-38ea8276ee1c",
+            "name": "When clicking ‘Execute workflow’"
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.filePath }}",
+                "includeOptions": {}
+            },
+            "type": "CUSTOM.fileInfo",
+            "typeVersion": 1,
+            "position": [
+                1024,
+                -48
+            ],
+            "id": "a146fa29-7800-448a-9ca4-545e6a92ddb9",
+            "name": "File Info"
+        },
+        {
+            "parameters": {
+                "directoryPath": "={{ $json.path.split('\\\\').slice(0, -1).join('\\\\') }}",
+                "filterOptions": {},
+                "outputOptions": {}
+            },
+            "type": "CUSTOM.listFiles",
+            "typeVersion": 1,
+            "position": [
+                2128,
+                -48
+            ],
+            "id": "8d0a8ecf-ab06-4c6d-a000-8a43680e5d4b",
+            "name": "List Files"
+        },
+        {
+            "parameters": {
+                "directoryPath": "={{ $json.test_dir }}",
+                "creationOptions": {}
+            },
+            "type": "CUSTOM.createDirectory",
+            "typeVersion": 1,
+            "position": [
+                576,
+                -48
+            ],
+            "id": "934984ed-5846-4493-b5e6-1aaf46b336c5",
+            "name": "Create Directory"
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.path }}\\file.txt",
+                "content": "hello,world!",
+                "additionalOptions": {}
+            },
+            "type": "CUSTOM.writeFile",
+            "typeVersion": 1,
+            "position": [
+                800,
+                -48
+            ],
+            "id": "20bbd7aa-6106-4968-8555-531d1b45713f",
+            "name": "Write File"
+        },
+        {
+            "parameters": {
+                "sourcePath": "={{ $json.path }}",
+                "destinationPath": "={{ $json.directory }}\\new_file.txt",
+                "moveOptions": {}
+            },
+            "type": "CUSTOM.moveFile",
+            "typeVersion": 1,
+            "position": [
+                1248,
+                -48
+            ],
+            "id": "57fa6f8b-60a8-48d2-be02-a63813b0b049",
+            "name": "Move File"
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.filePath }}",
+                "safetyOptions": {}
+            },
+            "type": "CUSTOM.deleteFile",
+            "typeVersion": 1,
+            "position": [
+                1696,
+                -48
+            ],
+            "id": "1bb314e7-8f0d-4a6c-bbc2-79d9b9b42ef5",
+            "name": "Delete File"
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.destinationPath }}",
+                "additionalOptions": {}
+            },
+            "type": "CUSTOM.readFile",
+            "typeVersion": 1,
+            "position": [
+                1472,
+                -48
+            ],
+            "id": "a9e85720-8ea1-4bb2-a9a7-4fa98f1e2f97",
+            "name": "Read File"
+        },
+        {
+            "parameters": {
+                "mode": "raw",
+                "jsonOutput": "{\n  \"test_dir\": \"C:/n8n-nodes-fs-test\"\n}\n",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                352,
+                -48
+            ],
+            "id": "6fab6a4e-93ae-474d-b3df-6511819552e6",
+            "name": "Vars"
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.path }}",
+                "checkOptions": {},
+                "outputOptions": {}
+            },
+            "type": "CUSTOM.fileExists",
+            "typeVersion": 1,
+            "position": [
+                1904,
+                -48
+            ],
+            "id": "5c03c83d-5e75-4cfa-aaf2-3886c18f803d",
+            "name": "File Exists"
+        }
+    ],
+    "connections": {
+        "When clicking ‘Execute workflow’": {
+            "main": [
+                [
+                    {
+                        "node": "Vars",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "File Info": {
+            "main": [
+                [
+                    {
+                        "node": "Move File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "List Files": {
+            "main": [
+                []
+            ]
+        },
+        "Create Directory": {
+            "main": [
+                [
+                    {
+                        "node": "Write File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write File": {
+            "main": [
+                [
+                    {
+                        "node": "File Info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Move File": {
+            "main": [
+                [
+                    {
+                        "node": "Read File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delete File": {
+            "main": [
+                [
+                    {
+                        "node": "File Exists",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read File": {
+            "main": [
+                [
+                    {
+                        "node": "Delete File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Vars": {
+            "main": [
+                [
+                    {
+                        "node": "Create Directory",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "File Exists": {
+            "main": [
+                [
+                    {
+                        "node": "List Files",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "instanceId": "fc7383d05e70dfb2e5bc24a56107b9dcb53bde5758f7387e737ce362de870369"
+    }
+}

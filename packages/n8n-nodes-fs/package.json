@@ -9,24 +9,22 @@
         "file-operations"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/hunmer/mira-dashboard",
+    "homepage": "https://github.com/hunmer/n8n-nodes-fs",
     "author": {
         "name": "Mira Team",
         "email": "dev@mira.com"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hunmer/mira-dashboard.git"
+        "url": "git+https://github.com/hunmer/n8n-nodes-fs.git"
     },
     "main": "index.js",
     "scripts": {
         "build": "tsc && npm run copy-assets",
-        "copy-assets": "copyfiles -u 1 nodes/**/*.{json,svg} dist/",
+        "copy-assets": "copyfiles -u 1 nodes/**/*.json dist/",
         "dev": "tsc -w",
         "prepack": "npm run build",
-        "lint": "tslint -p tsconfig.json -c tslint.json",
-        "lintfix": "tslint --fix -p tsconfig.json -c tslint.json",
-        "prepublishOnly": "npm run build && npm run lint"
+        "prepublishOnly": "npm run build"
     },
     "files": [
         "dist"
@@ -38,6 +36,7 @@
             "dist/nodes/WriteFile/WriteFile.node.js",
             "dist/nodes/ListFiles/ListFiles.node.js",
             "dist/nodes/FileInfo/FileInfo.node.js",
+            "dist/nodes/FileExists/FileExists.node.js",
             "dist/nodes/DeleteFile/DeleteFile.node.js",
             "dist/nodes/CreateDirectory/CreateDirectory.node.js",
             "dist/nodes/CopyFile/CopyFile.node.js",

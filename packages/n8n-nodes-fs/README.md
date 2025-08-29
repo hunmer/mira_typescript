@@ -49,6 +49,13 @@ This package includes the following nodes:
 - Cross-filesystem move support
 - Automatic directory creation
 
+### 🔍 **FileExists Node**
+- Check if files or directories exist
+- Support for different path types (file, directory, any)
+- Access permission checking (read, write, execute)
+- Detailed file information retrieval
+- Symbolic link resolution
+
 ## Installation
 
 ### In n8n
@@ -103,6 +110,40 @@ After installation, you'll find all the file system nodes in your n8n editor und
   "detectMimeType": true
 }
 ```
+
+### Check File Existence
+```json
+{
+  "filePath": "/path/to/file.txt",
+  "checkOptions": {
+    "checkType": "file",
+    "includeDetails": true,
+    "checkAccess": ["readable", "writable"]
+  }
+}
+```
+
+## Example Workflow
+
+The package includes a complete example workflow (`example-workflow.json`) that demonstrates all file system operations:
+
+1. **Initialize Variables**: Set up test directory path
+2. **Create Directory**: Create a test directory
+3. **Write File**: Create a text file with content
+4. **Get File Info**: Retrieve detailed file information
+5. **Move File**: Move the file to a new location
+6. **Read File**: Read the moved file content
+7. **Delete File**: Remove the file
+8. **Check File Exists**: Verify file deletion
+9. **List Files**: Show remaining directory contents
+
+### Using the Example Workflow
+
+1. Import `example-workflow.json` into your n8n instance
+2. Update the test directory path in the "Vars" node
+3. Execute the workflow to see all nodes in action
+
+The workflow uses expressions to pass data between nodes, demonstrating real-world usage patterns.
 
 ## Error Handling
 

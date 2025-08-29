@@ -156,7 +156,7 @@ export class ListFiles implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'List Files',
         name: 'listFiles',
-        icon: 'file:listfiles.svg',
+        icon: 'fa:list',
         group: ['input'],
         version: 1,
         description: 'List files and directories in a path',

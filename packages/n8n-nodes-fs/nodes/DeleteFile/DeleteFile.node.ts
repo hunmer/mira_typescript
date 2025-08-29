@@ -17,7 +17,7 @@ export class DeleteFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Delete File',
         name: 'deleteFile',
-        icon: 'file:deletefile.svg',
+        icon: 'fa:trash',
         group: ['output'],
         version: 1,
         description: 'Delete files or directories',

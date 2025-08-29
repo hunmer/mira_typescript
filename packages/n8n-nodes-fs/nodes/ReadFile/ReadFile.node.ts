@@ -26,7 +26,7 @@ export class ReadFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Read File',
         name: 'readFile',
-        icon: 'file:readfile.svg',
+        icon: 'fa:file',
         group: ['input'],
         version: 1,
         description: 'Read content from a file',

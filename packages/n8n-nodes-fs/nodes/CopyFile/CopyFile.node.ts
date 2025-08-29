@@ -17,7 +17,7 @@ export class CopyFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Copy File',
         name: 'copyFile',
-        icon: 'file:copyfile.svg',
+        icon: 'fa:copy',
         group: ['transform'],
         version: 1,
         description: 'Copy files or directories to another location',

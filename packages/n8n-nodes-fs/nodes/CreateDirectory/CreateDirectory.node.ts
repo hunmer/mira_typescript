@@ -16,7 +16,7 @@ export class CreateDirectory implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Create Directory',
         name: 'createDirectory',
-        icon: 'file:createdir.svg',
+        icon: 'fa:folder-plus',
         group: ['output'],
         version: 1,
         description: 'Create directories with optional nested structure',

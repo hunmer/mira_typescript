@@ -17,7 +17,7 @@ export class MoveFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Move File',
         name: 'moveFile',
-        icon: 'file:movefile.svg',
+        icon: 'fa:arrow-right',
         group: ['transform'],
         version: 1,
         description: 'Move or rename files and directories',
