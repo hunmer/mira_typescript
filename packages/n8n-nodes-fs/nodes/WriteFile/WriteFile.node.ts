@@ -25,7 +25,7 @@ export class WriteFile implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Write File',
         name: 'writeFile',
-        icon: 'fa:edit',
+        icon: 'fa:download',
         group: ['output'],
         version: 1,
         description: 'Write content to a file',
@@ -58,6 +58,11 @@ export class WriteFile implements INodeType {
                         name: 'Binary Data',
                         value: 'binary',
                         description: 'Write binary data (base64 encoded)',
+                    },
+                    {
+                        name: 'Input Binary Field',
+                        value: 'inputBinary',
+                        description: 'Get binary data from previous node',
                     },
                     {
                         name: 'JSON Object',
@@ -101,6 +106,19 @@ export class WriteFile implements INodeType {
                 default: '',
                 placeholder: 'Enter base64 encoded binary data...',
                 description: 'Base64 encoded binary data to write',
+            },
+            {
+                displayName: 'Binary Field Name',
+                name: 'binaryFieldName',
+                type: 'string',
+                displayOptions: {
+                    show: {
+                        contentSource: ['inputBinary'],
+                    },
+                },
+                default: 'data',
+                placeholder: 'data',
+                description: 'Name of the binary field from the previous node',
             },
             {
                 displayName: 'JSON Object',
@@ -299,6 +317,11 @@ export class WriteFile implements INodeType {
                         const binaryContent = this.getNodeParameter('binaryContent', i) as string;
                         content = Buffer.from(binaryContent, 'base64');
                         break;
+                    case 'inputBinary':
+                        const binaryFieldName = this.getNodeParameter('binaryFieldName', i) as string;
+                        const binaryData = this.helpers.assertBinaryData(i, binaryFieldName);
+                        content = await this.helpers.getBinaryDataBuffer(i, binaryFieldName);
+                        break;
                     case 'json':
                         const jsonContent = this.getNodeParameter('jsonContent', i) as object;
                         content = jsonFormatting === 'pretty'
@@ -327,7 +350,7 @@ export class WriteFile implements INodeType {
 
                 // Write file based on mode
                 const writeOptions: any = {
-                    encoding: contentSource === 'binary' ? undefined : encoding as any,
+                    encoding: (contentSource === 'binary' || contentSource === 'inputBinary') ? undefined : encoding as any,
                     mode: parseInt(fileMode, 8),
                 };
 
@@ -356,6 +379,10 @@ export class WriteFile implements INodeType {
 
                 if (contentSource === 'text' || contentSource === 'property') {
                     returnItem.encoding = encoding;
+                }
+
+                if (contentSource === 'inputBinary') {
+                    returnItem.binaryFieldName = this.getNodeParameter('binaryFieldName', i);
                 }
 
                 returnData.push({

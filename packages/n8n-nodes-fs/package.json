@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-fs",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "File system operations nodes for n8n - read, write, list, info, delete, copy, move files and directories",
     "keywords": [
         "n8n-community-node-package",

@@ -107,6 +107,11 @@ export class FileRoutes {
                             libraryId,
                             fileId: parseInt(fileId)
                         });
+                        this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::updated', {
+                            ...result,
+                            libraryId,
+                            fileId: parseInt(fileId)
+                        });
 
                         if (clientId) {
                             const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
@@ -114,12 +119,8 @@ export class FileRoutes {
                                 eventName: 'file::updated',
                                 data: { fileId: parseInt(fileId) }
                             });
-                            this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::updated', {
-                                ...result,
-                                libraryId,
-                                fileId: parseInt(fileId)
-                            });
                         }
+
                     }
 
                     return res.send(response);
@@ -247,10 +248,11 @@ export class FileRoutes {
                                     }, result, libraryId
                                 });
 
+                                this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
+
                                 if (clientId) {
                                     const ws = this.backend.webSocketServer?.getWsClientById(libraryId, clientId);
                                     ws && this.backend.webSocketServer?.sendToWebsocket(ws, { eventName: 'file::uploaded', data: { path: sourcePath } });
-                                    this.backend.webSocketServer?.broadcastLibraryEvent(libraryId, 'file::created', { ...result, libraryId });
                                 }
                             }
                         }

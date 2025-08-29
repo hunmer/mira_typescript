@@ -20,7 +20,7 @@ npm link n8n-nodes-fs
 # 设置环境变量
 $env:N8N_LOG_OUTPUT = "console"
 $env:N8N_LOG_LEVEL = "debug"
-$env:N8N_PAYLOAD_SIZE_MAX = "64"
+$env:N8N_PAYLOAD_SIZE_MAX = "9999"
 $env:N8N_FORMDATA_FILE_SIZE_MAX = "500"
 
 # 启动 n8n

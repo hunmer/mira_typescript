@@ -1,0 +1,569 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours"
+                        }
+                    ]
+                }
+            },
+            "id": "53f939b7-d44d-4769-a994-ce6b4b4870ab",
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                -2736,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "mode": "raw",
+                "jsonOutput": "{\n  \"video_storage_dir\": \"D:/douyin_videos\",\n  \"data_storage_dir\": \"D:/douyin_data\",\n  \"monitored_user_ids\": [\"MS4wLjABAAAAfeAVsklc4_BZ6mK4hGQV7ZXMX2-UrIxKzijhHp5CCp0\"]\n}\n",
+                "options": {}
+            },
+            "id": "c0ff453d-eca7-49d5-95a0-c2d9c2953f03",
+            "name": "Global Settings",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -2512,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "user-iterator",
+                            "name": "current_user_id",
+                            "value": "={{ $('Global Settings').item.json.monitored_user_ids }}",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "4b8cdb39-3f8d-4bea-930e-fae1892d58c6",
+            "name": "Split Users",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -1840,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "url": "=http://127.0.0.1:3010/aweme/v1/web/aweme/post/?sec_user_id={{ $json.current_user_id }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "json"
+                        }
+                    }
+                }
+            },
+            "id": "94582e2c-bca3-4f85-816c-6a70c501971d",
+            "name": "Fetch User Videos",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                -1616,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "extract-first-video",
+                            "name": "latest_video",
+                            "value": "={{ $json.aweme_list && $json.aweme_list.length > 0 ? $json.aweme_list[0] : null }}",
+                            "type": "object"
+                        },
+                        {
+                            "id": "video-id",
+                            "name": "video_id",
+                            "value": "={{ $json.latest_video ? $json.latest_video.aweme_id : null }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "video-title",
+                            "name": "video_title",
+                            "value": "={{ $json.latest_video ? $json.latest_video.desc : 'untitled' }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "video-url",
+                            "name": "video_url",
+                            "value": "={{ $json.latest_video && $json.latest_video.video && $json.latest_video.video.play_addr ? $json.latest_video.video.play_addr.url_list[0] : null }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "author-nickname",
+                            "name": "author_nickname",
+                            "value": "={{ $json.latest_video && $json.latest_video.author ? $json.latest_video.author.nickname : 'unknown' }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "f0ec0a2f-6df4-466c-a52f-5edeafd6f542",
+            "name": "Extract Video Info",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -1392,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 1
+                    },
+                    "conditions": [
+                        {
+                            "id": "video-exists-condition",
+                            "leftValue": "={{ $json.latest_video.aweme_id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "id": "d0d22b5d-7d5b-40d1-907b-f6f2aff9fed5",
+            "name": "Check Video Exists",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                -1168,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "file-path",
+                            "name": "file_path",
+                            "value": "={{ $('Global Settings').item.json.video_storage_dir }}/{{ $json.latest_video.author.nickname }}/[{{ $json.latest_video.aweme_id }}]{{ $json.latest_video.caption }}.mp4",
+                            "type": "string"
+                        },
+                        {
+                            "id": "data-file-path",
+                            "name": "data_file_path",
+                            "value": "={{ $('Global Settings').item.json.data_storage_dir }}/{{ $json.latest_video.aweme_id }}.json",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "d147078b-57cf-4a36-b374-95ad56cfa6ee",
+            "name": "Set File Paths",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -944,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.file_path }}",
+                "checkOptions": {},
+                "outputOptions": {}
+            },
+            "id": "ce3ee305-d95b-4f62-8d84-8b7cbbcefc99",
+            "name": "Check File Exists",
+            "type": "CUSTOM.fileExists",
+            "typeVersion": 1,
+            "position": [
+                -720,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $('Extract Video Info').item.json.latest_video.video.bit_rate[0].play_addr.url_list[2] }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "id": "2e9a393e-ec42-4258-b3dc-fba9643aacb1",
+            "name": "Download Video",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                -272,
+                -96
+            ]
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $('Set File Paths').item.json.data_file_path }}",
+                "content": "={{ JSON.stringify($('Extract Video Info').item.json.latest_video, null, 2) }}",
+                "additionalOptions": {}
+            },
+            "id": "cae8529d-4a9b-4ef4-bffa-bdd4ab15a460",
+            "name": "Save Video Metadata",
+            "type": "CUSTOM.writeFile",
+            "typeVersion": 1,
+            "position": [
+                176,
+                -96
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "skip-message",
+                            "name": "message",
+                            "value": "=Video already exists: {{ $('Extract Video Info').item.json.video_title }} by {{ $('Extract Video Info').item.json.author_nickname }} (ID: {{ $('Extract Video Info').item.json.video_id }})",
+                            "type": "string"
+                        },
+                        {
+                            "id": "file-path-output",
+                            "name": "file_path",
+                            "value": "={{ $('Set File Paths').item.json.file_path }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "1249c841-449d-47b0-bc60-d625b0eb368f",
+            "name": "Output Skip Message",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -272,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "no-video-message",
+                            "name": "message",
+                            "value": "=No videos found for user: {{ $json.current_user_id }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "1ef30648-f7e4-43f8-be0a-a50818943058",
+            "name": "Output No Video Message",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                -944,
+                192
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "ff1e589e-dda1-46c6-85f2-2846acb38d73",
+                            "leftValue": "={{ $json.exists }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "false",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -496,
+                0
+            ],
+            "id": "6d8120a5-12eb-4eb7-9dec-091eac534d1d",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "directoryPath": "={{ $json.video_storage_dir }}",
+                "creationOptions": {
+                    "skipIfExists": true
+                }
+            },
+            "id": "8fb9e61d-9490-4e5b-8a9e-1314ac749d20",
+            "name": "Create Video Directory",
+            "type": "CUSTOM.createDirectory",
+            "typeVersion": 1,
+            "position": [
+                -2288,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "directoryPath": "={{ $('Global Settings').item.json.data_storage_dir }}",
+                "creationOptions": {}
+            },
+            "id": "2d0bf8d6-0cd3-47d7-b64a-4232cd8265a5",
+            "name": "Create Data Directory",
+            "type": "CUSTOM.createDirectory",
+            "typeVersion": 1,
+            "position": [
+                -2064,
+                96
+            ]
+        },
+        {
+            "parameters": {
+                "filePath": "={{ $json.path }}",
+                "contentSource": "inputBinary",
+                "additionalOptions": {}
+            },
+            "type": "CUSTOM.writeFile",
+            "typeVersion": 1,
+            "position": [
+                -48,
+                -96
+            ],
+            "id": "fce87f0b-a4a6-4c64-ad62-8ff20ea4098a",
+            "name": "Write File"
+        },
+        {
+            "parameters": {
+                "msgtype": "actionCard",
+                "title": "=【{{ $('Extract Video Info').item.json.latest_video.author.nickname }}】 发布了新的视频",
+                "markdownText": "=![视频封面]({{ $('Extract Video Info').item.json.latest_video.video.animated_cover.url_list[0] }})\n{{ $('Extract Video Info').item.json.latest_video.desc }}",
+                "singleTitle": "查看视频",
+                "singleURL": "={{ $('Extract Video Info').item.json.latest_video.video.bit_rate[0].play_addr.url_list[2] }}"
+            },
+            "type": "n8n-nodes-dingtalk.dingTalkRobot",
+            "typeVersion": 1,
+            "position": [
+                384,
+                -96
+            ],
+            "id": "cbd804c2-35bd-4f2e-9f27-097aebe169d8",
+            "name": "钉钉机器人",
+            "credentials": {
+                "dingTalkCustomRobotApi": {
+                    "id": "zdEK4xq2u8jsaYwO",
+                    "name": "DingTalkCustomRobot account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Global Settings",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Global Settings": {
+            "main": [
+                [
+                    {
+                        "node": "Create Video Directory",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Users": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch User Videos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch User Videos": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Video Info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Video Info": {
+            "main": [
+                [
+                    {
+                        "node": "Check Video Exists",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check Video Exists": {
+            "main": [
+                [
+                    {
+                        "node": "Set File Paths",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Output No Video Message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set File Paths": {
+            "main": [
+                [
+                    {
+                        "node": "Check File Exists",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check File Exists": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download Video": {
+            "main": [
+                [
+                    {
+                        "node": "Write File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Save Video Metadata": {
+            "main": [
+                [
+                    {
+                        "node": "钉钉机器人",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Download Video",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Output Skip Message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Video Directory": {
+            "main": [
+                [
+                    {
+                        "node": "Create Data Directory",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Data Directory": {
+            "main": [
+                [
+                    {
+                        "node": "Split Users",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write File": {
+            "main": [
+                [
+                    {
+                        "node": "Save Video Metadata",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "fc7383d05e70dfb2e5bc24a56107b9dcb53bde5758f7387e737ce362de870369"
+    }
+}
