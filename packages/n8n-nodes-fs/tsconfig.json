@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        "target": "es2019",
+        "module": "commonjs",
+        "lib": [
+            "es2019"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./",
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "typeRoots": [
+            "./node_modules/@types"
+        ]
+    },
+    "include": [
+        "nodes/**/*",
+        "credentials/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/*.test.ts"
+    ]
+}

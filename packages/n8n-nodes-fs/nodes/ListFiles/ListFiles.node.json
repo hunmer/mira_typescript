@@ -1,0 +1,16 @@
+{
+    "node": "n8n-nodes-fs.listFiles",
+    "nodeVersion": "1.0",
+    "codexVersion": "1.0",
+    "categories": [
+        "Utility",
+        "File System"
+    ],
+    "resources": {
+        "primaryDocumentation": [
+            {
+                "url": "https://github.com/hunmer/mira-dashboard/blob/main/packages/n8n-nodes-fs/README.md"
+            }
+        ]
+    }
+}

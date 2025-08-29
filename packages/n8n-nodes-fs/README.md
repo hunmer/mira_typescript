@@ -1,0 +1,137 @@
+# n8n File System Nodes
+
+A collection of n8n community nodes for comprehensive file system operations. This package provides multiple specialized nodes for handling files and directories efficiently within your n8n workflows.
+
+## Features
+
+This package includes the following nodes:
+
+### 📁 **ReadFile Node**
+- Read file contents as text or binary
+- Support for various encodings (UTF-8, ASCII, Base64, etc.)
+- Error handling for non-existent files
+
+### ✏️ **WriteFile Node**
+- Write text or binary content to files
+- Create parent directories automatically
+- Append or overwrite modes
+- Multiple encoding support
+
+### 📋 **ListFiles Node**
+- List files and directories in a specified path
+- Recursive directory traversal option
+- File filtering by extension or pattern
+- Include/exclude hidden files
+
+### ℹ️ **FileInfo Node**
+- Get detailed file/directory information
+- File size, creation/modification dates
+- File permissions and ownership
+- MIME type detection
+
+### 🗑️ **DeleteFile Node**
+- Delete files or directories
+- Recursive directory deletion
+- Safe deletion with confirmation options
+
+### 📁 **CreateDirectory Node**
+- Create single or nested directories
+- Set directory permissions
+- Skip if directory already exists
+
+### 📋 **CopyFile Node**
+- Copy files or directories
+- Preserve file metadata and permissions
+- Recursive directory copying
+
+### 🔄 **MoveFile Node**
+- Move/rename files and directories
+- Cross-filesystem move support
+- Automatic directory creation
+
+## Installation
+
+### In n8n
+1. Go to **Settings > Community Nodes**
+2. Install `n8n-nodes-fs`
+
+### Manual Installation
+```bash
+# In your n8n installation directory
+cd ~/.n8n/custom
+npm install n8n-nodes-fs
+```
+
+## Usage
+
+After installation, you'll find all the file system nodes in your n8n editor under the "File System" category. Each node provides intuitive configuration options and comprehensive error handling.
+
+## Security Considerations
+
+⚠️ **Important**: These nodes have direct access to the file system where n8n is running. Ensure you:
+
+- Run n8n with appropriate user permissions
+- Validate file paths to prevent directory traversal attacks
+- Use absolute paths when possible
+- Be cautious with user-provided file paths in production
+
+## Examples
+
+### Basic File Reading
+```json
+{
+  "filePath": "/path/to/your/file.txt",
+  "encoding": "utf8"
+}
+```
+
+### Directory Listing with Filtering
+```json
+{
+  "directoryPath": "/path/to/directory",
+  "recursive": true,
+  "filter": "*.js",
+  "includeHidden": false
+}
+```
+
+### File Information Retrieval
+```json
+{
+  "path": "/path/to/file",
+  "includeStats": true,
+  "detectMimeType": true
+}
+```
+
+## Error Handling
+
+All nodes include comprehensive error handling:
+- File not found errors
+- Permission denied errors
+- Invalid path errors
+- Disk space errors
+
+## Compatibility
+
+- n8n version: 1.0.0+
+- Node.js version: 18+
+- Supports: Windows, macOS, Linux
+
+## Contributing
+
+This package is part of the Mira project. Contributions are welcome!
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+For issues and questions:
+- GitHub Issues: [Project Repository](https://github.com/hunmer/mira-dashboard)
+- n8n Community: [n8n Community Forum](https://community.n8n.io/)
+
+---
+
+**Note**: Always test file operations in a safe environment before using in production workflows.

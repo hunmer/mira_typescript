@@ -1,0 +1,61 @@
+{
+    "name": "n8n-nodes-fs",
+    "version": "1.0.0",
+    "description": "File system operations nodes for n8n - read, write, list, info, delete, copy, move files and directories",
+    "keywords": [
+        "n8n-community-node-package",
+        "n8n",
+        "filesystem",
+        "file-operations"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/hunmer/mira-dashboard",
+    "author": {
+        "name": "Mira Team",
+        "email": "dev@mira.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hunmer/mira-dashboard.git"
+    },
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc && npm run copy-assets",
+        "copy-assets": "copyfiles -u 1 nodes/**/*.{json,svg} dist/",
+        "dev": "tsc -w",
+        "prepack": "npm run build",
+        "lint": "tslint -p tsconfig.json -c tslint.json",
+        "lintfix": "tslint --fix -p tsconfig.json -c tslint.json",
+        "prepublishOnly": "npm run build && npm run lint"
+    },
+    "files": [
+        "dist"
+    ],
+    "n8n": {
+        "n8nNodesApiVersion": 1,
+        "nodes": [
+            "dist/nodes/ReadFile/ReadFile.node.js",
+            "dist/nodes/WriteFile/WriteFile.node.js",
+            "dist/nodes/ListFiles/ListFiles.node.js",
+            "dist/nodes/FileInfo/FileInfo.node.js",
+            "dist/nodes/DeleteFile/DeleteFile.node.js",
+            "dist/nodes/CreateDirectory/CreateDirectory.node.js",
+            "dist/nodes/CopyFile/CopyFile.node.js",
+            "dist/nodes/MoveFile/MoveFile.node.js"
+        ]
+    },
+    "devDependencies": {
+        "@types/node": "^18.17.0",
+        "copyfiles": "^2.4.1",
+        "tslint": "^6.1.3",
+        "typescript": "^4.9.5"
+    },
+    "peerDependencies": {
+        "n8n-workflow": "^1.82.0"
+    },
+    "dependencies": {
+        "fs-extra": "^11.1.1",
+        "path": "^0.12.7",
+        "mime-types": "^2.1.35"
+    }
+}
