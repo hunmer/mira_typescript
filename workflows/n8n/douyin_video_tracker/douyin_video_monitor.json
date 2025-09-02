@@ -194,7 +194,7 @@
             },
             "id": "ce3ee305-d95b-4f62-8d84-8b7cbbcefc99",
             "name": "Check File Exists",
-            "type": "CUSTOM.fileExists",
+            "type": "n8n-nodes-fs.fileExists",
             "typeVersion": 1,
             "position": [
                 -720,
@@ -229,7 +229,7 @@
             },
             "id": "cae8529d-4a9b-4ef4-bffa-bdd4ab15a460",
             "name": "Save Video Metadata",
-            "type": "CUSTOM.writeFile",
+            "type": "n8n-nodes-fs.writeFile",
             "typeVersion": 1,
             "position": [
                 176,
@@ -331,7 +331,7 @@
             },
             "id": "8fb9e61d-9490-4e5b-8a9e-1314ac749d20",
             "name": "Create Video Directory",
-            "type": "CUSTOM.createDirectory",
+            "type": "n8n-nodes-fs.createDirectory",
             "typeVersion": 1,
             "position": [
                 -2288,
@@ -345,7 +345,7 @@
             },
             "id": "2d0bf8d6-0cd3-47d7-b64a-4232cd8265a5",
             "name": "Create Data Directory",
-            "type": "CUSTOM.createDirectory",
+            "type": "n8n-nodes-fs.createDirectory",
             "typeVersion": 1,
             "position": [
                 -2064,
@@ -358,7 +358,7 @@
                 "contentSource": "inputBinary",
                 "additionalOptions": {}
             },
-            "type": "CUSTOM.writeFile",
+            "type": "n8n-nodes-fs.writeFile",
             "typeVersion": 1,
             "position": [
                 -48,
@@ -384,9 +384,9 @@
             "id": "cbd804c2-35bd-4f2e-9f27-097aebe169d8",
             "name": "钉钉机器人",
             "credentials": {
-                "dingTalkCustomRobotApi": {
+                "dingTalkn8n-nodes-fsRobotApi": {
                     "id": "zdEK4xq2u8jsaYwO",
-                    "name": "DingTalkCustomRobot account"
+                    "name": "DingTalkn8n-nodes-fsRobot account"
                 }
             }
         }
