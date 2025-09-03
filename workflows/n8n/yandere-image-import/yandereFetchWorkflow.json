@@ -67,7 +67,7 @@
                 "tags": "={{ $json.miraData.tags.join(',') }}",
                 "folderId": "={{ $json.author }}"
             },
-            "type": "CUSTOM.miraFileUpload",
+            "type": "n8n-nodes-mira-apis.miraFileUpload",
             "typeVersion": 1,
             "position": [
                 496,
@@ -168,7 +168,7 @@
         },
         {
             "parameters": {},
-            "type": "CUSTOM.miraLogin",
+            "type": "n8n-nodes-mira-apis.miraLogin",
             "typeVersion": 1,
             "position": [
                 -400,

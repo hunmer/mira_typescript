@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-mira-ws-trigger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Mira WebSocket Trigger node for n8n - Listen to real-time events from Mira server",
   "license": "MIT",
   "homepage": "https://github.com/user/mira_typescript",
