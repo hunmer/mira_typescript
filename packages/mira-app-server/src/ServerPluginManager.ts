@@ -1,6 +1,5 @@
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
-import { MiraClient } from 'mira-server-sdk';
 import { PluginRouteDefinition } from './ServerPlugin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -71,16 +70,11 @@ export class ServerPluginManager {
 
             const pluginModule = require(pluginPath);
 
-
-            // 创建 MiraClient 实例（可根据实际需要传递服务器地址）
-            const miraClient = new MiraClient(process.env.MIRA_SERVER_URL || 'http://localhost:8081');
-
             if (typeof pluginModule.init === 'function') {
                 const obj = await pluginModule.init({
                     pluginManager: this,
                     server: this.server,
                     dbService: this.dbService,
-                    miraClient
                 });
                 this.loadedPlugins.set(pluginConfig.name, obj);
                 console.log(`${reload ? 'Reloaded' : 'Loaded'} plugin: ${pluginConfig.name}`);
