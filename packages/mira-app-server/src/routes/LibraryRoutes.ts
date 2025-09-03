@@ -473,7 +473,7 @@ export class LibraryRoutes {
         this.router.post('/:id/query', async (req: Request, res: Response) => {
             try {
                 const { id } = req.params;
-                const { sql } = req.body;
+                const { sql, params } = req.body;
 
                 if (!sql) {
                     return res.status(400).json({ error: 'SQL query is required' });
@@ -496,13 +496,58 @@ export class LibraryRoutes {
                     return res.status(500).json({ error: 'Library service not available' });
                 }
 
-                const result = await libraryObj.libraryService.getSql(sql);
+                // 执行查询，支持参数化查询
+                const result = await libraryObj.libraryService.getSql(sql, params);
                 res.json({ success: true, data: result });
             } catch (error) {
                 console.error('Error executing SQL query:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to execute SQL query',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                });
+            }
+        });
+
+        // SQL 执行接口 (INSERT, UPDATE, DELETE)
+        this.router.post('/:id/execute', async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params;
+                const { sql, params } = req.body;
+
+                if (!sql) {
+                    return res.status(400).json({ error: 'SQL statement is required' });
+                }
+
+                const libraryObj = this.backend.libraries!.getLibrary(id);
+                if (!libraryObj) {
+                    return res.status(404).json({ error: 'Library not found' });
+                }
+
+                // 检查库是否处于活动状态
+                if (!this.backend.libraries!.isLibraryActive(id)) {
+                    return res.status(400).json({
+                        error: 'Library is inactive',
+                        message: 'Cannot execute SQL statement on inactive library. Please enable the library first.'
+                    });
+                }
+
+                if (!libraryObj.libraryService) {
+                    return res.status(500).json({ error: 'Library service not available' });
+                }
+
+                // 执行 SQL 语句，支持参数化查询
+                const result = await (libraryObj.libraryService as any).runSql(sql, params);
+                res.json({
+                    success: true,
+                    lastID: result.lastID,
+                    changes: result.changes
+                });
+            } catch (error) {
+                console.error('Error executing SQL statement:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Failed to execute SQL statement',
                     message: error instanceof Error ? error.message : 'Unknown error'
                 });
             }
