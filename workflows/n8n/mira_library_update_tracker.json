@@ -2,65 +2,81 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const tz = 'Asia/Shanghai';\nfunction pad(n){return n<10?('0'+n):(''+n)}\n// 以上海时区计算“今天”\nconst nowTz = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\nconst y = nowTz.getFullYear();\nconst m = pad(nowTz.getMonth()+1);\nconst d = pad(nowTz.getDate());\nconst startMs = Date.parse(`${y}-${m}-${d}T00:00:00+08:00`);\nconst endMs   = startMs + 24*60*60*1000; // [start, end)\n\nreturn Object.entries($input.first().json).map(([libraryId, data]) => {\n  // 读取全局静态数据里的 lastVideoId（若首次则为 null）\nconst lastId = data.lastVideoId ?? null;\n\n// 构造 SQL（示例：表名 assets；若你的实际表名不同，请改这里）\nlet sql = `SELECT id,name,created_at,folder_id,custom_fields FROM files WHERE created_at >= ${startMs} AND created_at < ${endMs}`;\nif (lastId) sql += ` AND id > ${lastId}`;\nsql += ' ORDER BY id ASC;';\n\nreturn  {json: { startMs, endMs, lastId, libraryId, libraryData: data, sql, dateStr: `${y}-${m}-${d}` }};\n});\n"
+        "jsCode": "const tz = 'Asia/Shanghai';\nfunction pad(n){return n<10?('0'+n):(''+n)}\n// 以上海时区计算“今天”\nconst nowTz = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\nconst y = nowTz.getFullYear();\nconst m = pad(nowTz.getMonth()+1);\nconst d = pad(nowTz.getDate());\nconst startMs = Date.parse(`${y}-${m}-${d}T00:00:00+08:00`);\nconst endMs   = startMs + 24*60*60*1000; // [start, end)\nreturn $input.all().map(item => {\n  const {libraryId, data} = item.json.item\n  // 读取全局静态数据里的 lastVideoId（若首次则为 null）\nconst lastId = data.lastVideoId ?? null;\n\n// 构造 SQL（示例：表名 assets；若你的实际表名不同，请改这里）\nlet sql = `SELECT id,name,created_at,folder_id,custom_fields FROM files WHERE created_at >= ${startMs} AND created_at < ${endMs}`;\nif (lastId) sql += ` AND id > ${lastId}`;\nsql += ' ORDER BY id ASC;';\n\nreturn  {json: { startMs, endMs, lastId, libraryId, libraryData: data, sql, dateStr: `${y}-${m}-${d}` }};\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        576,
-        -48
+        1312,
+        176
       ],
-      "id": "a175c71a-d646-4d0f-a792-de7524331792",
+      "id": "68ea48ac-a3ad-4318-ac97-2ae502fb8cef",
       "name": "Init Today + lastId"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "libraryId": "={{ $json.libraryId }}",
+        "sql": "={{ $json.sql }}"
+      },
       "type": "n8n-nodes-mira-apis.miraLibraryQuery",
       "typeVersion": 1,
       "position": [
-        800,
-        -48
+        1536,
+        176
       ],
-      "id": "34b29c2a-7a4b-4de6-83bc-78b81cc0a02f",
+      "id": "03e6ec18-4667-4025-9c25-6d65ff10a9db",
       "name": "Mira: Query Today Videos",
-      "credentials": {}
+      "credentials": {
+        "MiraApiCredential": {
+          "id": "UyLrgotK8r2ghdST",
+          "name": "Mira account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// 输入：Mira: Query Today Videos 的返回 { success: true, data: [...] }\nconst res = $json;\nconst rows = Array.isArray(res.data) ? res.data : [];\nconst json_data = $('Code').first().json;\nconst agg = {};                // key: folderKey（数字ID或\"__UNCLASSIFIED__\"） => { count, uploaders: {name:cnt} }\nconst folderIdSet = new Set(); // 仅收集有效的数字 folder_id\nlet maxId = null;\n\nfunction parseUploader(cf) {\n  try {\n    if (!cf) return '未知';\n    const obj = typeof cf === 'string' ? JSON.parse(cf) : cf;\n    return obj && obj.uploader ? String(obj.uploader) : '未知';\n  } catch {\n    return '未知';\n  }\n}\n\nfor (const v of rows) {\n  const fidRaw = v.folder_id;\n  const hasNumericFolder = Number.isFinite(Number(fidRaw)) && fidRaw !== null;\n\n  const folderKey = hasNumericFolder ? String(Number(fidRaw)) : '__UNCLASSIFIED__';\n  if (!agg[folderKey]) agg[folderKey] = { count: 0, uploaders: {} };\n\n  agg[folderKey].count += 1;\n\n  const uploader = parseUploader(v.custom_fields);\n  agg[folderKey].uploaders[uploader] = (agg[folderKey].uploaders[uploader] || 0) + 1;\n\n  if (typeof v.id === 'number') {\n    maxId = (maxId === null ? v.id : Math.max(maxId, v.id));\n    json_data[$('Init Today + lastId').first().json.libraryId].lastVideoId = maxId;\n  }\n\n  // 仅当是有效的数字 folder_id 时，加入 folderIds\n  if (hasNumericFolder) folderIdSet.add(Number(fidRaw));\n}\n\n// 输出\nreturn [{\n  total: rows.length,\n  agg,                                // 带有 \"__UNCLASSIFIED__\" 的分组\n  folderIds: Array.from(folderIdSet), // 不含 null/无效\n  maxId,\n  json_data\n}];\n"
+        "jsCode": "// 输入：Mira: Query Today Videos 的返回 { success: true, data: [...] }\nconst json_data = $('Read File').item.json.content;\nreturn $input.all().map(item => {\nconst rows = Array.isArray(item.json.data) ? item.json.data : [];\nconst agg = {};                // key: folderKey（数字ID或\"__UNCLASSIFIED__\"） => { count, uploaders: {name:cnt} }\nconst folderIdSet = new Set(); // 仅收集有效的数字 folder_id\nlet maxId = null;\n\nfunction parseUploader(cf) {\n  try {\n    if (!cf) return '未知';\n    const obj = typeof cf === 'string' ? JSON.parse(cf) : cf;\n    return obj && obj.uploader ? String(obj.uploader) : '未知';\n  } catch {\n    return '未知';\n  }\n}\n\nfor (const v of rows) {\n  const fidRaw = v.folder_id;\n  const hasNumericFolder = Number.isFinite(Number(fidRaw)) && fidRaw !== null;\n\n  const folderKey = hasNumericFolder ? String(Number(fidRaw)) : '__UNCLASSIFIED__';\n  if (!agg[folderKey]) agg[folderKey] = { count: 0, uploaders: {} };\n\n  agg[folderKey].count += 1;\n\n  const uploader = parseUploader(v.custom_fields);\n  agg[folderKey].uploaders[uploader] = (agg[folderKey].uploaders[uploader] || 0) + 1;\n\n  if (typeof v.id === 'number') {\n    maxId = (maxId === null ? v.id : Math.max(maxId, v.id));\n    json_data[$('Init Today + lastId').item.json.libraryId].lastVideoId = maxId;\n  }\n\n  // 仅当是有效的数字 folder_id 时，加入 folderIds\n  if (hasNumericFolder) folderIdSet.add(Number(fidRaw));\n}\n\n// 输出\nreturn {item: {\n  libraryId: $('Init Today + lastId').first().json.libraryId,\n  total: rows.length,\n  agg,                                // 带有 \"__UNCLASSIFIED__\" 的分组\n  folderIds: Array.from(folderIdSet), // 不含 null/无效\n  maxId,\n  json_data\n}};\n  \n});\n\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1024,
-        -48
+        1760,
+        176
       ],
-      "id": "542ef6a1-2095-4378-b47d-14a22c991b27",
+      "id": "3874e061-5221-4a19-8ff0-d43284491854",
       "name": "Aggregate by folder_id"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "libraryId": "={{ $json.item.libraryId }}",
+        "sql": "={{ $json.item.folderIds && $json.item.folderIds.length\n    ? `SELECT id,title FROM folders WHERE id IN (${ $json.item.folderIds.join(',') });`\n    : 'SELECT id,title FROM folders WHERE 1=0;' }}\n"
+      },
       "type": "n8n-nodes-mira-apis.miraLibraryQuery",
       "typeVersion": 1,
       "position": [
-        1248,
-        -48
+        1984,
+        272
       ],
-      "id": "19a8eed3-a136-4899-8a36-62aa466ab59a",
+      "id": "c66f706f-43ad-461d-97f8-338390c11a4c",
       "name": "Mira: Query Folder Titles",
-      "credentials": {}
+      "credentials": {
+        "MiraApiCredential": {
+          "id": "UyLrgotK8r2ghdST",
+          "name": "Mira account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// 读取两个上游：聚合结果 + 文件夹标题\nconst aggItem  = $items('Aggregate by folder_id', 0, 0)[0]?.json ?? {};\nconst folderRes = $items('Mira: Query Folder Titles', 0, 0)[0]?.json ?? {};\n\nconst total = Number(aggItem.total || 0);\nconst agg   = aggItem.agg || {};\nconst maxId = aggItem.maxId ?? null;\n\n// id => title\nconst titleMap = new Map();\ntry {\n  const list = Array.isArray(folderRes.data) ? folderRes.data : [];\n  for (const f of list) {\n    titleMap.set(Number(f.id), f.title || `Folder ${f.id}`);\n  }\n} catch {}\n\n// 日期（上海时区）\nconst tz = 'Asia/Shanghai';\nconst nowTz = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\nconst y = nowTz.getFullYear();\nconst m = String(nowTz.getMonth() + 1).padStart(2, '0');\nconst d = String(nowTz.getDate()).padStart(2, '0');\nconst dateStr = `${y}-${m}-${d}`;\n\n// 上传者渲染（带计数）\nfunction renderUploaders(uploaders = {}) {\n  const pairs = Object.entries(uploaders);\n  if (!pairs.length) return '`未知`';\n  return pairs\n    .map(([u, c]) => (c > 1 ? `\\`${u}×${c}\\`` : `\\`${u}\\``))\n    .join('、');\n}\n\n// 行渲染\nfunction renderLine(folderKey, info) {\n  const isUnclassified = folderKey === '__UNCLASSIFIED__';\n  const folderTitle = isUnclassified\n    ? '未分类'\n    : (titleMap.get(Number(folderKey)) || `文件夹 ${folderKey}`);\n\n  return `- **${info.count}** × **${folderTitle}**  · 上传者：${renderUploaders(info.uploaders)}`;\n}\n\n// 分组排序：按数量降序；同数时“有标题”优先，“未分类”最后\nconst sortedEntries = Object.entries(agg).sort(([ka, ia], [kb, ib]) => {\n  if (ia.count !== ib.count) return ib.count - ia.count;\n  if (ka === '__UNCLASSIFIED__') return 1;\n  if (kb === '__UNCLASSIFIED__') return -1;\n  return 0;\n});\n\n// 构造 Markdown\nlet mdTitle = `🎬 素材上新播报 · ${dateStr}`;\nlet mdText = '';\n\nif (total === 0) {\n  // 无新增：如需“空时不发”，可让下游根据 send=false 判断\n  mdText = [\n    `> 🗓️ **${dateStr}**`,\n    '',\n    '今天没有新的视频素材上新～ (￣▽￣)ﾉ',\n  ].join('\\n');\n} else {\n  const folderCount = sortedEntries.length;\n  const lines = sortedEntries.map(([k, info]) => renderLine(k, info));\n\n  mdText = [\n    `> 🗓️ **${dateStr}**`,\n    '',\n    `**【${$('Init Today + lastId').first().json.libraryData.title}】总览**`,\n    `- 新增视频素材：**${total}**`,\n    `- 涉及文件夹：**${folderCount}**`,\n    '',\n    `**分组明细**`,\n    ...lines,\n    '',\n    '✨ 去看看吧~'\n  ].join('\\n');\n}\n\n// 返回 markdown + 兼容旧 text 字段\nreturn [{\n  md: { title: mdTitle, text: mdText },\n  message: mdText,    // 兼容：如果你还在用 text 类型\n  send: total > 0     // 下游可用来判断是否发送\n}];\n"
+        "jsCode": "// 读取两个上游：聚合结果 + 文件夹标题\nconst aggItem  = $('Aggregate by folder_id').first().json.item\nconst folderRes =$input.first().json\n\nconst total = Number(aggItem.total || 0);\nconst agg   = aggItem.agg || {};\n\n// id => title\nconst titleMap = new Map();\ntry {\n  const list = Array.isArray(folderRes.data) ? folderRes.data : [];\n  for (const f of list) {\n    titleMap.set(Number(f.id), f.title || `Folder ${f.id}`);\n  }\n} catch {}\n\n// 日期（上海时区）\nconst tz = 'Asia/Shanghai';\nconst nowTz = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\nconst y = nowTz.getFullYear();\nconst m = String(nowTz.getMonth() + 1).padStart(2, '0');\nconst d = String(nowTz.getDate()).padStart(2, '0');\nconst dateStr = `${y}-${m}-${d}`;\n\n// 上传者渲染（带计数）\nfunction renderUploaders(uploaders = {}) {\n  const pairs = Object.entries(uploaders);\n  if (!pairs.length) return '`匿名`';\n  return pairs\n    .map(([u, c]) => (c > 1 ? `\\`${u}×${c}\\`` : `\\`${u}\\``))\n    .join('、');\n}\n\n// 行渲染\nfunction renderLine(folderKey, info) {\n  const isUnclassified = folderKey === '__UNCLASSIFIED__';\n  const folderTitle = isUnclassified\n    ? '未分类'\n    : (titleMap.get(Number(folderKey)) || `文件夹 ${folderKey}`);\n\n  return `- **${info.count}** × **${folderTitle}**  · 上传者：${renderUploaders(info.uploaders)}`;\n}\n\n// 分组排序：按数量降序；同数时“有标题”优先，“未分类”最后\nconst sortedEntries = Object.entries(agg).sort(([ka, ia], [kb, ib]) => {\n  if (ia.count !== ib.count) return ib.count - ia.count;\n  if (ka === '__UNCLASSIFIED__') return 1;\n  if (kb === '__UNCLASSIFIED__') return -1;\n  return 0;\n});\n\n// 构造 Markdown\nlet mdTitle = `🎬 素材上新播报 · ${dateStr}`;\nlet mdText = '';\n\nif (total === 0) {\n  // 无新增：如需“空时不发”，可让下游根据 send=false 判断\n  mdText = [\n    `> 🗓️ **${dateStr}**`,\n    '',\n    '今天没有新的视频素材上新～ (￣▽￣)ﾉ',\n  ].join('\\n');\n} else {\n  const folderCount = sortedEntries.length;\n  const lines = sortedEntries.map(([k, info]) => renderLine(k, info));\n\n  mdText = [\n    `> 🗓️ **${dateStr}**`,\n    '',\n    `**【${$('Init Today + lastId').first().json.libraryData.title}】总览**`,\n    `- 新增视频素材：**${total}**`,\n    `- 涉及文件夹：**${folderCount}**`,\n    '',\n    `**分组明细**`,\n    ...lines,\n    '',\n    '✨ 去看看吧~'\n  ].join('\\n');\n}\n\n// 返回 markdown + 兼容旧 text 字段\nreturn [{\n  md: { title: mdTitle, text: mdText },\n  message: mdText,    // 兼容：如果你还在用 text 类型\n  send: total > 0     // 下游可用来判断是否发送\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1472,
-        -48
+        2208,
+        272
       ],
-      "id": "1d604df1-5555-4287-beb7-bd4a75502cf9",
+      "id": "80e56ad6-0a6b-4e6a-9514-e4683349c1c3",
       "name": "Build DingTalk Message"
     },
     {
@@ -72,41 +88,47 @@
       "type": "n8n-nodes-dingtalk.dingTalkRobot",
       "typeVersion": 1,
       "position": [
-        1920,
-        -48
+        2656,
+        272
       ],
-      "id": "8f8b15f8-4cab-42c1-b99e-ecb21ed37e39",
-      "name": "钉钉机器人"
+      "id": "c2b3f369-6fc7-4d27-ac91-1eadfe609478",
+      "name": "钉钉机器人",
+      "credentials": {
+        "dingTalkCustomRobotApi": {
+          "id": "LsF3CvanANpEUXSY",
+          "name": "运营群"
+        }
+      }
     },
     {
       "parameters": {
-        "filePath": "\\\\192.168.31.3\\services\\n8n\\mira_library_report.json",
+        "filePath": "/volume1/services/n8n/mira_library_report.json",
         "readMode": "json",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-fs.readFile",
       "typeVersion": 1,
       "position": [
-        128,
-        -48
+        864,
+        176
       ],
-      "id": "acbb9611-abcf-4d45-b239-cfe8b92bc755",
+      "id": "970c4940-5c1b-4a92-b52e-0339f3511cad",
       "name": "Read File"
     },
     {
       "parameters": {
         "filePath": "={{ $('Read File').item.json.filePath }}",
         "contentSource": "json",
-        "jsonContent": "={{ $('Aggregate by folder_id').item.json.json_data }}",
+        "jsonContent": "={{ $json.item.json_data }}",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-fs.writeFile",
       "typeVersion": 1,
       "position": [
-        2144,
-        -48
+        1984,
+        80
       ],
-      "id": "7f1581cd-f9eb-4c04-a341-c39e25819b3e",
+      "id": "7c7cfd5b-0598-4b79-9060-55d99c710b0f",
       "name": "Write File"
     },
     {
@@ -137,10 +159,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1696,
-        -48
+        2432,
+        272
       ],
-      "id": "c61f9523-ee48-461e-94ea-3d9c3c57e1e5",
+      "id": "95836aef-1189-4640-98c2-59e0550ebe6e",
       "name": "If"
     },
     {
@@ -157,27 +179,76 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -96,
-        -48
+        640,
+        176
       ],
-      "id": "e22d6546-3745-4edc-ad99-3a1d4b96a26e",
+      "id": "3c861049-ca62-44d3-9223-e61b8e680ba7",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "jsCode": "\nreturn $input.first().json.content;"
+        "jsCode": "\nreturn Object.entries($input.first().json.content).map(([libraryId, data]) => {\n  return {\n    item: {libraryId, data}\n  }\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        -48
+        1088,
+        176
       ],
-      "id": "c61acd1f-dbf5-4b56-8f73-e2b55a4dc196",
+      "id": "ea2b56f4-7be3-4325-82d2-38f6922c1bf0",
       "name": "Code"
     }
   ],
   "connections": {
+    "Init Today + lastId": {
+      "main": [
+        [
+          {
+            "node": "Mira: Query Today Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mira: Query Today Videos": {
+      "main": [
+        [
+          {
+            "node": "Aggregate by folder_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate by folder_id": {
+      "main": [
+        [
+          {
+            "node": "Mira: Query Folder Titles",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Write File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mira: Query Folder Titles": {
+      "main": [
+        [
+          {
+            "node": "Build DingTalk Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Build DingTalk Message": {
       "main": [
         [
@@ -191,13 +262,7 @@
     },
     "钉钉机器人": {
       "main": [
-        [
-          {
-            "node": "Write File",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Read File": {
@@ -247,6 +312,7 @@
   },
   "pinData": {},
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "d4ffe8e9ee0b48eba716706123a7187f32eae3bdcb0e7763e41e533267bd8a53"
   }
 }
