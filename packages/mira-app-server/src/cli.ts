@@ -29,14 +29,13 @@ program
 
       console.log('🚀 Starting Mira Server with CLI...');
       console.log('📋 Options:', options);
-      console.log('📂 Data path received:', options.data);
-      console.log('🔢 Port received:', options.port);
+      console.log('📂 Data path received:', options.dataPath);
+      console.log('🔢 Port received:', options.httpPort);
       console.log('🔌 WebSocket port received:', options.wsPort);
-
       const server = await MiraServer.createAndStart({
-        httpPort: parseInt(options.port),
+        httpPort: parseInt(options.httpPort),
         wsPort: parseInt(options.wsPort),
-        dataPath: options.data,
+        dataPath: options.dataPath,
       });
 
       console.log('✅ Mira Server started via CLI');
@@ -76,7 +75,7 @@ program
   .action(async (options) => {
     try {
       const axios = await import('axios');
-      const response = await axios.default.get(`http://localhost:${options.port}/health`);
+      const response = await axios.default.get(`http://localhost:${options.httpPort}/health`);
       console.log('✅ Server is healthy:', response.data);
     } catch (error) {
       console.error('❌ Server health check failed:', error);

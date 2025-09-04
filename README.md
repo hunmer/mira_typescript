@@ -74,7 +74,8 @@ npm run dev
 
 ### 3. 访问应用
 - **后端API**: http://localhost:8081
-- **前端管理面板**: http://localhost:3000
+- **WebSocket**: ws://localhost:8018
+- **前端管理面板**: http://localhost:3999 (需要安装 mira-dashboard)
 - **默认登录**: 用户名 `admin`，密码 `admin123`
 
 ## 开发配置
@@ -98,6 +99,7 @@ npm run dev
 # 应用配置
 APP_TITLE=Mira Dashboard
 API_BASE_URL=http://localhost:8081
+WS_BASE_URL=ws://localhost:8018
 
 # 初始管理员配置
 INITIAL_ADMIN_USERNAME=admin
@@ -121,7 +123,6 @@ INITIAL_ADMIN_EMAIL=admin@mira.local
 - **Element Plus** - UI 组件库
 - **TailwindCSS** - CSS 框架
 - **Pinia** - 状态管理
-- **Monaco Editor** - 代码编辑器
 - **Axios** - HTTP 客户端
 
 ## 项目结构
@@ -132,7 +133,6 @@ packages/mira-dashboard/
 ├── src/
 │   ├── components/         # 可复用组件
 │   │   ├── StatCard.vue    # 统计卡片
-│   │   └── MonacoEditor.vue # 代码编辑器
 │   ├── layouts/            # 布局组件
 │   │   └── DashboardLayout.vue
 │   ├── views/              # 页面组件
