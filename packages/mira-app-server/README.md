@@ -24,7 +24,7 @@ npm install mira-app-server
 mira-app-server
 
 # 自定义端口启动
-mira-app-server --http-port 3001 --ws-port 8018
+mira-app-server --http-port 8081 --ws-port 8018
 
 # 自定义数据目录
 mira-app-server --data-path /path/to/your/data
@@ -35,8 +35,8 @@ mira-app-server --help
 
 ### 可用选项
 
-- `--http-port <port>`: HTTP服务器端口 (默认: 3000)
-- `--ws-port <port>`: WebSocket服务器端口 (默认: 8081)  
+- `--http-port <port>`: HTTP服务器端口 (默认: 8081)
+- `--ws-port <port>`: WebSocket服务器端口 (默认: 8018)  
 - `--data-path <path>`: 数据目录路径 (默认: ./data)
 - `--help`: 显示帮助信息
 

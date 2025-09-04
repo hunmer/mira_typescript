@@ -22,7 +22,7 @@ set /p start_container=是否启动 Docker 容器？(y/n):
 if /i "%start_container%"=="y" (
     echo 启动 Docker 容器...
     docker run -d ^
-        -p 3000:3000 ^
+        -p 8018:8018 ^
         -p 8081:8081 ^
         -v /volume1/文件共享:/library ^
         --restart=always ^

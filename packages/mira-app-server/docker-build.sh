@@ -24,7 +24,7 @@ if [ $? -eq 0 ]; then
     if [[ "$start_container" =~ ^[Yy]$ ]]; then
         echo "启动 Docker 容器..."
         docker run -d \
-            -p 3000:3000 \
+            -p 8018:8018 \
             -p 8081:8081 \
             -v /volume1/文件共享:/library \
             --restart=always \

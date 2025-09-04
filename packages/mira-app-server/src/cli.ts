@@ -11,14 +11,14 @@ dotenv.config();
 program
   .name('mira-app-server')
   .description('Mira Server - Media Library Management System')
-  .version('1.0.0');
+  .version('1.0.17');
 
 program
   .command('start')
   .description('Start the Mira server')
-  .option('-p, --port <number>', 'HTTP port number', '8081')
+  .option('-p, --http-port <number>', 'HTTP port number', '8081')
   .option('-w, --ws-port <number>', 'WebSocket port number', '8018')
-  .option('-d, --data <path>', 'Data directory path')
+  .option('-d, --data-path <path>', 'Data directory path')
   .option('--env <path>', 'Environment file path')
   .action(async (options) => {
     try {
@@ -72,7 +72,7 @@ program
 program
   .command('health')
   .description('Check server health')
-  .option('-p, --port <number>', 'Server port', '8081')
+  .option('-p, --http-port <number>', 'Server port', '8081')
   .action(async (options) => {
     try {
       const axios = await import('axios');
