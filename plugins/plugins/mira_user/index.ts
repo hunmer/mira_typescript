@@ -186,8 +186,8 @@ class UserPlugin extends ServerPlugin {
             const data = await this.dbService.getLibraryInfo(); // 获取所有标签，文件夹等信息
             this.server.sendToWebsocket(ws, { eventName: 'connected', data: data });
             this.server.broadcastPluginEvent('client::connected', { libraryId });
+            this.logined_clients.push(ws.clientId);
         }
-        this.logined_clients.push(ws.clientId);
         this.server.broadcastPluginEvent('user::connected', { username, libraryId });
     }
 }

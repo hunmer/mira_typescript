@@ -1,6 +1,7 @@
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import { PluginRouteDefinition } from './ServerPlugin';
+import { MiraClient } from '../../mira-server-sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -16,6 +17,7 @@ export class ServerPluginManager {
     private dbService: ILibraryServerData;
     private pluginsConfigPath: string;
     private loadedPlugins: Map<string, any> = new Map();
+    private miraClient: MiraClient;
     fields: Record<string, any>[] = [];
 
     constructor({ server, dbService, pluginsDir }: { server: MiraWebsocketServer, dbService: ILibraryServerData, pluginsDir?: string }) {
@@ -24,6 +26,12 @@ export class ServerPluginManager {
         this.server = server;
         this.dbService = dbService;
         this.pluginsConfigPath = path.join(this.pluginsDir, 'plugins.json');
+
+        // 创建 MiraClient 实例用于插件
+        const httpPort = this.server.backend.config.httpPort || 8081;
+        const baseURL = `http://localhost:${httpPort}`;
+        this.miraClient = new MiraClient(baseURL);
+        console.log(`🔗 Created MiraClient for plugins with baseURL: ${baseURL}`);
 
         // Ensure plugins directory exists
         if (!fs.existsSync(this.pluginsDir)) {
@@ -75,6 +83,7 @@ export class ServerPluginManager {
                     pluginManager: this,
                     server: this.server,
                     dbService: this.dbService,
+                    miraClient: this.miraClient,
                 });
                 this.loadedPlugins.set(pluginConfig.name, obj);
                 console.log(`${reload ? 'Reloaded' : 'Loaded'} plugin: ${pluginConfig.name}`);
