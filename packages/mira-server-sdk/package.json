@@ -1,6 +1,6 @@
 {
   "name": "mira-server-sdk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "TypeScript SDK for Mira App Server with jQuery-style chaining and modular architecture",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
