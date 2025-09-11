@@ -23,16 +23,19 @@ COPY packages/mira-app-server/package*.json ./packages/mira-app-server/
 # 复制各包的 package.json
 COPY packages/mira-app-core/package*.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/package*.json ./packages/mira-storage-sqlite/
+COPY packages/mira-server-sdk/package*.json ./packages/mira-server-sdk/
 
 # 复制 tsconfig 和其他配置文件
 COPY packages/mira-app-server/tsconfig.json ./packages/mira-app-server/
 COPY packages/mira-app-core/tsconfig.json ./packages/mira-app-core/
 COPY packages/mira-storage-sqlite/tsconfig.json ./packages/mira-storage-sqlite/
+COPY packages/mira-server-sdk/tsconfig.json ./packages/mira-server-sdk/
 
 # 复制源代码
 COPY packages/mira-app-core/src ./packages/mira-app-core/src
 COPY packages/mira-app-server/src ./packages/mira-app-server/src
 COPY packages/mira-storage-sqlite/src ./packages/mira-storage-sqlite/src
+COPY packages/mira-server-sdk/src ./packages/mira-server-sdk/src
 
 # 设置环境变量修复distutils问题并安装依赖
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
@@ -58,6 +61,11 @@ RUN npm run build
 
 # 安装并构建 mira-app-server
 WORKDIR /app/packages/mira-app-server
+RUN npm install
+RUN npm run build
+
+# 安装并构建 mira-server-sdk
+WORKDIR /app/packages/mira-server-sdk
 RUN npm install
 RUN npm run build
 
