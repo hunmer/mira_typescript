@@ -32,5 +32,5 @@ export { TagModule } from './src/modules/TagModule';
 export { FolderModule } from './src/modules/FolderModule';
 
 // 导出类型定义
-export * from './types';
-export type { WebSocketOptions, WebSocketMessage, WebSocketEventCallback } from './types';
+export * from './src/types';
+export type { WebSocketOptions, WebSocketMessage, WebSocketEventCallback } from './src/types';

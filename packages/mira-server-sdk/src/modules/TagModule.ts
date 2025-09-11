@@ -1,5 +1,5 @@
 import { HttpClient } from 'src/client/HttpClient';
-import { BaseResponse } from 'types';
+import { BaseResponse } from '../types';
 
 /**
  * 标签数据类型

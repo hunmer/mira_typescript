@@ -10,7 +10,7 @@ import { DeviceModule } from 'src/modules/DeviceModule';
 import { SystemModule } from 'src/modules/SystemModule';
 import { TagModule } from 'src/modules/TagModule';
 import { FolderModule } from 'src/modules/FolderModule';
-import { ClientConfig, WebSocketOptions } from 'types';
+import { ClientConfig, WebSocketOptions } from '../types';
 
 /**
  * Mira Client - 主客户端类

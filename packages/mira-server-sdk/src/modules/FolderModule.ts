@@ -1,5 +1,5 @@
 import { HttpClient } from 'src/client/HttpClient';
-import { BaseResponse } from 'types';
+import { BaseResponse } from '../types';
 
 /**
  * 文件夹数据类型

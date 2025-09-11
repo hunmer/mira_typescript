@@ -6,7 +6,7 @@ import {
     DisconnectDeviceRequest,
     SendMessageRequest,
     BaseResponse,
-} from 'types';
+} from '../types';
 
 /**
  * 设备模块

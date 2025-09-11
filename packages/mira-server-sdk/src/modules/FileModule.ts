@@ -3,7 +3,7 @@ import {
     UploadFileRequest,
     UploadResponse,
     BaseResponse,
-} from 'types';
+} from '../types';
 
 /**
  * 文件查询过滤参数

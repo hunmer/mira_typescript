@@ -32,7 +32,7 @@
     "include": [
         "./src/client/**/*",
         "./src/modules/**/*",
-        "./types.ts",
+        "src/types.ts",
         "./index.ts",
         "./examples/**/*"
     ],

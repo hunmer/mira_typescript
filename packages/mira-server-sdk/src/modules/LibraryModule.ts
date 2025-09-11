@@ -4,7 +4,7 @@ import {
     CreateLibraryRequest,
     UpdateLibraryRequest,
     BaseResponse,
-} from 'types';
+} from '../types';
 
 /**
  * 素材库模块

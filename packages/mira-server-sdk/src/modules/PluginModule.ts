@@ -4,7 +4,7 @@ import {
     PluginsByLibrary,
     InstallPluginRequest,
     BaseResponse,
-} from 'types';
+} from '../types';
 
 /**
  * 插件模块

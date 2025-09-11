@@ -1,7 +1,7 @@
 import { ILibraryServerData } from 'mira-storage-sqlite';
 import { MiraWebsocketServer } from './WebSocketServer';
 import { PluginRouteDefinition } from './ServerPlugin';
-import { MiraClient } from '../../mira-server-sdk';
+import { MiraClient } from 'mira-server-sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 

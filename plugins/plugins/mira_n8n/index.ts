@@ -39,7 +39,7 @@ class MiraN8N extends ServerPlugin {
         });
 
         const libraryId = dbService.getLibraryId();
-        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list', 'get', async (req, res) => {
+        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list', 'get', async (_req: any, res: { json: (arg0: { success: boolean; data: Record<string, WebhookConfig>; }) => void; }) => {
             res.json({
                 success: true,
                 data: this.configs.list
@@ -47,7 +47,7 @@ class MiraN8N extends ServerPlugin {
         });
 
         // 添加新的webhook配置
-        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list', 'post', async (req, res) => {
+        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list', 'post', async (req: { body: { title: any; events: any; token: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; error: string; }): void; new(): any; }; }; json: (arg0: { success: boolean; data: { title: string; events: string[]; token: string; id: string; }; }) => void; }) => {
             try {
                 const { title, events, token } = req.body;
                 if (!title || !events || !token) {
@@ -77,7 +77,7 @@ class MiraN8N extends ServerPlugin {
         });
 
         // 删除webhook配置
-        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list/:id', 'delete', async (req, res) => {
+        this.httpServer.httpRouter.registerRounter(libraryId, '/n8n/list/:id', 'delete', async (req: { params: { id: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; error: string; }): void; new(): any; }; }; json: (arg0: { success: boolean; message: string; }) => void; }) => {
             try {
                 const { id } = req.params;
                 if (!this.configs.list[id]) {
@@ -115,7 +115,7 @@ class MiraN8N extends ServerPlugin {
         }
 
         this.initWss();
-        console.log('mira_n8n plugin initialized');
+        // console.log('mira_n8n plugin initialized');
     }
 
     private bindConfiguredEvents() {
@@ -131,7 +131,7 @@ class MiraN8N extends ServerPlugin {
         allEvents.forEach(eventName => {
             const eventId = this.eventManager!.subscribe(eventName, this.eventHandler.bind(this), 100);
             this.eventIds.push(eventId);
-            console.log(`Bound event: ${eventName}`);
+            // console.log(`Bound event: ${eventName}`);
         });
     }
 
@@ -151,21 +151,21 @@ class MiraN8N extends ServerPlugin {
     initWss() {
         this.wss = new ws.WebSocketServer({ port: this.configs.port });
 
-        this.wss.on('connection', (ws: ws.WebSocket, request) => {
+        this.wss.on('connection', (ws: ws.WebSocket, request: { url: any; headers: { host: any; }; }) => {
             const url = new URL(request.url ?? '', `ws://${request.headers.host}`);
             const token = url.searchParams.get('token');
 
-            console.log(`WebSocket connection attempt with token: ${token ? '***' : 'none'}`);
+            // console.log(`WebSocket connection attempt with token: ${token ? '***' : 'none'}`);
 
             // Token validation
             const validToken = this.validateToken(token);
             if (!validToken) {
-                console.log('WebSocket connection rejected: Invalid token');
+                // console.log('WebSocket connection rejected: Invalid token');
                 ws.close(1008, 'Invalid token');
                 return;
             }
 
-            console.log(`WebSocket connected with valid token for config: ${validToken.config.title}`);
+            // console.log(`WebSocket connected with valid token for config: ${validToken.config.title}`);
 
             // Store connection information
             (ws as any).tokenInfo = validToken;
@@ -185,10 +185,10 @@ class MiraN8N extends ServerPlugin {
                 source: 'mira_server'
             }));
 
-            ws.on('message', (message) => {
+            ws.on('message', (message: { toString: () => string; }) => {
                 try {
                     const data = JSON.parse(message.toString());
-                    console.log('Received message from client:', data);
+                    // console.log('Received message from client:', data);
 
                     // Handle ping/pong for keepalive
                     if (data.type === 'ping') {
@@ -198,7 +198,7 @@ class MiraN8N extends ServerPlugin {
                         }));
                     }
                 } catch (error) {
-                    console.error('Invalid JSON message from client:', error);
+                    // console.error('Invalid JSON message from client:', error);
                     ws.send(JSON.stringify({
                         eventName: 'error',
                         data: { message: 'Invalid JSON format' },
@@ -208,16 +208,16 @@ class MiraN8N extends ServerPlugin {
                 }
             });
 
-            ws.on('close', (code, reason) => {
-                console.log(`WebSocket connection closed: ${code} - ${reason}`);
+            ws.on('close', (code: any, reason: any) => {
+            // console.log(`WebSocket connection closed: ${code} - ${reason}`);
             });
 
-            ws.on('error', (error) => {
-                console.error('WebSocket error:', error);
+            ws.on('error', (error: any) => {
+            // console.error('WebSocket error:', error);
             });
         });
 
-        console.log(`Mira N8N WebSocket server listening on port ${this.configs.port}`);
+        // console.log(`Mira N8N WebSocket server listening on port ${this.configs.port}`);
     }
 
     private validateToken(token: string | null): { id: string, config: WebhookConfig } | null {
@@ -233,7 +233,7 @@ class MiraN8N extends ServerPlugin {
     }
 
     private async eventHandler(event: any): Promise<boolean> {
-        console.log('Event triggered:', event);
+        // console.log('Event triggered:', event);
 
         // Create standardized message format
         const message = {
@@ -252,9 +252,9 @@ class MiraN8N extends ServerPlugin {
                     if (tokenInfo && this.shouldSendEvent(tokenInfo.config, event.eventName)) {
                         try {
                             ws.send(JSON.stringify(message));
-                            console.log(`Sent event ${event.eventName} to client with token ${tokenInfo.id}`);
+                            // console.log(`Sent event ${event.eventName} to client with token ${tokenInfo.id}`);
                         } catch (error) {
-                            console.error('Error sending message to WebSocket client:', error);
+                            // console.error('Error sending message to WebSocket client:', error);
                         }
                     }
                 }

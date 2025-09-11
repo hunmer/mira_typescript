@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ClientConfig, ErrorResponse, BaseResponse } from 'types';
+import { ClientConfig, ErrorResponse, BaseResponse } from '../types';
 
 /**
  * HTTP 客户端基础类

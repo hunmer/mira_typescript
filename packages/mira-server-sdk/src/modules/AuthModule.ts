@@ -7,7 +7,7 @@ import {
     UserInfo,
     VerifyResponse,
     BaseResponse,
-} from 'types';
+} from '../types';
 
 /**
  * 认证模块
