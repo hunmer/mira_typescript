@@ -187,7 +187,7 @@ export class PluginRoutes {
         // 安装插件（从npm）
         this.router.post('/install', async (req: Request, res: Response) => {
             try {
-                const { name, version = 'latest', libraryId } = req.body;
+                const { name, version = 'latest', libraryId, proxy } = req.body;
 
                 if (!name) {
                     return res.status(400).json({ error: 'Plugin name is required' });
@@ -213,8 +213,12 @@ export class PluginRoutes {
                 const packageName = version === 'latest' ? name : `${name}@${version}`;
 
                 // 支持通过环境变量设置npm代理
+                
                 const env = { ...process.env };
-                if (!env.HTTP_PROXY && !env.HTTPS_PROXY) {
+                if(proxy){
+                    env.HTTP_PROXY = proxy;
+                    env.HTTPS_PROXY = proxy;
+                } else if (!env.HTTP_PROXY && !env.HTTPS_PROXY) {
                     env.HTTP_PROXY = 'http://127.0.0.1:7890';
                     env.HTTPS_PROXY = 'http://127.0.0.1:7890';
                 }
