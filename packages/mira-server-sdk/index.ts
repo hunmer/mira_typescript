@@ -19,6 +19,7 @@
  */
 
 export { MiraClient } from './client/MiraClient';
+export { WebSocketClient } from './client/WebSocketClient';
 export { AuthModule } from './modules/AuthModule';
 export { UserModule } from './modules/UserModule';
 export { LibraryModule } from './modules/LibraryModule';
@@ -27,6 +28,9 @@ export { FileModule } from './modules/FileModule';
 export { DatabaseModule } from './modules/DatabaseModule';
 export { DeviceModule } from './modules/DeviceModule';
 export { SystemModule } from './modules/SystemModule';
+export { TagModule } from './modules/TagModule';
+export { FolderModule } from './modules/FolderModule';
 
 // 导出类型定义
 export * from './types';
+export type { WebSocketOptions, WebSocketMessage, WebSocketEventCallback } from './types';

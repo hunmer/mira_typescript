@@ -11,6 +11,7 @@
 - 🛡️ **错误处理**: 统一的错误处理和恢复机制
 - 📊 **实时监控**: 支持服务器状态实时监控
 - 🔧 **高度可配置**: 灵活的配置选项
+- 🌐 **WebSocket 支持**: 实时接收服务端推送的事件和数据
 
 ## 安装
 
@@ -207,6 +208,64 @@ await client.files().delete('library-id', 'file-id');
 // 批量删除
 await client.files().deleteMultiple('library-id', ['id1', 'id2', 'id3']);
 ```
+
+### WebSocket 模块
+
+实时接收服务端推送的各种数据和事件。
+
+```typescript
+// 创建 WebSocket 客户端
+const wsClient = client.websocket(8082, {
+  clientId: 'my-client',
+  libraryId: 'my-library',
+  reconnect: true,
+  reconnectInterval: 5000,
+  maxReconnectAttempts: 10
+});
+
+// 绑定事件监听器
+wsClient.bind('dialog', (data) => {
+  console.log('收到对话框事件:', data);
+});
+
+wsClient.bind('fileUpload', (data) => {
+  console.log('文件上传进度:', data);
+});
+
+wsClient.bind('plugin', (data) => {
+  console.log('插件事件:', data);
+});
+
+// 监听服务器的所有返回消息
+wsClient.onData((data) => {
+  console.log('服务器返回数据:', data);
+});
+
+// 监听连接状态
+wsClient.on('connected', () => {
+  console.log('WebSocket 已连接');
+});
+
+wsClient.on('disconnected', (data) => {
+  console.log('WebSocket 已断开:', data);
+});
+
+// 启动连接
+await wsClient.start();
+
+// 发送消息
+wsClient.sendPluginMessage('test', {
+  message: 'Hello from client'
+});
+
+// 取消事件监听
+wsClient.unbind('dialog');
+
+// 关闭连接
+wsClient.stop();
+```
+
+查看 [WebSocket 使用指南](./WEBSOCKET_GUIDE.md) 获取详细文档。
 
 ### 数据库模块 (Database)
 
@@ -474,6 +533,93 @@ localStorage.setItem('mira-sdk-debug', 'true');
 // 或
 process.env.MIRA_SDK_DEBUG = 'true';
 ```
+
+## 新功能 (v1.0.2+)
+
+### 标签管理
+
+SDK 现在支持完整的标签管理功能：
+
+```typescript
+// 获取所有标签
+const tags = await client.tags().getAll(libraryId);
+
+// 创建标签
+const newTag = await client.tags().createTag(libraryId, '重要文档', 0xff0000);
+
+// 为文件添加标签
+await client.tags().addTagsToFile(libraryId, fileId, ['重要文档', '审核中']);
+
+// 获取文件的标签
+const fileTags = await client.tags().getFileTagList(libraryId, fileId);
+
+// 查询标签
+const foundTags = await client.tags().findByTitle(libraryId, '重要');
+```
+
+### 文件夹管理
+
+支持文件夹的创建、管理和文件关联：
+
+```typescript
+// 获取所有文件夹
+const folders = await client.folders().getAll(libraryId);
+
+// 创建文件夹
+const folder = await client.folders().createFolder(libraryId, '项目文档');
+
+// 创建子文件夹
+const subFolder = await client.folders().createFolder(libraryId, '设计文档', folder.data.id);
+
+// 将文件移动到文件夹
+await client.folders().moveFileToFolder(libraryId, fileId, folder.data.id);
+
+// 获取根文件夹
+const rootFolders = await client.folders().getRootFolders(libraryId);
+```
+
+### 增强的文件查询
+
+新增强大的文件查询和筛选功能：
+
+```typescript
+// 基础文件查询
+const files = await client.files().getAllFiles(libraryId);
+
+// 按标签筛选
+const taggedFiles = await client.files().getFilesByTags(libraryId, ['重要', '待审核']);
+
+// 按文件夹筛选
+const folderFiles = await client.files().getFilesByFolder(libraryId, folderId);
+
+// 按文件标题搜索
+const searchResults = await client.files().searchFilesByTitle(libraryId, 'document');
+
+// 按扩展名筛选
+const images = await client.files().getFilesByExtension(libraryId, '.jpg');
+
+// 按大小范围筛选
+const mediumFiles = await client.files().getFilesBySize(libraryId, 1024*1024, 10*1024*1024);
+
+// 复合条件查询
+const complexQuery = await client.files().getFiles({
+  libraryId,
+  filters: {
+    extension: '.jpg',
+    tags: ['重要'],
+    folder_id: folderId,
+    size_min: 100 * 1024,
+    limit: 10
+  }
+});
+
+// 分页查询
+const paginatedFiles = await client.files().getFilesPaginated(libraryId, 1, 20);
+```
+
+### 完整示例
+
+查看 `examples/tag-folder-example.ts` 获取完整的使用示例。
 
 ## 贡献
 

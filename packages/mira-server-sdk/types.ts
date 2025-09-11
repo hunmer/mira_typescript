@@ -184,6 +184,73 @@ export interface UploadResponse {
     results: UploadResult[];
 }
 
+// 标签相关类型
+export interface Tag {
+    id: number;
+    title: string;
+    color?: number;
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface TagQuery {
+    title?: string;
+    color?: number;
+    limit?: number;
+    offset?: number;
+}
+
+// 文件夹相关类型
+export interface Folder {
+    id: number;
+    title: string;
+    parent_id?: number;
+    path?: string;
+    color?: number;
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface FolderQuery {
+    title?: string;
+    parent_id?: number;
+    color?: number;
+    limit?: number;
+    offset?: number;
+}
+
+// 文件查询相关类型
+export interface FileFilters {
+    title?: string;
+    extension?: string;
+    tags?: string[];
+    folder_id?: number;
+    size_min?: number;
+    size_max?: number;
+    created_after?: string;
+    created_before?: string;
+    limit?: number;
+    offset?: number;
+}
+
+export interface FileData {
+    id: number;
+    title: string;
+    path: string;
+    size: number;
+    extension: string;
+    mime_type: string;
+    tags: string[];
+    folder_id: number | null;
+    hash?: string;
+    thumbnail_path?: string;
+    created_at: string;
+    updated_at: string;
+    imported_at: number;
+}
+
 // 数据库类型
 export interface DatabaseTable {
     name: string;
@@ -260,3 +327,24 @@ export interface UpdateUserRequest {
     realName?: string;
     avatar?: string;
 }
+
+// WebSocket 相关类型
+export interface WebSocketOptions {
+    clientId?: string;
+    libraryId?: string;
+    reconnect?: boolean;
+    reconnectInterval?: number;
+    maxReconnectAttempts?: number;
+    headers?: Record<string, string>;
+}
+
+export interface WebSocketMessage {
+    eventName: string;
+    data: Record<string, any>;
+    requestId?: string;
+    action?: string;
+    payload?: any;
+    libraryId?: string;
+}
+
+export type WebSocketEventCallback = (data: any) => void;

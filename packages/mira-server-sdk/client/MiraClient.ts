@@ -1,4 +1,5 @@
 import { HttpClient } from './HttpClient';
+import { WebSocketClient } from './WebSocketClient';
 import { AuthModule } from '../modules/AuthModule';
 import { UserModule } from '../modules/UserModule';
 import { LibraryModule } from '../modules/LibraryModule';
@@ -7,7 +8,9 @@ import { FileModule } from '../modules/FileModule';
 import { DatabaseModule } from '../modules/DatabaseModule';
 import { DeviceModule } from '../modules/DeviceModule';
 import { SystemModule } from '../modules/SystemModule';
-import { ClientConfig } from '../types';
+import { TagModule } from '../modules/TagModule';
+import { FolderModule } from '../modules/FolderModule';
+import { ClientConfig, WebSocketOptions } from '../types';
 
 /**
  * Mira Client - 主客户端类
@@ -40,6 +43,8 @@ export class MiraClient {
     private _database: DatabaseModule;
     private _devices: DeviceModule;
     private _system: SystemModule;
+    private _tags: TagModule;
+    private _folders: FolderModule;
 
     constructor(baseURL: string, config?: Partial<ClientConfig>) {
         const clientConfig: ClientConfig = {
@@ -59,6 +64,8 @@ export class MiraClient {
         this._database = new DatabaseModule(this.httpClient);
         this._devices = new DeviceModule(this.httpClient);
         this._system = new SystemModule(this.httpClient);
+        this._tags = new TagModule(this.httpClient);
+        this._folders = new FolderModule(this.httpClient);
     }
 
     /**
@@ -123,6 +130,32 @@ export class MiraClient {
      */
     system(): SystemModule {
         return this._system;
+    }
+
+    /**
+     * 获取标签模块
+     * @returns TagModule
+     */
+    tags(): TagModule {
+        return this._tags;
+    }
+
+    /**
+     * 获取文件夹模块
+     * @returns FolderModule
+     */
+    folders(): FolderModule {
+        return this._folders;
+    }
+
+    /**
+     * 创建WebSocket客户端
+     * @param port WebSocket服务器端口
+     * @param options WebSocket连接选项
+     * @returns WebSocketClient
+     */
+    websocket(port: number, options?: WebSocketOptions): WebSocketClient {
+        return new WebSocketClient(port, options);
     }
 
     /**

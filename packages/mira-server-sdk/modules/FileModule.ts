@@ -6,6 +6,55 @@ import {
 } from '../types';
 
 /**
+ * 文件查询过滤参数
+ */
+export interface FileFilters {
+    title?: string;
+    extension?: string;
+    tags?: string[];
+    folder_id?: number;
+    size_min?: number;
+    size_max?: number;
+    created_after?: string;
+    created_before?: string;
+    limit?: number;
+    offset?: number;
+}
+
+/**
+ * 获取文件列表请求
+ */
+export interface GetFilesRequest {
+    libraryId: string;
+    filters?: FileFilters;
+    isUrlFile?: boolean;
+}
+
+/**
+ * 文件数据类型
+ */
+export interface FileData {
+    id: number;
+    title: string;
+    path: string;
+    size: number;
+    extension: string;
+    mime_type: string;
+    tags: string[];
+    folder_id: number | null;
+    hash?: string;
+    thumbnail_path?: string;
+    created_at: string;
+    updated_at: string;
+    imported_at: number;
+}
+
+/**
+ * 文件列表响应
+ */
+export interface FilesListResponse extends BaseResponse<FileData[]> {}
+
+/**
  * 文件模块
  * 处理文件上传、下载、删除等操作
  */
@@ -212,5 +261,125 @@ export class FileModule {
      */
     async deleteMultiple(libraryId: string, fileIds: string[]): Promise<BaseResponse[]> {
         return await Promise.all(fileIds.map(fileId => this.delete(libraryId, fileId)));
+    }
+
+    /**
+     * 获取文件列表（支持过滤）
+     * @param request 获取文件请求
+     * @returns Promise<FileData[]>
+     */
+    async getFiles(request: GetFilesRequest): Promise<FileData[]> {
+        return await this.httpClient.post<FileData[]>('/api/files/getFiles', request);
+    }
+
+    /**
+     * 便捷方法：获取所有文件
+     * @param libraryId 素材库ID
+     * @param isUrlFile 是否为URL文件
+     * @returns Promise<FilesListResponse>
+     */
+    async getAllFiles(libraryId: string, isUrlFile?: boolean): Promise<FileData[]> {
+        return await this.getFiles({ libraryId, isUrlFile });
+    }
+
+    /**
+     * 便捷方法：按标签筛选文件
+     * @param libraryId 素材库ID
+     * @param tags 标签数组
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesByTags(libraryId: string, tags: string[]): Promise<FileData[]> {
+        return await this.getFiles({ libraryId, filters: { tags } });
+    }
+
+    /**
+     * 便捷方法：按文件夹筛选文件
+     * @param libraryId 素材库ID
+     * @param folderId 文件夹ID
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesByFolder(libraryId: string, folderId: number): Promise<FileData[]> {
+        return await this.getFiles({ libraryId, filters: { folder_id: folderId } });
+    }
+
+    /**
+     * 便捷方法：按文件标题搜索文件
+     * @param libraryId 素材库ID
+     * @param title 文件标题（支持模糊搜索）
+     * @returns Promise<FilesListResponse>
+     */
+    async searchFilesByTitle(libraryId: string, title: string): Promise<FileData[]> {
+        return await this.getFiles({ libraryId, filters: { title } });
+    }
+
+    /**
+     * 便捷方法：按扩展名筛选文件
+     * @param libraryId 素材库ID
+     * @param extension 文件扩展名
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesByExtension(libraryId: string, extension: string): Promise<FileData[]> {
+        return await this.getFiles({ libraryId, filters: { extension } });
+    }
+
+    /**
+     * 便捷方法：按大小范围筛选文件
+     * @param libraryId 素材库ID
+     * @param minSize 最小大小（字节）
+     * @param maxSize 最大大小（字节）
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesBySize(
+        libraryId: string,
+        minSize?: number,
+        maxSize?: number
+    ): Promise<FileData[]> {
+        return await this.getFiles({
+            libraryId,
+            filters: { size_min: minSize, size_max: maxSize }
+        });
+    }
+
+    /**
+     * 便捷方法：按创建时间范围筛选文件
+     * @param libraryId 素材库ID
+     * @param afterDate 开始日期（ISO字符串）
+     * @param beforeDate 结束日期（ISO字符串）
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesByDateRange(
+        libraryId: string,
+        afterDate?: string,
+        beforeDate?: string
+    ): Promise<FileData[]> {
+        return await this.getFiles({
+            libraryId,
+            filters: { created_after: afterDate, created_before: beforeDate }
+        });
+    }
+
+    /**
+     * 便捷方法：分页获取文件
+     * @param libraryId 素材库ID
+     * @param page 页码（从1开始）
+     * @param pageSize 每页大小
+     * @param filters 其他过滤条件
+     * @returns Promise<FilesListResponse>
+     */
+    async getFilesPaginated(
+        libraryId: string,
+        page: number = 1,
+        pageSize: number = 20,
+        filters?: Omit<FileFilters, 'limit' | 'offset'>
+    ): Promise<FileData[]> {
+        const offset = (page - 1) * pageSize;
+        return await this.getFiles({
+            libraryId,
+            filters: {
+                ...filters,
+                limit: pageSize,
+                offset
+            }
+        });
     }
 }

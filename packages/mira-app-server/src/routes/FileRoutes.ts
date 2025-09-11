@@ -427,6 +427,52 @@ export class FileRoutes {
                 });
             }
         });
+
+        // 获取文件列表 - 支持过滤参数
+        this.router.post('/getFiles', async (req: Request, res: Response) => {
+            try {
+                const { libraryId, filters = {}, isUrlFile = false } = req.body;
+                
+                if (!libraryId) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: 'Library ID is required',
+                        data: null
+                    });
+                }
+
+                const obj = this.backend.libraries!.getLibrary(libraryId);
+                if (!obj) {
+                    return res.status(404).json({
+                        code: 404,
+                        message: 'Library not found',
+                        data: null
+                    });
+                }
+
+                const config = obj.libraryService.config;
+                const useHttpFile = config && config['useHttpFile'] ? true : false;
+                
+                const files = await obj.libraryService.getFiles({
+                    filters: filters,
+                    isUrlFile: isUrlFile || useHttpFile
+                });
+
+                res.json({
+                    code: 0,
+                    message: 'Success',
+                    data: files
+                });
+
+            } catch (error) {
+                console.error('Error getting files:', error);
+                res.status(500).json({
+                    code: 500,
+                    message: 'Internal server error while getting files',
+                    data: null
+                });
+            }
+        });
     }
 
     private async parseLibraryItem(req: Request, res: Response): Promise<{ library: any, item: any } | void> {

@@ -804,8 +804,7 @@ export class PluginRoutes {
                     try {
                         config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
                     } catch (error) {
-                        console.error('Error parsing config file:', error);
-                        return res.status(500).json({ error: 'Invalid config file format' });
+                        res.json({});
                     }
                 }
 

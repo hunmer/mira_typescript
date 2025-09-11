@@ -13,6 +13,8 @@ import { PluginRoutes } from './routes/PluginRoutes';
 import { DatabaseRoutes } from './routes/DatabaseRoutes';
 import { FileRoutes } from './routes/FileRoutes';
 import { DeviceRoutes } from './routes/DeviceRoutes';
+import { TagRouter } from './routes/TagRouter';
+import { FolderRouter } from './routes/FolderRouter';
 
 // HTTP请求日志中间件
 interface RequestLogData {
@@ -143,6 +145,8 @@ export class MiraHttpServer {
     databaseRoutes: DatabaseRoutes;
     fileRoutes: FileRoutes;
     deviceRoutes: DeviceRoutes;
+    tagRouter: TagRouter;
+    folderRouter: FolderRouter;
     adminsRouter: AdminsRouter;
     httpRouter: HttpRouter;
 
@@ -158,6 +162,8 @@ export class MiraHttpServer {
         this.databaseRoutes = new DatabaseRoutes(backend);
         this.fileRoutes = new FileRoutes(backend);
         this.deviceRoutes = new DeviceRoutes(backend);
+        this.tagRouter = new TagRouter(backend);
+        this.folderRouter = new FolderRouter(backend);
         this.httpRouter = new HttpRouter(backend);
 
         this.setupMiddleware();
@@ -230,6 +236,8 @@ export class MiraHttpServer {
         this.app.use('/api/database', this.databaseRoutes.getRouter());
         this.app.use('/api/files', this.fileRoutes.getRouter());
         this.app.use('/api/devices', this.deviceRoutes.getRouter());
+        this.app.use('/api/tags', this.tagRouter.getRouter());
+        this.app.use('/api/folders', this.folderRouter.getRouter());
 
         // 获取所有素材库的插件路由定义
         this.app.get('/api/plugin-routes', (req, res) => {

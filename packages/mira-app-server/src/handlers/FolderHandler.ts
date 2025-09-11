@@ -41,9 +41,13 @@ export class FolderHandler extends MessageHandler {
                     break;
                 case 'create':
                     result = await this.dbService.createFolder(data);
+                    this.server.broadcastPluginEvent('folder::created', { message: this.message, result, libraryId });
+                    this.server.broadcastLibraryEvent(libraryId, 'folder::created', { result, libraryId });
                     break;
                 case 'update':
                     result = await this.dbService.updateFolder(data.id, data);
+                    this.server.broadcastPluginEvent('folder::updated', { message: this.message, result, libraryId });
+                    this.server.broadcastLibraryEvent(libraryId, 'folder::updated', { result, libraryId });
                     break;
                 case 'delete':
                     var { id } = data;

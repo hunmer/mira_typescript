@@ -7,7 +7,7 @@
   },
   {
     "name": "mira_n8n",
-    "enabled": true,
+    "enabled": false,
     "path": "mira_n8n"
   },
   {
@@ -17,12 +17,12 @@
   },
   {
     "name": "mira_user",
-    "enabled": true,
+    "enabled": false,
     "path": "mira_user"
   },
   {
     "name": "upload_statistics",
-    "enabled": true,
+    "enabled": false,
     "path": "upload_statistics"
   }
 ]
