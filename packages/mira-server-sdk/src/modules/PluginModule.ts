@@ -1,10 +1,10 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     Plugin,
     PluginsByLibrary,
     InstallPluginRequest,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 插件模块

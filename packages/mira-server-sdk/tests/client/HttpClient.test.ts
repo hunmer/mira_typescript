@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import { HttpClient } from '../../client/HttpClient';
+import { HttpClient } from '../../src/client/HttpClient';
 
 // 模拟 axios
 jest.mock('axios');

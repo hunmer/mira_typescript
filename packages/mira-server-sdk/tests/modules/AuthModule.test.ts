@@ -2,12 +2,12 @@
  * AuthModule 测试
  */
 
-import { AuthModule } from '../../modules/AuthModule';
-import { HttpClient } from '../../client/HttpClient';
+import { AuthModule } from '../../src/modules/AuthModule';
+import { HttpClient } from '../../src/client/HttpClient';
 import { TestDataFactory } from '../helpers';
 
 // 模拟 HttpClient
-jest.mock('../../client/HttpClient');
+jest.mock('../../src/client/HttpClient');
 
 describe('AuthModule', () => {
     let authModule: AuthModule;

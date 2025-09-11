@@ -18,18 +18,18 @@
  * ```
  */
 
-export { MiraClient } from './client/MiraClient';
-export { WebSocketClient } from './client/WebSocketClient';
-export { AuthModule } from './modules/AuthModule';
-export { UserModule } from './modules/UserModule';
-export { LibraryModule } from './modules/LibraryModule';
-export { PluginModule } from './modules/PluginModule';
-export { FileModule } from './modules/FileModule';
-export { DatabaseModule } from './modules/DatabaseModule';
-export { DeviceModule } from './modules/DeviceModule';
-export { SystemModule } from './modules/SystemModule';
-export { TagModule } from './modules/TagModule';
-export { FolderModule } from './modules/FolderModule';
+export { MiraClient } from './src/client/MiraClient';
+export { WebSocketClient } from './src/client/WebSocketClient';
+export { AuthModule } from './src/modules/AuthModule';
+export { UserModule } from './src/modules/UserModule';
+export { LibraryModule } from './src/modules/LibraryModule';
+export { PluginModule } from './src/modules/PluginModule';
+export { FileModule } from './src/modules/FileModule';
+export { DatabaseModule } from './src/modules/DatabaseModule';
+export { DeviceModule } from './src/modules/DeviceModule';
+export { SystemModule } from './src/modules/SystemModule';
+export { TagModule } from './src/modules/TagModule';
+export { FolderModule } from './src/modules/FolderModule';
 
 // 导出类型定义
 export * from './types';

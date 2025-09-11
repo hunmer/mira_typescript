@@ -1,5 +1,5 @@
-import { HttpClient } from '../client/HttpClient';
-import { BaseResponse } from '../types';
+import { HttpClient } from 'src/client/HttpClient';
+import { BaseResponse } from 'types';
 
 /**
  * 标签数据类型
@@ -80,17 +80,17 @@ export interface GetFileTagsRequest {
 /**
  * 标签响应
  */
-export interface TagResponse extends BaseResponse<Tag> {}
+export interface TagResponse extends BaseResponse<Tag> { }
 
 /**
  * 标签列表响应
  */
-export interface TagListResponse extends BaseResponse<Tag[]> {}
+export interface TagListResponse extends BaseResponse<Tag[]> { }
 
 /**
  * 文件标签响应
  */
-export interface FileTagsResponse extends BaseResponse<{ tags: string[] }> {}
+export interface FileTagsResponse extends BaseResponse<{ tags: string[] }> { }
 
 /**
  * 文件标签设置响应
@@ -99,14 +99,14 @@ export interface SetFileTagsResponse extends BaseResponse<{
     fileId: number;
     tags: string[];
     result: boolean;
-}> {}
+}> { }
 
 /**
  * 标签模块
  * 处理标签的CRUD操作和文件标签关联
  */
 export class TagModule {
-    constructor(private httpClient: HttpClient) {}
+    constructor(private httpClient: HttpClient) { }
 
     /**
      * 获取所有标签

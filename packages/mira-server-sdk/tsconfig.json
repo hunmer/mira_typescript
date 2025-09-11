@@ -30,8 +30,8 @@
         }
     },
     "include": [
-        "./client/**/*",
-        "./modules/**/*",
+        "./src/client/**/*",
+        "./src/modules/**/*",
         "./types.ts",
         "./index.ts",
         "./examples/**/*"

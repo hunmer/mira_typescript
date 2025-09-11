@@ -1,5 +1,5 @@
-import { HttpClient } from '../client/HttpClient';
-import { BaseResponse } from '../types';
+import { HttpClient } from 'src/client/HttpClient';
+import { BaseResponse } from 'types';
 
 /**
  * 文件夹数据类型
@@ -85,17 +85,17 @@ export interface GetFileFolderRequest {
 /**
  * 文件夹响应
  */
-export interface FolderResponse extends BaseResponse<Folder> {}
+export interface FolderResponse extends BaseResponse<Folder> { }
 
 /**
  * 文件夹列表响应
  */
-export interface FolderListResponse extends BaseResponse<Folder[]> {}
+export interface FolderListResponse extends BaseResponse<Folder[]> { }
 
 /**
  * 文件文件夹响应
  */
-export interface FileFolderResponse extends BaseResponse<{ folder: number | null }> {}
+export interface FileFolderResponse extends BaseResponse<{ folder: number | null }> { }
 
 /**
  * 文件文件夹设置响应
@@ -104,14 +104,14 @@ export interface SetFileFolderResponse extends BaseResponse<{
     fileId: number;
     folder: number | null;
     result: boolean;
-}> {}
+}> { }
 
 /**
  * 文件夹模块
  * 处理文件夹的CRUD操作和文件文件夹关联
  */
 export class FolderModule {
-    constructor(private httpClient: HttpClient) {}
+    constructor(private httpClient: HttpClient) { }
 
     /**
      * 获取所有文件夹

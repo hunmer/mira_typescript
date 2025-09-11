@@ -1,4 +1,4 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     LoginRequest,
     LoginResponse,
@@ -7,7 +7,7 @@ import {
     UserInfo,
     VerifyResponse,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 认证模块

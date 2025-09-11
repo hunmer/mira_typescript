@@ -1,9 +1,9 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     UserInfo,
     UpdateUserRequest,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 用户模块

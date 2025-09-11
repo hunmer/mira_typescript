@@ -1,8 +1,8 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     DatabaseTable,
     TableColumn,
-} from '../types';
+} from 'types';
 
 /**
  * 数据库模块

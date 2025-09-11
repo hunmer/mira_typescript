@@ -1,5 +1,5 @@
-import { HttpClient } from '../client/HttpClient';
-import { HealthResponse } from '../types';
+import { HttpClient } from 'src/client/HttpClient';
+import { HealthResponse } from 'types';
 
 /**
  * 系统模块

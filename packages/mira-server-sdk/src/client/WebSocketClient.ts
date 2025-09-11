@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { WebSocketOptions, WebSocketMessage, WebSocketEventCallback } from '../types';
+import { WebSocketOptions, WebSocketMessage, WebSocketEventCallback } from 'types';
 
 // 使用require导入ws，因为模块导出可能有问题
 const WebSocket = require('ws');

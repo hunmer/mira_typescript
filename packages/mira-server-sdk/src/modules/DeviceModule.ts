@@ -1,4 +1,4 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     Device,
     DevicesResponse,
@@ -6,7 +6,7 @@ import {
     DisconnectDeviceRequest,
     SendMessageRequest,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 设备模块

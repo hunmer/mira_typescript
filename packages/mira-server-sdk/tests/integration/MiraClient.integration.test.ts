@@ -3,18 +3,18 @@
  * 测试完整的客户端功能和链式调用
  */
 
-import { MiraClient } from '../../client/MiraClient';
+import { MiraClient } from '../../src/client/MiraClient';
 
 // 模拟所有依赖
-jest.mock('../../client/HttpClient');
-jest.mock('../../modules/AuthModule');
-jest.mock('../../modules/UserModule');
-jest.mock('../../modules/LibraryModule');
-jest.mock('../../modules/PluginModule');
-jest.mock('../../modules/FileModule');
-jest.mock('../../modules/DatabaseModule');
-jest.mock('../../modules/DeviceModule');
-jest.mock('../../modules/SystemModule');
+jest.mock('../../src/client/HttpClient');
+jest.mock('../../src/modules/AuthModule');
+jest.mock('../../src/modules/UserModule');
+jest.mock('../../src/modules/LibraryModule');
+jest.mock('../../src/modules/PluginModule');
+jest.mock('../../src/modules/FileModule');
+jest.mock('../../src/modules/DatabaseModule');
+jest.mock('../../src/modules/DeviceModule');
+jest.mock('../../src/modules/SystemModule');
 
 describe('MiraClient 集成测试', () => {
     let client: MiraClient;

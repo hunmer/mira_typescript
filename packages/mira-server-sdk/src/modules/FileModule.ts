@@ -1,9 +1,9 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     UploadFileRequest,
     UploadResponse,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 文件查询过滤参数
@@ -52,7 +52,7 @@ export interface FileData {
 /**
  * 文件列表响应
  */
-export interface FilesListResponse extends BaseResponse<FileData[]> {}
+export interface FilesListResponse extends BaseResponse<FileData[]> { }
 
 /**
  * 文件模块

@@ -1,10 +1,10 @@
-import { HttpClient } from '../client/HttpClient';
+import { HttpClient } from 'src/client/HttpClient';
 import {
     Library,
     CreateLibraryRequest,
     UpdateLibraryRequest,
     BaseResponse,
-} from '../types';
+} from 'types';
 
 /**
  * 素材库模块
