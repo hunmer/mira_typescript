@@ -16,7 +16,7 @@
   "dependencies": {
     "mira-storage-sqlite": "^1.0.15",
     "mira-app-server": "^1.0.19",
-    "mira-server-sdk": "file:D:/mira_typescript/packages/mira-server-sdk/",
+    "mira-server-sdk": "^1.0.3",
     "mira-app-core": "^1.0.20"
   },
   "devDependencies": {
