@@ -8,7 +8,7 @@
             "DOM"
         ],
         "outDir": "./dist",
-        "rootDir": "./",
+        "rootDir": "./src",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -21,7 +21,7 @@
             "node",
             "jest"
         ],
-        "baseUrl": "./",
+        "baseUrl": "./src",
         "paths": {
             "*": [
                 "*",
@@ -33,7 +33,7 @@
         "./src/client/**/*",
         "./src/modules/**/*",
         "src/types.ts",
-        "./index.ts",
+        "src/index.ts",
         "./examples/**/*"
     ],
     "exclude": [

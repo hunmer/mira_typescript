@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "mira-storage-sqlite": "^1.0.16",
-    "mira-app-server": "^1.0.20",
-    "mira-server-sdk": "^1.0.4",
+    "mira-app-server": "^1.0.21",
+    "mira-server-sdk": "^1.0.5",
     "mira-app-core": "^1.0.21"
   },
   "devDependencies": {

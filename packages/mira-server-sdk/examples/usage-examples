@@ -3,7 +3,7 @@
  * 演示如何使用 Mira TypeScript SDK 进行各种操作
  */
 
-import { MiraClient } from '../index';
+import { MiraClient } from '../src/index';
 
 // 基础使用示例
 async function basicUsageExample() {

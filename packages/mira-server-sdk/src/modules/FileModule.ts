@@ -1,4 +1,4 @@
-import { HttpClient } from 'src/client/HttpClient';
+import { HttpClient } from '../client/HttpClient';
 import {
     UploadFileRequest,
     UploadResponse,

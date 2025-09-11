@@ -1,15 +1,15 @@
 import { HttpClient } from './HttpClient';
 import { WebSocketClient } from './WebSocketClient';
-import { AuthModule } from 'src/modules/AuthModule';
-import { UserModule } from 'src/modules/UserModule';
-import { LibraryModule } from 'src/modules/LibraryModule';
-import { PluginModule } from 'src/modules/PluginModule';
-import { FileModule } from 'src/modules/FileModule';
-import { DatabaseModule } from 'src/modules/DatabaseModule';
-import { DeviceModule } from 'src/modules/DeviceModule';
-import { SystemModule } from 'src/modules/SystemModule';
-import { TagModule } from 'src/modules/TagModule';
-import { FolderModule } from 'src/modules/FolderModule';
+import { AuthModule } from '../modules/AuthModule';
+import { UserModule } from '../modules/UserModule';
+import { LibraryModule } from '../modules/LibraryModule';
+import { PluginModule } from '../modules/PluginModule';
+import { FileModule } from '../modules/FileModule';
+import { DatabaseModule } from '../modules/DatabaseModule';
+import { DeviceModule } from '../modules/DeviceModule';
+import { SystemModule } from '../modules/SystemModule';
+import { TagModule } from '../modules/TagModule';
+import { FolderModule } from '../modules/FolderModule';
 import { ClientConfig, WebSocketOptions } from '../types';
 
 /**
