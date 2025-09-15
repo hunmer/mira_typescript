@@ -7,7 +7,7 @@ import { BaseResponse } from '../types';
 export interface Folder {
     id: number;
     title: string;
-    parent_id?: number;
+    parent_id?: number | undefined;
     path?: string;
     color?: number;
     description?: string;

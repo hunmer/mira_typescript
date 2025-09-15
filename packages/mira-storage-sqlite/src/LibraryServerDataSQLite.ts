@@ -316,16 +316,27 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
   async updateFolder(id: number, folderData: Record<string, any>): Promise<boolean> {
-    const result = await this.runSql(
-      'UPDATE folders SET title = ?, parent_id = ?, color = ?, icon = ? WHERE id = ?',
-      [
-        folderData.title,
-        folderData.parent_id,
-        folderData.color,
-        folderData.icon,
-        id,
-      ]
-    );
+    const fields: string[] = [];
+    const params: any[] = [];
+
+    const addField = (key: string, value: any) => {
+      if (folderData[key] !== undefined) {
+        fields.push(`${key} = ?`);
+        params.push(value);
+      }
+    };
+
+    addField('title', folderData.title);
+    addField('parent_id', folderData.parent_id);
+    addField('color', folderData.color);
+    addField('icon', folderData.icon);
+
+    if (fields.length === 0) return false;
+
+    const query = `UPDATE folders SET ${fields.join(', ')} WHERE id = ?`;
+    params.push(id);
+
+    const result = await this.runSql(query, params);
     return result.changes > 0;
   }
 
@@ -402,16 +413,27 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
   async updateTag(id: number, tagData: Record<string, any>): Promise<boolean> {
-    const result = await this.runSql(
-      'UPDATE tags SET title = ?, parent_id = ?, color = ?, icon = ? WHERE id = ?',
-      [
-        tagData.title,
-        tagData.parent_id,
-        tagData.color,
-        tagData.icon,
-        id,
-      ]
-    );
+    const fields: string[] = [];
+    const params: any[] = [];
+
+    const addField = (key: string, value: any) => {
+      if (tagData[key] !== undefined) {
+        fields.push(`${key} = ?`);
+        params.push(value);
+      }
+    };
+
+    addField('title', tagData.title);
+    addField('parent_id', tagData.parent_id);
+    addField('color', tagData.color);
+    addField('icon', tagData.icon);
+
+    if (fields.length === 0) return false;
+
+    const query = `UPDATE tags SET ${fields.join(', ')} WHERE id = ?`;
+    params.push(id);
+
+    const result = await this.runSql(query, params);
     return result.changes > 0;
   }
 
@@ -697,7 +719,10 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       }
 
       this.db.run(sql, params, function (err) {
-        if (err) reject(err);
+        if (err) {
+          console.error('Error executing SQL:', err);
+          reject(err);
+        }
         else resolve({ lastID: this.lastID, changes: this.changes });
       });
     });

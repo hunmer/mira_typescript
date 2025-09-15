@@ -7,6 +7,7 @@ import { BaseResponse } from '../types';
 export interface Tag {
     id: number;
     title: string;
+    parent_id?: number | undefined;
     color?: number;
     description?: string;
     createdAt?: string;
@@ -18,6 +19,7 @@ export interface Tag {
  */
 export interface TagQuery {
     title?: string;
+    parent_id?: number;
     color?: number;
     limit?: number;
     offset?: number;
@@ -29,6 +31,7 @@ export interface TagQuery {
 export interface CreateTagRequest {
     libraryId: string;
     title: string;
+    parent_id?: number;
     color?: number;
     description?: string;
 }
@@ -40,6 +43,7 @@ export interface UpdateTagRequest {
     libraryId: string;
     id: number;
     title?: string;
+    parent_id?: number;
     color?: number;
     description?: string;
 }
@@ -186,10 +190,11 @@ export class TagModule {
     async createTag(
         libraryId: string,
         title: string,
+        parentId?: number,
         color?: number,
         description?: string
     ): Promise<Tag> {
-        return await this.create({ libraryId, title, color, description });
+        return await this.create({ libraryId, title, parent_id: parentId, color, description });
     }
 
     /**
@@ -202,7 +207,7 @@ export class TagModule {
     async updateTag(
         libraryId: string,
         id: number,
-        updates: { title?: string; color?: number; description?: string }
+        updates: { title?: string; parent_id?: number; color?: number; description?: string }
     ): Promise<Tag> {
         return await this.update({ libraryId, id, ...updates });
     }
@@ -260,5 +265,24 @@ export class TagModule {
      */
     async findByColor(libraryId: string, color: number): Promise<Tag[]> {
         return await this.query({ libraryId, query: { color } });
+    }
+
+    /**
+     * 便捷方法：获取子标签
+     * @param libraryId 素材库ID
+     * @param parentId 父标签ID
+     * @returns Promise<Tag[]>
+     */
+    async getSubTags(libraryId: string, parentId: number): Promise<Tag[]> {
+        return await this.query({ libraryId, query: { parent_id: parentId } });
+    }
+
+    /**
+     * 便捷方法：获取根标签（没有父标签的标签）
+     * @param libraryId 素材库ID
+     * @returns Promise<Tag[]>
+     */
+    async getRootTags(libraryId: string): Promise<Tag[]> {
+        return await this.query({ libraryId, query: { parent_id: 0 } });
     }
 }
