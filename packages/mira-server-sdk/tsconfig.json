@@ -33,8 +33,7 @@
         "./src/client/**/*",
         "./src/modules/**/*",
         "src/types.ts",
-        "src/index.ts",
-        "./examples/**/*"
+        "src/index.ts"
     ],
     "exclude": [
         "node_modules",

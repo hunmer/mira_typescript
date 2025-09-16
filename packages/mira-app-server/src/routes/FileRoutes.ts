@@ -473,6 +473,61 @@ export class FileRoutes {
                 });
             }
         });
+
+        // 获取单个文件信息
+        this.router.post('/getFile', async (req: Request, res: Response) => {
+            try {
+                const { libraryId, fileId } = req.body;
+                
+                if (!libraryId) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: 'Library ID is required',
+                        data: null
+                    });
+                }
+
+                if (!fileId) {
+                    return res.status(400).json({
+                        code: 400,
+                        message: 'File ID is required',
+                        data: null
+                    });
+                }
+
+                const obj = this.backend.libraries!.getLibrary(libraryId);
+                if (!obj) {
+                    return res.status(404).json({
+                        code: 404,
+                        message: 'Library not found',
+                        data: null
+                    });
+                }
+
+                const file = await obj.libraryService.getFile(parseInt(fileId));
+                if (!file) {
+                    return res.status(404).json({
+                        code: 404,
+                        message: 'File not found',
+                        data: null
+                    });
+                }
+
+                res.json({
+                    code: 0,
+                    message: 'Success',
+                    data: file
+                });
+
+            } catch (error) {
+                console.error('Error getting file:', error);
+                res.status(500).json({
+                    code: 500,
+                    message: 'Internal server error while getting file',
+                    data: null
+                });
+            }
+        });
     }
 
     private async parseLibraryItem(req: Request, res: Response): Promise<{ library: any, item: any } | void> {

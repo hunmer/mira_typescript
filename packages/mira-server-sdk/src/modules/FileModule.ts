@@ -273,6 +273,19 @@ export class FileModule {
     }
 
     /**
+     * 获取单个文件信息
+     * @param libraryId 素材库ID
+     * @param fileId 文件ID
+     * @returns Promise<FileData>
+     */
+    async getFile(libraryId: string, fileId: string | number): Promise<FileData> {
+        return await this.httpClient.post<FileData>('/api/files/getFile', {
+            libraryId,
+            fileId: fileId.toString()
+        });
+    }
+
+    /**
      * 便捷方法：获取所有文件
      * @param libraryId 素材库ID
      * @param isUrlFile 是否为URL文件
