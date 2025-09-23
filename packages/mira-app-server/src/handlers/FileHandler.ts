@@ -23,10 +23,9 @@ export class FileHandler extends MessageHandler {
             let result;
             switch (action) {
                 case 'read':
-                    const config = this.dbService.config;
                     result = await this.dbService.getFiles({
                         filters: data?.query ?? {},
-                        isUrlFile: config && config['useHttpFile'] ? true : false
+                        isUrlFile: this.dbService.useHttpFile,
                     });
                     break;
                 case 'create':

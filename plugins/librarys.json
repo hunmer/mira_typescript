@@ -8,13 +8,10 @@
     "icon": "default",
     "customFields": {
       "path": "D:/test33422",
-      "enableHash": false
-    },
-    "serverURL": "http://localhost",
-    "serverPort": 8081,
-    "createdAt": "2025-08-15T06:23:33.113Z",
-    "updatedAt": "2025-08-15T06:23:33.113Z",
-    "status": "active",
-    "pluginsDir": "D:/mira_typescript/plugins"
+      "enableHash": false,
+      "useHttpFile": true,
+      "serverURL": "http://127.0.0.1",
+      "serverPort": "8081"
+    }
   }
 ]

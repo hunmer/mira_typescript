@@ -450,12 +450,9 @@ export class FileRoutes {
                     });
                 }
 
-                const config = obj.libraryService.config;
-                const useHttpFile = config && config['useHttpFile'] ? true : false;
-                
                 const files = await obj.libraryService.getFiles({
                     filters: filters,
-                    isUrlFile: isUrlFile || useHttpFile
+                    isUrlFile: isUrlFile || obj.libraryService.useHttpFile,
                 });
 
                 res.json({

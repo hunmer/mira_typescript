@@ -6,11 +6,15 @@ import * as fs from 'fs';
 export class LibraryServerDataSQLite implements ILibraryServerData {
   private db: Database | null = null;
   private inTransaction = false;
-  private enableHash: boolean;
+  readonly enableHash: boolean;
+  readonly useHttpFile: boolean;
+  readonly customFields: Record<string, any>;
   readonly config: Record<string, any>;
 
   constructor(config: Record<string, any>, opts: any) {
     this.config = config;
+    this.customFields = config.customFields || {};
+    this.useHttpFile = config.customFields?.useHttpFile ?? false;
     this.enableHash = config.customFields?.enableHash ?? false;
   }
 
@@ -615,7 +619,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
   }
 
   getPublicURL(url: string): string {
-    return `${this.config['serverURL']}:${this.config['serverPort']}/${url}`;
+    return `${this.customFields['serverURL']}:${this.customFields['serverPort']}/${url}`;
   }
 
   async getItemFilePath(item: Record<string, any>, options?: { isUrlFile: boolean }): Promise<string> {
@@ -778,6 +782,7 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
       }
       return {
         ...file,
+        folder_name: await this.getFolderName(file.folder_id),
         custom_fields: customFields,
         thumb: await this.getItemThumbPath(file, { isUrlFile }),
         path: await this.getItemFilePath(file, { isUrlFile }),
