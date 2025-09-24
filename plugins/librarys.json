@@ -8,7 +8,9 @@
     "icon": "default",
     "customFields": {
       "path": "/Users/Zhuanz/test_library",
-      "enableHash": false
+      "enableHash": false,
+      "serverURL": "http://127.0.0.1",
+      "serverPort": "8081"
     },
     "createdAt": "2025-08-15T06:23:33.113Z",
     "updatedAt": "2025-08-15T06:23:33.113Z",
