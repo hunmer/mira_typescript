@@ -71,7 +71,7 @@ export class FileRoutes {
             // 如果是更新操作且没有文件，则只更新元数据
             if (isUpdateOperation && (!files || !files.length)) {
                 try {
-                    const { tags, folder_id } = payload.data || {};
+                    const { tags, folder_id } = payload?.data || {};
                     const updateData: Record<string, any> = {
                         tags: JSON.stringify(tags || []),
                         folder_id: folder_id || existingFile.folder_id,
@@ -139,7 +139,7 @@ export class FileRoutes {
                     try {
                         // 生成唯一文件名并保存文件
                         const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-                        const { tags, folder_id } = payload.data || {}
+                        const { tags, folder_id } = payload?.data || {}
 
                         let result;
 
@@ -432,7 +432,7 @@ export class FileRoutes {
         this.router.post('/getFiles', async (req: Request, res: Response) => {
             try {
                 const { libraryId, filters = {}, isUrlFile = false } = req.body;
-                
+
                 if (!libraryId) {
                     return res.status(400).json({
                         code: 400,
@@ -475,7 +475,7 @@ export class FileRoutes {
         this.router.post('/getFile', async (req: Request, res: Response) => {
             try {
                 const { libraryId, fileId } = req.body;
-                
+
                 if (!libraryId) {
                     return res.status(400).json({
                         code: 400,

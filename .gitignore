@@ -8,3 +8,4 @@ packages/mira-app-server/data/
 packages/mira-server/mira_server.tar
 plugins/users.db
 plugins/users.db
+plugins/users.db
