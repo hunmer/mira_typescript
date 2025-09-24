@@ -6,17 +6,42 @@ const path = require('path');
 // Load configuration from external file
 let config;
 try {
-  const configPath = path.resolve('dependency-switch-config.json');
-  const configContent = fs.readFileSync(configPath, 'utf8');
+  // Determine system-specific config file name
+  const platform = process.platform;
+  const systemSuffix = platform === 'win32' ? 'windows' : (platform === 'darwin' ? 'macos' : 'linux');
+  const configFileName = `dependency-switch-config-${systemSuffix}.json`;
+  const configPath = path.resolve(configFileName);
+
+  // Fall back to original filename if system-specific file doesn't exist
+  const fallbackConfigPath = path.resolve('dependency-switch-config.json');
+  const finalConfigPath = fs.existsSync(configPath) ? configPath : fallbackConfigPath;
+
+  const configContent = fs.readFileSync(finalConfigPath, 'utf8');
   config = JSON.parse(configContent);
+  console.log(`📋 Using configuration file: ${path.basename(finalConfigPath)}`);
 } catch (error) {
   console.error('❌ Error loading configuration file:', error.message);
-  console.error('Make sure dependency-switch-config.json exists in the current directory');
+  console.error('Make sure dependency-switch-config.json or system-specific config file exists in the current directory');
   process.exit(1);
 }
 
 const PACKAGE_MAPPINGS = config.packageMappings;
 const TARGET_FILES = config.targetFiles;
+
+/**
+ * Check if a package is enabled
+ * @param {string} packageName - Name of the package
+ * @returns {boolean} True if package is enabled, false otherwise
+ */
+function isPackageEnabled(packageName) {
+  if (!PACKAGE_MAPPINGS[packageName]) {
+    return false;
+  }
+
+  const mapping = PACKAGE_MAPPINGS[packageName];
+  // If enable is not specified, default to true for backward compatibility
+  return mapping.enable !== false;
+}
 
 /**
  * Display usage information
@@ -58,6 +83,7 @@ Examples:
 Configuration:
 The script uses package mappings from dependency-switch-config.json
 Version information is read directly from each package's package.json file
+Packages with "enable": false will be skipped for all operations
 `);
 }
 
@@ -108,7 +134,8 @@ function listPackageOptions(targetPackages) {
       const mapping = PACKAGE_MAPPINGS[packageName];
       const currentVersion = getCurrentVersion(packageName);
 
-      console.log(`📦 ${packageName}:`);
+      const isEnabled = isPackageEnabled(packageName);
+      console.log(`📦 ${packageName} ${isEnabled ? '✅' : '❌ (disabled)'}:`);
 
       console.log('  Current version:');
       if (currentVersion) {
@@ -356,15 +383,23 @@ function incrementVersion(version, bumpType = 'patch') {
  */
 function updateConfigurationFile(packageName, newVersion, dryRun = false) {
   try {
-    const configPath = path.resolve('dependency-switch-config.json');
+    // Determine system-specific config file name
+    const platform = process.platform;
+    const systemSuffix = platform === 'win32' ? 'windows' : (platform === 'darwin' ? 'macos' : 'linux');
+    const configFileName = `dependency-switch-config-${systemSuffix}.json`;
+    const configPath = path.resolve(configFileName);
+
+    // Fall back to original filename if system-specific file doesn't exist
+    const fallbackConfigPath = path.resolve('dependency-switch-config.json');
+    const finalConfigPath = fs.existsSync(configPath) ? configPath : fallbackConfigPath;
 
     if (dryRun) {
-      console.log(`   📋 Would update configuration file defaultOnline to: ${newVersion}`);
+      console.log(`   📋 Would update configuration file ${path.basename(finalConfigPath)} defaultOnline to: ${newVersion}`);
       return;
     }
 
     // Read current config
-    const configContent = fs.readFileSync(configPath, 'utf8');
+    const configContent = fs.readFileSync(finalConfigPath, 'utf8');
     const config = JSON.parse(configContent);
 
     if (config.packageMappings[packageName]) {
@@ -372,8 +407,8 @@ function updateConfigurationFile(packageName, newVersion, dryRun = false) {
       config.packageMappings[packageName].defaultOnline = newVersion;
 
       // Write updated config back to file
-      fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-      console.log(`   ✅ Updated configuration file defaultOnline to: ${newVersion}`);
+      fs.writeFileSync(finalConfigPath, JSON.stringify(config, null, 2) + '\n');
+      console.log(`   ✅ Updated configuration file ${path.basename(finalConfigPath)} defaultOnline to: ${newVersion}`);
     } else {
       console.warn(`   ⚠️  Package ${packageName} not found in configuration`);
     }
@@ -626,15 +661,23 @@ async function main() {
 
   // Determine which packages to work with
   const specifiedPackages = parsed.packages;
-  const targetPackages = specifiedPackages.length > 0
+  let candidatePackages = specifiedPackages.length > 0
     ? specifiedPackages.filter(pkg => PACKAGE_MAPPINGS[pkg])
     : Object.keys(PACKAGE_MAPPINGS);
+
+  // Filter out disabled packages
+  const targetPackages = candidatePackages.filter(pkg => isPackageEnabled(pkg));
+  const disabledPackages = candidatePackages.filter(pkg => !isPackageEnabled(pkg));
 
   if (specifiedPackages.length > 0) {
     const invalidPackages = specifiedPackages.filter(pkg => !PACKAGE_MAPPINGS[pkg]);
     if (invalidPackages.length > 0) {
       console.warn(`⚠️  Unknown packages (will be ignored): ${invalidPackages.join(', ')}`);
     }
+  }
+
+  if (disabledPackages.length > 0) {
+    console.warn(`⚠️  Disabled packages (will be skipped): ${disabledPackages.join(', ')}`);
   }
 
   if (targetPackages.length === 0) {
@@ -711,6 +754,7 @@ module.exports = {
   updateConfigurationFile,
   parseArguments,
   getCurrentVersion,
+  isPackageEnabled,
   PACKAGE_MAPPINGS,
   TARGET_FILES
 };

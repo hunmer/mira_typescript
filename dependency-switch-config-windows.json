@@ -58,5 +58,5 @@
     "packages/mira-server-sdk/package.json",
     "packages/mira-storage-sqlite/package.json"
   ],
-  "description": "Configuration for dependency switching script. Each package can have multiple online versions and offline paths to choose from."
+  "description": "Configuration for dependency switching script (Windows). Each package can have multiple online versions and offline paths to choose from."
 }
