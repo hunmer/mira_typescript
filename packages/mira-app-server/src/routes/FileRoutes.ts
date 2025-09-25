@@ -289,7 +289,7 @@ export class FileRoutes {
             }
         });
 
-        // 获取文件内容
+        // 获取文件内容 - 支持 Range 请求
         this.router.get('/file/:libraryId/:id', async (req: Request, res: Response) => {
             const ret = await this.parseLibraryItem(req, res);
             if (ret) {
@@ -303,23 +303,81 @@ export class FileRoutes {
 
                 // 获取文件大小
                 const stats = fs.statSync(filePath);
-
-                // 设置响应头
-                res.setHeader('Content-Type', contentType);
-                res.setHeader('Content-Length', stats.size);
-                res.setHeader('Cache-Control', 'public, max-age=3600');
+                const fileSize = stats.size;
 
                 // 添加文件名到响应头
                 const fileName = ret.item.name || path.basename(filePath);
-                res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
                 res.setHeader('X-File-Name', encodeURIComponent(fileName));
 
-                // 确保以二进制方式传输
-                const stream = fs.createReadStream(filePath);
-                stream.pipe(res);
+                // 检查是否为 Range 请求
+                const range = req.headers.range;
 
-                // 记录传输信息
-                console.log(`File download: ${filePath}, size: ${stats.size}, contentType: ${contentType}`);
+                if (range) {
+                    // 处理 Range 请求
+                    // Processing Range request
+
+                    // 解析 Range 头: "bytes=start-end"
+                    const matches = range.match(/bytes=(\d*)-(\d*)/);
+                    if (!matches) {
+                        return res.status(416).send('Invalid Range header format');
+                    }
+
+                    const start = matches[1] ? parseInt(matches[1], 10) : 0;
+                    const end = matches[2] ? parseInt(matches[2], 10) : fileSize - 1;
+
+                    // 验证范围
+                    if (start >= fileSize || end >= fileSize || start > end) {
+                        res.setHeader('Content-Range', `bytes */${fileSize}`);
+                        return res.status(416).send('Range Not Satisfiable');
+                    }
+
+                    const chunkSize = (end - start) + 1;
+
+                    // 设置 206 Partial Content 响应头
+                    res.status(206);
+                    res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+                    res.setHeader('Accept-Ranges', 'bytes');
+                    res.setHeader('Content-Length', chunkSize);
+                    res.setHeader('Content-Type', contentType);
+                    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+                    // 创建指定范围的文件流
+                    const stream = fs.createReadStream(filePath, { start, end });
+
+                    // 处理流错误
+                    stream.on('error', (error) => {
+                        console.error('Stream error:', error);
+                        if (!res.headersSent) {
+                            res.status(500).send('Stream error');
+                        }
+                    });
+
+                    stream.pipe(res);
+
+                    // Range request served
+                } else {
+                    // 非 Range 请求，返回完整文件
+                    res.setHeader('Accept-Ranges', 'bytes');
+                    res.setHeader('Content-Type', contentType);
+                    res.setHeader('Content-Length', fileSize);
+                    res.setHeader('Cache-Control', 'public, max-age=3600');
+                    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+
+                    // 创建完整文件流
+                    const stream = fs.createReadStream(filePath);
+
+                    // 处理流错误
+                    stream.on('error', (error) => {
+                        console.error('Stream error:', error);
+                        if (!res.headersSent) {
+                            res.status(500).send('Stream error');
+                        }
+                    });
+
+                    stream.pipe(res);
+
+                    // Full file served
+                }
             }
         });
 
