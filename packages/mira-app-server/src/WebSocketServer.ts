@@ -138,6 +138,7 @@ export class MiraWebsocketServer {
         const data = payload.data || {};
         const recordType = payload.type;
         const exists = this.backend.libraries!.libraryExists(libraryId);
+        // console.log('WebSocket message received:', JSON.stringify({ action, libraryId, recordType, payload }, null, 2));
         if (!exists) {
             this.sendToWebsocket(ws, {
                 status: 'error',

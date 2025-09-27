@@ -41,7 +41,6 @@ function createHttpLoggerMiddleware() {
     return (req: express.Request, res: express.Response, next: express.NextFunction) => {
         const startTime = Date.now();
         const timestamp = new Date().toISOString();
-
         // 记录请求信息
         const requestData: RequestLogData = {
             method: req.method,
@@ -75,6 +74,7 @@ function createHttpLoggerMiddleware() {
         if (requestData.body && Object.keys(requestData.body).length > 0) {
             console.log(`📦 Request Body:`, JSON.stringify(requestData.body, null, 2));
         }
+        
 
         // 拦截响应
         const originalSend = res.send;

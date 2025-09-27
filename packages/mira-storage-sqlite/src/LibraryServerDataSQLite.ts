@@ -171,10 +171,10 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     const whereClauses: string[] = [];
     const params: any[] = [];
     const folderId = parseInt(filters.folder?.toString() || '0') || 0;
-    const tagIds = Array.isArray(filters.tags) ? filters.tags : [];
+    const tagIds = Array.isArray(filters.tags) ? filters.tags.map(id => id.toString()) : [];
     const limit = parseInt(filters.limit?.toString() || '100') || 100;
     const offset = parseInt(filters.offset?.toString() || '0') || 0;
-
+    console.log({filters})
     // 构建查询条件
     if (filters.recycled !== undefined) {
       whereClauses.push('recycled = ?');
@@ -235,9 +235,12 @@ export class LibraryServerDataSQLite implements ILibraryServerData {
     }
 
     if (tagIds.length > 0) {
+      // 检查tags字段中的JSON数组是否包含所有指定的tagIds
+      const tagPlaceholders = tagIds.map(() => '?').join(',');
       whereClauses.push(`(
-        SELECT COUNT(*) FROM json_each(tags) 
-        WHERE value IN (${tagIds.map(() => '?').join(',')})
+        SELECT COUNT(DISTINCT value)
+        FROM json_each(tags)
+        WHERE value IN (${tagPlaceholders})
       ) = ${tagIds.length}`);
       params.push(...tagIds);
     }
