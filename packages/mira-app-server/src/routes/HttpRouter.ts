@@ -164,7 +164,7 @@ export class HttpRouter {
           return res.status(500).json({ error: 'Plugin manager not available for this library' });
         }
 
-        const pluginDir = pluginManager.getPluginDir(pluginName);
+        const pluginDir = pluginManager.getPluginDistDir(pluginName);
         const fullFilePath = path.join(pluginDir, filePath);
 
         // 安全检查：确保文件路径在插件目录内
@@ -174,6 +174,8 @@ export class HttpRouter {
         if (!resolvedPath.startsWith(resolvedPluginDir)) {
           return res.status(403).json({ error: 'Access denied: path outside plugin directory' });
         }
+
+        console.log({ resolvedPath, filePath });
 
         // 检查文件是否存在
         if (!fs.existsSync(resolvedPath)) {

@@ -216,7 +216,7 @@
         methods: {
             // 获取库ID
             getLibraryId() {
-                const path = window.location.pathname;
+            const path = window.location.href;
                 const match = path.match(/\/mira\/library\/([^\/]+)/);
                 if (match) {
                     return match[1];

@@ -49,6 +49,10 @@ export class ServerPluginManager {
         return path.join(this.pluginsDir, pluginName);
     }
 
+    getPluginDistDir(pluginName: string): string {
+        return path.join(this.pluginsDir, 'node_modules', pluginName, 'dist');
+    }
+
     async loadPlugins(reload: boolean = false): Promise<void> {
         const config: PluginConfig[] = JSON.parse(
             fs.readFileSync(this.pluginsConfigPath, 'utf-8')

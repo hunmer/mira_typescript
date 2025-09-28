@@ -15,7 +15,7 @@
     "access": "public"
   },
   "dependencies": {
-    "mira-app-server": "^1.0.24",
+    "mira-app-server": "^1.0.25",
     "mira-storage-sqlite": "^1.0.20",
     "mira-app-core": "^1.0.24"
   },
